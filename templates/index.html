@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro</title>
+    <!-- Link para o CSS externo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>Controle Financeiro Mensal</header>
+	<div class="container">
+		<!-- Seleção do período -->
+		<div class="periodo-card">
+			<div class="periodo-container-horizontal">
+				<div class="meses-grid" id="mesesGrid">
+					<select id="anoSelecionado" class="btn-select btn-select-custom" onchange="trocarMes()">
+						<option value="2024">2024</option>
+						<option value="2025">2025</option>
+						<option value="2026">2026</option>
+					</select>
+					<button class="btn-mes" onclick="selecionarMes('Janeiro', this)">Jan</button>
+					<button class="btn-mes" onclick="selecionarMes('Fevereiro', this)">Fev</button>
+					<button class="btn-mes" onclick="selecionarMes('Março', this)">Mar</button>
+					<button class="btn-mes" onclick="selecionarMes('Abril', this)">Abr</button>
+					<button class="btn-mes" onclick="selecionarMes('Maio', this)">Mai</button>
+					<button class="btn-mes" onclick="selecionarMes('Junho', this)">Jun</button>
+					<button class="btn-mes" onclick="selecionarMes('Julho', this)">Jul</button>
+					<button class="btn-mes" onclick="selecionarMes('Agosto', this)">Ago</button>
+					<button class="btn-mes" onclick="selecionarMes('Setembro', this)">Set</button>
+					<button class="btn-mes" onclick="selecionarMes('Outubro', this)">Out</button>
+					<button class="btn-mes" onclick="selecionarMes('Novembro', this)">Nov</button>
+					<button class="btn-mes" onclick="selecionarMes('Dezembro', this)">Dez</button>
+					<button class="btn btn-hoje" id="btnMesAtual" onclick="irParaMesAtual()">Hoje</button>
+				</div>				
+			</div>
+		</div>
+
+		<!-- Resumo do mês -->
+		<div class="card">
+			<div class="dashboard-main-grid">
+				
+				<div class="coluna-esquerda">
+					<div class="bloco-superior-resumo col-content">
+						<div class="resultado-box">
+							<div class="resultado-item receitas">
+								<div class="resultado-label">Receitas</div>
+								<div class="resultado-valor" id="receitasBox">R$ 0,00</div>
+							</div>
+							<div class="resultado-item descontos">
+								<div class="resultado-label">Despesas</div>
+								<div class="resultado-valor" id="totalDespesasBox">R$ 0,00</div>
+							</div>
+							<div class="resultado-item liquido">
+								<div class="resultado-label">Saldo</div>
+								<div class="resultado-valor" id="saldoBox">R$ 0,00</div>
+							</div>
+							<div class="resultado-item investimento">
+								<div class="resultado-label">Investimentos</div>
+								<div class="resultado-valor" id="investimentosBox">R$ 0,00</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="bloco-inferior-barras col-content">
+						<div class="canvas-wrapper" style="width: 100%; height: 300px;">
+							<canvas id="graficoHistorico"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<div class="coluna-direita">
+					<div class="col-content h-100">
+						<h2 class="titulo-grafico">Distribuição por Categoria</h2>
+						
+						<div class="container-grafico-legenda">
+							
+							<div class="canvas-wrapper-pizza">
+								<canvas id="graficoCategorias"></canvas>
+							</div>
+							
+							<div class="legenda-tabela-container">
+								<table id="tabelaLegenda">
+									<thead>
+										<tr>
+											<th style="width: 10px;"></th> <th>Categoria</th>
+											<th style="text-align: right;">%</th>
+										</tr>
+									</thead>
+									<tbody>
+										</tbody>
+								</table>
+							</div>
+							
+						</div> 
+
+						<div class="paginacao-legenda" id="controlePaginacao" style="display: none;">
+							<button onclick="mudarPaginaLegenda(-1)" id="btnAntLegenda">❮</button>
+							<span id="infoPaginaLegenda">1 / 1</span>
+							<button onclick="mudarPaginaLegenda(1)" id="btnProxLegenda">❯</button>
+						</div>
+
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- Despesas -->
+		<div class="card">
+			<div class="flex-row">
+				<div class="col">
+					<h2 class="titulos-h2">Lançamentos Salário</h2>
+					<div class="col-content">
+						<div class="input-row-flex" style="margin-top:10px; width: 100%;">
+							<div class="input-col">
+								<label for="salarioBruto">Salário Bruto</label>
+								<input type="number" id="salarioBruto" placeholder="R$ 0,00">
+							</div>
+
+							<div class="input-col">
+								<label for="salarioDescontos">Descontos Salário</label>
+								<input type="text" id="salarioDescontos" readonly style="background: #f0f0f0;">
+							</div>
+							<div class="input-col" style="flex: 0 0 80px;"> 
+								<label for="porcentagemDesconto">%</label>
+								<input type="text" id="porcentagemDesconto" readonly style="background: #f0f0f0;">
+							</div>
+							<div class="input-col">
+								<label for="saldoAnterior">Saldo Mês Anterior</label>
+								<input type="number" id="saldoAnterior" placeholder="R$ 0,00">
+							</div>
+						</div>
+						<div class="titulo-descontos" style="margin-top: 20px;">Descontos</div>
+							<div class="tabela-wrapper">
+								<table id="tabelaDescontos">
+									<thead>
+										<tr>
+											<th>Descrição</th>
+											<th>Valor</th>
+											<th>Ações</th>
+										</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
+							</div>
+						<div class="input-group" style="margin-top:10px; width: 100%;">
+							<div class="input-row-flex">
+								<input type="text" id="descricaoDesconto" placeholder="Descrição do desconto" class="input-70">
+								<input type="number" id="valorDesconto" placeholder="Valor" class="input-20">
+								<select id="tipoLancamentoFolha">
+									<option value="Desconto">Desconto (-)</option>
+									<option value="Crédito">Crédito (+)</option>
+								</select>
+								<button class="btn btn-add-descontos" onclick="adicionarDesconto()" title="Adicionar Desconto">+</button>
+							</div>	
+						</div>
+						
+					</div>
+				</div>
+
+				<div class="col">
+					<h2 class="titulos-h2">Despesas / Movimentações</h2>
+					<div class="col-content">
+						<div class="tabela-wrapper">
+							<table id="tabelaDespesas">
+								<thead>
+									<tr>
+										<th>Pago</th>
+										<th>Descrição</th>
+										<th>Categoria</th>
+										<th>Valor</th>
+										<th>Tipo</th>
+										<th>Ações</th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+						<div class="input-group" style="margin-top:10px;">
+							<div class="input-row-flex">
+								<input type="text" id="descricaoDespesa" placeholder="Descrição" class="input-70">
+								<input type="number" id="valorDespesa" placeholder="Valor" class="input-30"> 
+							</div>	
+							<div class="input-row-flex">
+								<select id="categoriaDespesa" class="input-50"></select>
+								<select id="tipoMovimentacao" class="form-control input-30 combo-heigth">
+									<option value="Despesa">Despesa</option>
+									<option value="Receita">Receita</option>
+								</select>
+								<div class="switch-wrapper">
+									<span class="switch-label">Pago</span>
+									<label class="switch">
+										<input type="checkbox" id="pagoDespesa">
+										<span class="slider round"></span>
+									</label>
+								</div>
+							</div>	                         
+							
+						</div>
+						<div style="display: flex; gap: 10px;">
+							<button class="btn" style="flex: 1;" onclick="adicionarDespesa()">Adicionar Despesa</button>
+							<button class="btn" style="flex: 1; background-color: #2196F3;" onclick="salvarExcel()">Salvar no Excel</button>
+						</div>
+					</div>
+					<h2 class="titulos-h2">Detalhamento Cartão de Crédito</h2>
+					<div class="col-content">						
+						<div class="tabela-wrapper">							
+							<table id="tabelaCartao">
+								<thead>
+									<tr>
+										<th>Cartão</th>
+										<th>Descrição</th>
+										<th>Categoria</th>
+										<th>Valor</th>
+										<th>Ações</th>
+									</tr>
+								</thead>
+								<tbody>
+									</tbody>
+							</table>
+						</div>	
+							<div class="input-group" style="margin-top:10px;">
+								<div class="input-row-flex">
+									<select id="escolhaCartao">
+										<option value="Cartão Nubank">Nubank</option>
+										<option value="Cartão Visa">Visa</option>
+										<option value="Cartão Inter">Inter</option>
+									</select>
+									<input type="text" id="descCartao" placeholder="Ex: Amazon">
+									<select id="categoriaCartao"></select>
+									<input type="number" id="valCartao" placeholder="Valor">
+									<button onclick="adicionarItemCartao()" class="btn btn-add-descontos" title="Adicionar Desconto">+</button>
+								</div>		
+							</div>
+								
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <!-- Link para o JS externo -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

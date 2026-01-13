@@ -1,0 +1,550 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Financeiro</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #f4f6f8;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        font-size: 26px;
+        font-weight: bold;
+    }
+    .container {
+        width: 90%;
+        margin: 20px auto;
+    }
+    .periodo-card {
+        background: #ffffff;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: flex-start;
+        gap: 20px;
+        align-items: center;
+    }
+    .periodo-card h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #333;
+    }
+    .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .input-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+    .input-group input, .input-group select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 12px 18px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+        transition: background 0.3s;
+    }
+    .btn:hover {
+        background-color: #45a049;
+    }
+    .card {
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 22px;
+    }
+    .flex-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .col {
+        flex: 1;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+        font-size: 15px;
+    }
+    table th {
+        background-color: #f2f2f2;
+    }
+    .resultado-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px;
+        height: auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .resultado-box div {
+        font-size: 26px;
+        font-weight: bold;
+        margin: 15px 0;
+        padding: 20px;
+        width: 90%;
+        text-align: center;
+        border-radius: 8px;
+    }
+    .salario-liquido {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .saldo-final {
+        background-color: #2196F3;
+        color: white;
+    }
+    #graficoCategorias {
+        max-width: 400px;
+        margin: 20px auto;
+    }
+
+	.flex-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 20px;
+		flex-wrap: wrap;
+	}
+	.col {
+		flex: 1;
+		min-width: 300px;
+	}
+	
+	.btn-edit {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: 18px;
+		color: #4CAF50;
+		padding: 5px;
+		transition: color 0.3s;
+	}
+	.btn-edit:hover {
+		color: #2196F3;
+	}
+
+	
+	
+</style>
+</head>
+<body>
+<header>Controle Financeiro Mensal</header>
+<div class="container">
+    <!-- Seleção do período -->
+    <div class="periodo-card">
+        <h3>Período:</h3>
+        <div class="input-group">
+            <label for="mesSelecionado">Mês</label>
+            <select id="mesSelecionado" onchange="trocarMes()">
+                <option value="Janeiro">Janeiro</option>
+                <option value="Fevereiro">Fevereiro</option>
+                <option value="Março">Março</option>
+                <option value="Abril">Abril</option>
+                <option value="Maio">Maio</option>
+                <option value="Junho">Junho</option>
+                <option value="Julho">Julho</option>
+                <option value="Agosto">Agosto</option>
+                <option value="Setembro">Setembro</option>
+                <option value="Outubro">Outubro</option>
+                <option value="Novembro">Novembro</option>
+                <option value="Dezembro">Dezembro</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="anoSelecionado">Ano</label>
+	        <select id="anoSelecionado" onchange="trocarMes()">
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+            </select>
+			
+        </div>
+		<div class="input-group" style="align-self: flex-end;">
+			<button class="btn" id="btnMesAtual" onclick="irParaMesAtual()">Ir para mês atual</button>
+		</div>
+    </div>
+
+    <!-- Resumo do mês -->
+    <div class="card">
+        <h2>Resumo do Mês</h2>
+        <div class="flex-row">
+            <div class="col">
+                <div class="input-group">
+                    <label for="saldoAnterior">Saldo Anterior</label>
+                    <input type="number" id="saldoAnterior" placeholder="Digite o valor">
+                </div>
+                <div class="input-group">
+                    <label for="salarioBruto">Salário Bruto</label>
+                    <input type="number" id="salarioBruto" placeholder="Digite o valor">
+                </div>
+                <h3>Descontos</h3>
+                <table id="tabelaDescontos">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="input-group" style="margin-top:10px;">
+                    <input type="text" id="descricaoDesconto" placeholder="Descrição do desconto">
+                    <input type="number" id="valorDesconto" placeholder="Valor">
+                </div>
+                <button class="btn" onclick="adicionarDesconto()">Adicionar Desconto</button>
+            </div>
+            <div class="col">
+                <div class="resultado-box">
+                    <div class="salario-liquido">Salário Líquido: <span id="salarioLiquido">R$ 0,00</span></div>
+                    <div class="saldo-final">Saldo Final: <span id="saldoFinal">R$ 0,00</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Despesas -->
+	<div class="card">
+		<h2>Despesas</h2>
+		<div class="flex-row">
+			<!-- Coluna da tabela -->
+			<div class="col">
+				<table id="tabelaDespesas">
+					<thead>
+						<tr>
+							<th>Descrição</th>
+							<th>Categoria</th>
+							<th>Valor</th>
+							<th>Ações</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+				<div class="input-group" style="margin-top:10px;">
+					<input type="text" id="descricaoDespesa" placeholder="Descrição">
+					<select id="categoriaDespesa">
+						<option value="Alimentação">Alimentação</option>
+						<option value="Transporte">Transporte</option>
+						<option value="Lazer">Lazer</option>
+						<option value="Saúde">Saúde</option>
+						<option value="Outros">Outros</option>
+					</select>
+					<input type="number" id="valorDespesa" placeholder="Valor">
+				</div>
+				<button class="btn" onclick="adicionarDespesa()">Adicionar Despesa</button>
+				<button class="btn" onclick="salvarExcel()">Salvar no Excel</button>
+			</div>
+
+			<!-- Coluna do gráfico -->
+			<div class="col" style="display:flex; justify-content:center; align-items:center;">
+				<canvas id="graficoCategorias" style="max-width:300px;"></canvas>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+<script>
+let chart; // variável global para o gráfico
+let categoriasData = {
+    'Alimentação': 0,
+    'Transporte': 0,
+    'Lazer': 0,
+    'Saúde': 0,
+    'Outros': 0
+};
+
+function trocarMes() {
+    const mes = document.getElementById('mesSelecionado').value;
+    const ano = document.getElementById('anoSelecionado').value;
+    alert(`Carregar dados de: ${mes}/${ano}`);
+    // Aqui será feita a integração com Excel
+}
+
+
+function irParaMesAtual() {
+    const hoje = new Date();
+    const meses = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    document.getElementById('mesSelecionado').value = meses[hoje.getMonth()];
+    document.getElementById('anoSelecionado').value = hoje.getFullYear();
+
+    carregarExcel(); // Chama a função que já carrega os dados do período
+}
+
+function adicionarDesconto() {
+    const descricao = document.getElementById('descricaoDesconto').value;
+    const valor = parseFloat(document.getElementById('valorDesconto').value) || 0;
+
+    if (descricao && valor > 0) {
+        const tabela = document.querySelector('#tabelaDescontos tbody');
+        const linha = document.createElement('tr');
+        linha.innerHTML = `<td>${descricao}</td><td>R$ ${valor.toFixed(2)}</td>`;
+        tabela.appendChild(linha);
+
+        document.getElementById('descricaoDesconto').value = '';
+        document.getElementById('valorDesconto').value = '';
+
+        calcularTudo();
+    }
+}
+
+function adicionarDespesa() {
+    const descricao = document.getElementById('descricaoDespesa').value;
+    const categoria = document.getElementById('categoriaDespesa').value;
+    const valor = parseFloat(document.getElementById('valorDespesa').value) || 0;
+
+    if (descricao && valor > 0) {
+        const tabela = document.querySelector('#tabelaDespesas tbody');
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td>${descricao}</td>
+            <td>${categoria}</td>
+            <td>R$ ${valor.toFixed(2)}</td>
+            <td>
+                <button class="btn-edit" onclick="editarDespesa(this)">Editar</button>
+            </td>
+        `;
+        tabela.appendChild(linha);
+
+        categoriasData[categoria] += valor;
+        atualizarGrafico();
+
+        document.getElementById('descricaoDespesa').value = '';
+        document.getElementById('valorDespesa').value = '';
+
+        calcularTudo();
+    }
+}
+
+
+
+
+function editarDespesa(botao) {
+    const linha = botao.closest('tr');
+    const descricao = linha.cells[0].innerText;
+    const categoria = linha.cells[1].innerText;
+    const valor = linha.cells[2].innerText.replace('R$ ', '').replace(',', '.');
+
+    // Preenche os campos
+    document.getElementById('descricaoDespesa').value = descricao;
+    document.getElementById('categoriaDespesa').value = categoria;
+    document.getElementById('valorDespesa').value = parseFloat(valor);
+
+    // Remove a linha antiga
+    linha.remove();
+
+    // Atualiza gráfico removendo valor antigo
+    categoriasData[categoria] -= parseFloat(valor);
+    atualizarGrafico();
+}
+
+function calcularTudo() {
+    const salarioBruto = parseFloat(document.getElementById('salarioBruto').value) || 0;
+    const saldoAnterior = parseFloat(document.getElementById('saldoAnterior').value) || 0;
+    let totalDescontos = 0;
+    let totalDespesas = 0;
+
+    document.querySelectorAll('#tabelaDescontos tbody tr').forEach(tr => {
+        const valor = tr.cells[1].innerText.replace('R$ ', '').replace(',', '.');
+        totalDescontos += parseFloat(valor) || 0;
+    });
+
+    document.querySelectorAll('#tabelaDespesas tbody tr').forEach(tr => {
+        const valor = tr.cells[2].innerText.replace('R$ ', '').replace(',', '.');
+        totalDespesas += parseFloat(valor) || 0;
+    });
+
+    const salarioLiquido = salarioBruto - totalDescontos + saldoAnterior;
+    const saldoFinal = salarioLiquido - totalDespesas;
+
+    document.getElementById('salarioLiquido').textContent = salarioLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('saldoFinal').textContent = saldoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+
+function atualizarGrafico() {
+    const ctx = document.getElementById('graficoCategorias').getContext('2d');
+    if (chart) chart.destroy();
+
+    const total = Object.values(categoriasData).reduce((a, b) => a + b, 0);
+
+    chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categoriasData),
+            datasets: [{
+                data: Object.values(categoriasData),
+                backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: {
+                    formatter: (value) => {
+                        let percent = total ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                        return percent;
+                    },
+                    color: '#fff',
+                    font: { weight: 'bold', size: 14 }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+}
+
+
+document.getElementById('mesSelecionado').addEventListener('change', carregarExcel);
+document.getElementById('anoSelecionado').addEventListener('change', carregarExcel);
+
+
+function carregarExcel() {
+    const mes = document.getElementById('mesSelecionado').value;
+    const ano = document.getElementById('anoSelecionado').value;
+
+    fetch(`/carregar?mes=${mes}&ano=${ano}`)
+        .then(res => res.json())
+        .then(data => {
+            // Preenche os campos
+            document.getElementById('saldoAnterior').value = data.saldoAnterior;
+            document.getElementById('salarioBruto').value = data.salarioBruto;
+
+            // Preenche descontos
+            const tabelaDescontos = document.querySelector('#tabelaDescontos tbody');
+            tabelaDescontos.innerHTML = '';
+            data.descontos.forEach(d => {
+                tabelaDescontos.innerHTML += `<tr><td>${d.descricao}</td><td>R$ ${d.valor.toFixed(2)}</td></tr>`;
+            });
+
+            // Preenche despesas
+            const tabelaDespesas = document.querySelector('#tabelaDespesas tbody');
+            tabelaDespesas.innerHTML = '';
+            categoriasData = { 'Alimentação': 0, 'Transporte': 0, 'Lazer': 0, 'Saúde': 0, 'Outros': 0 }; // reset
+
+            data.despesas.forEach(d => {
+                tabelaDespesas.innerHTML += `<tr><td>${d.descricao}</td><td>${d.categoria}</td><td>R$ ${d.valor.toFixed(2)}</td></tr>`;
+                categoriasData[d.categoria] += d.valor; // atualiza dados do gráfico
+            });
+
+            calcularTudo();
+            atualizarGrafico(); // redesenha gráfico com os dados carregados
+        });
+}
+
+
+
+function salvarExcel() {
+    const mes = document.getElementById('mesSelecionado').value;
+    const ano = document.getElementById('anoSelecionado').value;
+
+    const descontos = [];
+    document.querySelectorAll('#tabelaDescontos tbody tr').forEach(tr => {
+        descontos.push({
+            descricao: tr.cells[0].innerText,
+            valor: parseFloat(tr.cells[1].innerText.replace('R$ ', ''))
+        });
+    });
+
+    const despesas = [];
+    document.querySelectorAll('#tabelaDespesas tbody tr').forEach(tr => {
+        despesas.push({
+            descricao: tr.cells[0].innerText,
+            categoria: tr.cells[1].innerText,
+            valor: parseFloat(tr.cells[2].innerText.replace('R$ ', ''))
+        });
+    });
+
+    const dados = {
+        mes,
+        ano,
+        saldoAnterior: parseFloat(document.getElementById('saldoAnterior').value) || 0,
+        salarioBruto: parseFloat(document.getElementById('salarioBruto').value) || 0,
+        descontos,
+        despesas
+    };
+
+    fetch('/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(dados)
+    }).then(res => res.json())
+      .then(data => alert('Dados salvos com sucesso!'));
+}
+
+
+document.getElementById('salarioBruto').addEventListener('input', calcularTudo);
+document.getElementById('saldoAnterior').addEventListener('input', calcularTudo);
+
+
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mes = urlParams.get('mes');
+    const ano = urlParams.get('ano');
+
+    if (mes && ano) {
+        document.getElementById('mesSelecionado').value = mes;
+        document.getElementById('anoSelecionado').value = ano;
+        carregarExcel(); // Carrega os dados do período atual
+    }
+};
+
+
+
+
+// Inicializa gráfico vazio
+atualizarGrafico();
+</script>
+</body>
+</html>
