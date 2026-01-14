@@ -48,9 +48,25 @@ def carregar_dados():
             dados["descontos"] = json.loads(row[4]) if row[4] else []
             dados["despesas"] = json.loads(row[5]) if row[5] else []
             dados["detalhesCartao"] = json.loads(row[6]) if row[6] else []
+            if len(row) >= 8:
+                dados["investimentos"] = json.loads(row[7]) if row[7] else []
             break
 
+    sheet_config = obter_aba_config(wb)    
+    # Lê a lista de cartões cadastrados
+    cartoes_cadastrados = json.loads(sheet_config.cell(row=2, column=1).value or "[]")
+    
+    # Adicione essa lista no dicionário de retorno 'dados' que você já envia
+    dados["listaCartoes"] = cartoes_cadastrados    
+
     return jsonify(dados)
+
+def obter_aba_config(wb):
+    if "Config" not in wb.sheetnames:
+        ws = wb.create_sheet("Config")
+        ws.cell(row=1, column=1).value = "Cartoes"
+        ws.cell(row=2, column=1).value = json.dumps(["Nubank", "Inter"]) # Padrão inicial
+    return wb["Config"]
 
 @app.route('/salvar', methods=['POST'])
 def salvar_dados():
@@ -61,8 +77,10 @@ def salvar_dados():
     salarioBruto = data['salarioBruto']
     descontos = data['descontos']
     despesas = data['despesas']
-    # Pega a nova lista enviada pelo Front-end (se não existir, envia lista vazia)
+    
+    # Pega as listas enviadas pelo Front-end
     detalhesCartao = data.get('detalhesCartao', [])
+    investimentos = data.get('investimentos', []) # <--- Nova lista de investimentos
 
     wb = openpyxl.load_workbook(EXCEL_FILE)
     sheet = wb["Controle"]
@@ -81,8 +99,10 @@ def salvar_dados():
         sheet.cell(linha_encontrada, 6).value = json.dumps(despesas, ensure_ascii=False)
         # Salva na Coluna 7 (G) os detalhes do cartão
         sheet.cell(linha_encontrada, 7).value = json.dumps(detalhesCartao, ensure_ascii=False)
+        # Salva na Coluna 8 (H) os investimentos <--- NOVO
+        sheet.cell(linha_encontrada, 8).value = json.dumps(investimentos, ensure_ascii=False)
     else:
-        # Adiciona nova linha incluindo a 7ª coluna
+        # Adiciona nova linha incluindo a 7ª e 8ª coluna
         sheet.append([
             ano, 
             mes, 
@@ -90,12 +110,18 @@ def salvar_dados():
             salarioBruto,
             json.dumps(descontos, ensure_ascii=False),
             json.dumps(despesas, ensure_ascii=False),
-            json.dumps(detalhesCartao, ensure_ascii=False) # Nova Coluna
+            json.dumps(detalhesCartao, ensure_ascii=False), # Coluna 7
+            json.dumps(investimentos, ensure_ascii=False)   # Coluna 8 (Nova)
         ])
+
+    # SALVAR LISTA DE CARTÕES NA ABA CONFIG (Mantido como estava)
+    if 'listaCartoes' in data:
+        sheet_config = obter_aba_config(wb)
+        sheet_config.cell(row=2, column=1).value = json.dumps(data['listaCartoes'], ensure_ascii=False)    
 
     wb.save(EXCEL_FILE)
     return jsonify({"status": "sucesso"})
-
+    
 def abrir_navegador():
     # Obtém mês e ano atual
     meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -145,13 +171,25 @@ def historico_6meses():
             "totalCreditos": 0,
             "outrasReceitas": 0,
             "saldoAnterior": 0,
-            "despesas": 0
+            "despesas": 0,
+            "totalInvestido": 0
         }
         
         for row in sheet.iter_rows(min_row=2, values_only=True):
             if str(row[0]) == str(temp_ano) and row[1] == mes_alvo:
                 descontos_lista = json.loads(row[4]) if row[4] else []
                 movimentacoes = json.loads(row[5]) if row[5] else []
+
+                # --- BUSCA OS INVESTIMENTOS NA COLUNA 8 (Índice 7) ---
+                investimentos_lista = []
+                if len(row) >= 8 and row[7]:
+                    try:
+                        investimentos_lista = json.loads(row[7])
+                    except:
+                        investimentos_lista = []
+                
+                # SOMA O TOTAL DE INVESTIMENTOS DO MÊS
+                total_investido_mes = sum(float(inv.get('valor', 0)) for inv in investimentos_lista)
                 
                 # SEPARAÇÃO EXATA IGUAL AO JS:
                 total_creditos = sum(d['valor'] for d in descontos_lista if d['valor'] > 0)
@@ -167,6 +205,7 @@ def historico_6meses():
                 res_mes["totalCreditos"] = total_creditos
                 res_mes["outrasReceitas"] = receitas_extras
                 res_mes["despesas"] = total_despesas
+                res_mes["totalInvestido"] = total_investido_mes
                 break
         
         historico.append(res_mes)

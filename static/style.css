@@ -161,6 +161,7 @@ header {
 	width: 90%;
 	margin: 20px auto;
 }
+
 .periodo-card {
 	background: #ffffff;
 	padding: 20px;
@@ -226,8 +227,28 @@ header {
 	padding: 10px;
 	border: 1px solid #ccc;
 	border-radius: 6px;
-	font-size: 16px;
+	font-size: 14px;
 }
+
+.tab-btn {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 4px 12px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #666;
+    border-radius: 8px;
+}
+
+.tab-btn.active {
+    background: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+.btn-group .tab-btn:first-child { border-radius: 4px 0 0 4px; }
+.btn-group .tab-btn:last-child { border-radius: 0 4px 4px 0; }
+
 .btn {
 	background-color: #4CAF50;
 	color: white;
@@ -241,7 +262,55 @@ header {
 }
 
 .btn-add-descontos {
+    display: inline-flex;    /* Essencial para alinhar itens internos */
+    align-items: center;     /* Centraliza verticalmente */
+    justify-content: center; /* Centraliza horizontalmente */
+    gap: 8px;                /* Espaço entre o + e o texto */
     margin-top: 0px;
+    
+    background-color: #4CAF50; /* Verde combinando com o sistema */
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.1s active;
+    line-height: 1;          /* Remove altura de linha que empurra o texto */
+}
+
+.btn-add-descontos:hover {
+    background-color: #1B5E20;
+}
+
+.btn-add-descontos:active {
+    transform: scale(0.98); /* Efeito de clique */
+}
+
+.btn-add-descontos svg {
+    display: block;          /* Remove respiros de linha do SVG */
+    flex-shrink: 0;          /* Impede o ícone de encolher */
+}
+
+.btn-config-cartao {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #555;
+}
+
+.btn-config-cartao:hover {
+    background-color: #e2e2e2;
+    color: #000;
+}
+
+.btn-config-cartao svg {
+    display: block;
 }
 .btn:hover {
 	background-color: #45a049;
@@ -552,12 +621,17 @@ table th {
   font-size: 20px;
   color: #333;
   text-align: left;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 #tabelaDespesas th:last-child,
 #tabelaDespesas td:last-child,
 #tabelaCartao th:last-child,
-#tabelaCartao td:last-child{
+#tabelaCartao td:last-child,
+#tabelaInvestimentos th:last-child,
+#tabelaInvestimentos td:last-child {
     width: 80px; /* ou até menos, teste 60px ou 50px se quiser mais compacto */
     text-align: center;
     padding-left: 0;
@@ -567,7 +641,9 @@ table th {
 #tabelaDescontos th:last-child,
 #tabelaDescontos td:last-child,
 #tabelaCartao th:last-child,
-#tabelaCartao td:last-child {
+#tabelaCartao td:last-child,
+#tabelaInvestimentos th:last-child,
+#tabelaInvestimentos td:last-child {
     width: 80px; /* ou até menos, teste 60px ou 50px se quiser mais compacto */
     text-align: center;
     padding-left: 0;
@@ -577,17 +653,32 @@ table th {
 
 #tabelaDespesas tr, #tabelaDespesas td,
 #tabelaDescontos tr, #tabelaDescontos td,
-#tabelaCartao tr, #tabelaCartao td {
+#tabelaCartao tr, #tabelaCartao td,
+#tabelaInvestimentos tr, #tabelaInvestimentos td {
   padding-top: 4px;
   padding-bottom: 4px;
   height: 20px; /* ou ajuste para o valor desejado, exemplo: 24px */
   font-size: 12px; /* pode diminuir para 14px se quiser mais compacto */
 }
 
-#tabelaDespesas th, #tabelaDescontos th, #tabelaCartao th {
+#tabelaDespesas th, #tabelaDescontos th, #tabelaCartao th, #tabelaInvestimentos th {
   padding-top: 4px;
   padding-bottom: 4px;
   height: 20px;
+}
+
+#tabelaInvestimentos .table-secondary td {
+    font-size: 1.15rem; /* Aumenta cerca de 15% o tamanho padrão */
+    vertical-align: middle;
+}
+
+#tabelaInvestimentos .table-secondary strong {
+    font-weight: 700;
+    color: #333; /* Deixa o texto um pouco mais escuro para melhorar a leitura */
+}
+
+input#inv_valor {
+    width: 120px;
 }
 
 /* Layout Principal */
@@ -735,10 +826,32 @@ table tr:hover { background-color: #f1f1f1; }
     color: #2e7d32;
 }
 
+/* Cor de fundo para despesas vencidas e não pagas */
+.linha-atrasada {
+    background-color: #fff2f2 !important; /* Vermelho bem suave */
+}
+
+/* Deixa o texto da descrição e data em vermelho escuro para dar contraste */
+.linha-atrasada td {
+    color: #b71c1c !important;
+}
+
+/* Pequeno detalhe para o status de atraso */
+.linha-atrasada td:nth-child(2) input {
+    color: #b71c1c !important;
+    font-weight: bold;
+}
+
 /* Estilo do checkbox na tabela para ficar centralizado */
 .checkbox-pago {
     cursor: pointer;
     transform: scale(1.2);
+}
+
+/* Fixa a data em um tamanho pequeno, suficiente para o formato dd/mm/aaaa */
+.input-date-fixed {
+    width: 120px !important; 
+    flex-shrink: 0; /* Impede que a data diminua ou cresça */
 }
 
 .input-70 {
@@ -759,6 +872,10 @@ table tr:hover { background-color: #f1f1f1; }
 .input-20 {
     flex: 2;           /* Proporção de 7 partes */
     min-width: 0;      /* Evita que o input estoure o container */
+}
+
+.altura-forms {
+    height: 38px;
 }
 
 .input-row-flex {
