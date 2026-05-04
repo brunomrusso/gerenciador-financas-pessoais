@@ -135,6 +135,45 @@ class Investment(db.Model):
             'valor': self.valor
         }
 
+class CreditCard(db.Model):
+    __tablename__ = 'credit_cards'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    nome = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    card_expenses = db.relationship('CardExpense', backref='card', lazy=True, cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {'id': self.id, 'nome': self.nome}
+
+
+class CardExpense(db.Model):
+    __tablename__ = 'card_expenses'
+
+    id = db.Column(db.Integer, primary_key=True)
+    card_id = db.Column(db.Integer, db.ForeignKey('credit_cards.id'), nullable=False, index=True)
+    record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=False, index=True)
+    descricao = db.Column(db.String(255), nullable=False)
+    valor = db.Column(db.Float, nullable=False)
+    data = db.Column(db.String(10), nullable=True)
+    parcelas_total = db.Column(db.Integer, default=1)
+    parcela_atual = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'card_id': self.card_id,
+            'record_id': self.record_id,
+            'descricao': self.descricao,
+            'valor': self.valor,
+            'data': self.data or '',
+            'parcelas_total': self.parcelas_total,
+            'parcela_atual': self.parcela_atual
+        }
+
+
 class Category(db.Model):
     __tablename__ = 'categories'
     

@@ -32,8 +32,9 @@ def create_app(config_name='development'):
         except Exception:
             pass
         
-        from app.routes import auth_routes, records_routes
+        from app.routes import auth_routes, records_routes, cards_routes
         app.register_blueprint(auth_routes.bp)
         app.register_blueprint(records_routes.bp)
+        app.register_blueprint(cards_routes.bp)
     
     return app

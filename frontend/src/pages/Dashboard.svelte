@@ -6,6 +6,7 @@
   import SummaryCards from '../components/SummaryCards.svelte'
   import DataTable from '../components/DataTable.svelte'
   import ExpenseTable from '../components/ExpenseTable.svelte'
+  import CardSection from '../components/CardSection.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -130,6 +131,7 @@
 
           <DataTable title="Descontos e Creditos" items={currentRecord.discounts} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
           <ExpenseTable items={currentRecord.expenses} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} />
+          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} />
           <DataTable title="Investimentos" items={currentRecord.investments} recordId={currentRecord.id} type="investments" month={selectedMonth} year={selectedYear} />
         </div>
       {:else}
