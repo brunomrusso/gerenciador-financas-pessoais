@@ -18,7 +18,7 @@ def create_app(config_name='development'):
     
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app)
+    CORS(app, resources={r'/api/*': {'origins': '*'}}, supports_credentials=True)
     
     with app.app_context():
         from app.models import User, MonthlyRecord, Discount, Expense, CardDetail, Investment, Category
