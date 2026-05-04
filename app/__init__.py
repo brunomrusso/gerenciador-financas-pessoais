@@ -24,6 +24,14 @@ def create_app(config_name='development'):
         from app.models import User, MonthlyRecord, Discount, Expense, CardDetail, Investment, Category
         db.create_all()
         
+        try:
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recorrente BOOLEAN DEFAULT FALSE"))
+                conn.commit()
+        except Exception:
+            pass
+        
         from app.routes import auth_routes, records_routes
         app.register_blueprint(auth_routes.bp)
         app.register_blueprint(records_routes.bp)
