@@ -160,6 +160,7 @@ class CardExpense(db.Model):
     data = db.Column(db.String(10), nullable=True)
     parcelas_total = db.Column(db.Integer, default=1)
     parcela_atual = db.Column(db.Integer, default=1)
+    group_id = db.Column(db.String(36), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -172,7 +173,8 @@ class CardExpense(db.Model):
             'categoria': self.categoria or 'Outros',
             'data': self.data or '',
             'parcelas_total': self.parcelas_total,
-            'parcela_atual': self.parcela_atual
+            'parcela_atual': self.parcela_atual,
+            'group_id': self.group_id
         }
 
 

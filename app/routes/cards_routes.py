@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models import CreditCard, CardExpense, MonthlyRecord
+from uuid import uuid4
 
 bp = Blueprint('cards', __name__, url_prefix='/api/cards')
 
@@ -106,6 +107,7 @@ def add_card_expense():
     categoria = data.get('categoria', 'Outros')
     data_str = data.get('data', '')
 
+    group_id = str(uuid4())
     created = []
     for i in range(parcelas):
         if i == 0:
@@ -131,7 +133,8 @@ def add_card_expense():
             categoria=categoria,
             data=data_str,
             parcelas_total=parcelas,
-            parcela_atual=i + 1
+            parcela_atual=i + 1,
+            group_id=group_id
         )
         db.session.add(exp)
         created.append(exp)
@@ -150,17 +153,77 @@ def update_card_expense(expense_id):
            .first())
     if not exp:
         return jsonify({'error': 'Despesa não encontrada'}), 404
+
     data = request.get_json()
-    if 'descricao' in data:
-        exp.descricao = data['descricao']
-    if 'valor' in data:
-        exp.valor = float(data['valor'])
-    if 'categoria' in data:
-        exp.categoria = data['categoria']
-    if 'data' in data:
-        exp.data = data['data']
-    db.session.commit()
-    return jsonify(exp.to_dict()), 200
+    apply_to_all = data.get('apply_to_all', False)
+    new_parcelas = int(data.get('parcelas_total', exp.parcelas_total))
+
+    if apply_to_all and exp.group_id:
+        group_exps = (CardExpense.query
+                      .join(CreditCard)
+                      .filter(CardExpense.group_id == exp.group_id,
+                              CreditCard.user_id == user_id)
+                      .order_by(CardExpense.parcela_atual)
+                      .all())
+
+        if new_parcelas != exp.parcelas_total:
+            base_exp = next((e for e in group_exps if e.parcela_atual == 1), group_exps[0])
+            base_record = MonthlyRecord.query.get(base_exp.record_id)
+            card_id = exp.card_id
+            descricao = data.get('descricao', exp.descricao)
+            valor_parcela = float(data.get('valor', exp.valor))
+            categoria = data.get('categoria', exp.categoria)
+            data_str = data.get('data', exp.data)
+            gid = exp.group_id
+
+            for ge in group_exps:
+                db.session.delete(ge)
+            db.session.flush()
+
+            created = []
+            for i in range(new_parcelas):
+                if i == 0:
+                    target = base_record
+                else:
+                    m_name, m_year = _advance_month(base_record.month, int(base_record.year), i)
+                    target = MonthlyRecord.query.filter_by(
+                        user_id=user_id, month=m_name, year=m_year
+                    ).first()
+                    if not target:
+                        target = MonthlyRecord(
+                            user_id=user_id, month=m_name, year=m_year,
+                            saldo_anterior=0, salario_bruto=0
+                        )
+                        db.session.add(target)
+                        db.session.flush()
+                new_exp = CardExpense(
+                    card_id=card_id, record_id=target.id,
+                    descricao=descricao, valor=valor_parcela,
+                    categoria=categoria, data=data_str,
+                    parcelas_total=new_parcelas, parcela_atual=i + 1,
+                    group_id=gid
+                )
+                db.session.add(new_exp)
+                created.append(new_exp)
+
+            db.session.commit()
+            return jsonify([e.to_dict() for e in created]), 200
+        else:
+            for ge in group_exps:
+                if 'descricao' in data: ge.descricao = data['descricao']
+                if 'valor' in data: ge.valor = float(data['valor'])
+                if 'categoria' in data: ge.categoria = data['categoria']
+                if 'data' in data: ge.data = data['data']
+            db.session.commit()
+            return jsonify(exp.to_dict()), 200
+    else:
+        if 'descricao' in data: exp.descricao = data['descricao']
+        if 'valor' in data: exp.valor = float(data['valor'])
+        if 'categoria' in data: exp.categoria = data['categoria']
+        if 'data' in data: exp.data = data['data']
+        if 'parcelas_total' in data: exp.parcelas_total = int(data['parcelas_total'])
+        db.session.commit()
+        return jsonify(exp.to_dict()), 200
 
 
 @bp.route('/expenses/<int:expense_id>', methods=['DELETE'])
@@ -173,6 +236,19 @@ def delete_card_expense(expense_id):
            .first())
     if not exp:
         return jsonify({'error': 'Despesa não encontrada'}), 404
-    db.session.delete(exp)
+
+    delete_all = request.args.get('delete_all', 'false').lower() == 'true'
+
+    if delete_all and exp.group_id:
+        group_exps = (CardExpense.query
+                      .join(CreditCard)
+                      .filter(CardExpense.group_id == exp.group_id,
+                              CreditCard.user_id == user_id)
+                      .all())
+        for ge in group_exps:
+            db.session.delete(ge)
+    else:
+        db.session.delete(exp)
+
     db.session.commit()
     return jsonify({'message': 'Despesa deletada'}), 200

@@ -29,6 +29,7 @@ def create_app(config_name='development'):
             with db.engine.connect() as conn:
                 conn.execute(text("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recorrente BOOLEAN DEFAULT FALSE"))
                 conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS categoria VARCHAR(100) DEFAULT 'Outros'"))
+                conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS group_id VARCHAR(36)"))
                 conn.commit()
         except Exception:
             pass

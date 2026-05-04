@@ -43,6 +43,11 @@
   let editValor = ''
   let editData = ''
   let editCategoria = 'Outros'
+  let editParcelas = '1'
+
+  // modal de propagação
+  type ModalCtx = { type: 'edit' | 'delete', expId: number, groupId: string, totalParcelas: number, payload?: any }
+  let modal: ModalCtx | null = null
 
   // ── load ─────────────────────────────────────────────────────────────────
   const loadCards = async () => {
@@ -118,20 +123,48 @@
     editValor = String(exp.valor)
     editData = exp.data || ''
     editCategoria = exp.categoria || 'Outros'
+    editParcelas = String(exp.parcelas_total || 1)
   }
 
-  const saveEdit = async () => {
-    await fetch(`${API}/expenses/${editingExpId}`, {
-      method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData })
-    })
-    editingExpId = null
-    await loadFaturas()
+  const saveEdit = async (exp: any) => {
+    const payload = {
+      descricao: editDesc,
+      valor: parseFloat(editValor),
+      categoria: editCategoria,
+      data: editData,
+      parcelas_total: parseInt(editParcelas)
+    }
+    if (exp.group_id) {
+      modal = { type: 'edit', expId: exp.id, groupId: exp.group_id, totalParcelas: exp.parcelas_total, payload }
+    } else {
+      await fetch(`${API}/expenses/${exp.id}`, { method: 'PUT', headers: auth(), body: JSON.stringify(payload) })
+      editingExpId = null
+      await loadFaturas()
+    }
   }
 
-  const deleteExpense = async (id: number) => {
-    if (!confirm('Excluir esta despesa do cartão?')) return
-    await fetch(`${API}/expenses/${id}`, { method: 'DELETE', headers: auth() })
+  const deleteExpense = async (exp: any) => {
+    if (exp.group_id && exp.parcelas_total > 1) {
+      modal = { type: 'delete', expId: exp.id, groupId: exp.group_id, totalParcelas: exp.parcelas_total }
+    } else {
+      if (!confirm('Excluir esta despesa do cartão?')) return
+      await fetch(`${API}/expenses/${exp.id}`, { method: 'DELETE', headers: auth() })
+      await loadFaturas()
+    }
+  }
+
+  const confirmModal = async (applyAll: boolean) => {
+    if (!modal) return
+    if (modal.type === 'delete') {
+      await fetch(`${API}/expenses/${modal.expId}?delete_all=${applyAll}`, { method: 'DELETE', headers: auth() })
+    } else {
+      await fetch(`${API}/expenses/${modal.expId}`, {
+        method: 'PUT', headers: auth(),
+        body: JSON.stringify({ ...modal.payload, apply_to_all: applyAll })
+      })
+      editingExpId = null
+    }
+    modal = null
     await loadFaturas()
   }
 
@@ -205,6 +238,25 @@
     {/if}
   {/if}
 
+  {#if modal}
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <p class="modal-title">
+          {modal.type === 'delete' ? 'Excluir lançamento' : 'Aplicar edição'}
+        </p>
+        <p class="modal-sub">
+          Este lançamento possui <strong>{modal.totalParcelas} parcelas</strong> em meses seguintes.
+          {modal.type === 'delete' ? 'Deseja excluir:' : 'Deseja aplicar a:'}
+        </p>
+        <div class="modal-btns">
+          <button class="btn-modal-one" on:click={() => confirmModal(false)}>Só esta parcela</button>
+          <button class="btn-modal-all" on:click={() => confirmModal(true)}>Todas as {modal.totalParcelas} parcelas</button>
+          <button class="btn-modal-cancel" on:click={() => modal = null}>Cancelar</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   {#if faturas.length === 0 && cards.length === 0}
     <p class="empty-msg">Nenhum cartão cadastrado. Clique em "⚙ Gerenciar Cartões" para começar.</p>
   {:else if faturas.length === 0}
@@ -242,11 +294,11 @@
                         <td><select bind:value={editCategoria} class="edit-inp">{#each categorias as cat}<option>{cat}</option>{/each}</select></td>
                         <td><input type="date" bind:value={editData} class="edit-inp" /></td>
                         <td class="parcela-cell">
-                          {exp.parcela_atual}/{exp.parcelas_total}
+                          <span class="parc-cur">{exp.parcela_atual}/</span><input type="number" bind:value={editParcelas} min="1" max="60" class="edit-inp" style="width:44px" />
                         </td>
                         <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
                         <td class="action-cell">
-                          <button class="btn-ok" on:click={saveEdit}>✓</button>
+                          <button class="btn-ok" on:click={() => saveEdit(exp)}>✓</button>
                           <button class="btn-cancel" on:click={() => editingExpId = null}>✕</button>
                         </td>
                       </tr>
@@ -265,7 +317,7 @@
                         <td class="negative">{fmt(exp.valor)}</td>
                         <td class="action-cell">
                           <button class="btn-edit" on:click={() => startEdit(exp)}>✎</button>
-                          <button class="btn-del" on:click={() => deleteExpense(exp.id)}>✕</button>
+                          <button class="btn-del" on:click={() => deleteExpense(exp)}>✕</button>
                         </td>
                       </tr>
                     {/if}
@@ -397,6 +449,19 @@
   }
 
   .negative { color: #f44336; font-weight: 600; }
+
+  .parc-cur { font-size: 0.78rem; color: #667eea; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+  .modal-box { background: white; border-radius: 12px; padding: 1.5rem; max-width: 360px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+  .modal-title { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 700; color: #333; }
+  .modal-sub { margin: 0 0 1.25rem; font-size: 0.875rem; color: #555; line-height: 1.5; }
+  .modal-btns { display: flex; flex-direction: column; gap: 0.5rem; }
+  .btn-modal-one { padding: 0.55rem 1rem; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.875rem; }
+  .btn-modal-one:hover { background: #f0f0ff; }
+  .btn-modal-all { padding: 0.55rem 1rem; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.875rem; }
+  .btn-modal-all:hover { background: #5568d8; }
+  .btn-modal-cancel { padding: 0.45rem 1rem; background: none; color: #999; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
 
   @media (max-width: 640px) {
     .card-section { padding: 1rem; }
