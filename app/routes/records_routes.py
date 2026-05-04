@@ -161,13 +161,40 @@ def add_expense(record_id):
         record_id=record_id,
         descricao=data['descricao'],
         valor=data['valor'],
-        tipo=data.get('tipo', 'Despesa')
+        tipo=data.get('tipo', 'Despesa'),
+        categoria=data.get('categoria', 'Outros'),
+        data=data.get('data', ''),
+        pago=data.get('pago', False)
     )
     
     db.session.add(expense)
     db.session.commit()
     
     return jsonify(expense.to_dict()), 201
+
+@bp.route('/expenses/<int:expense_id>', methods=['PUT'])
+@jwt_required()
+def update_expense(expense_id):
+    user_id = int(get_jwt_identity())
+    expense = Expense.query.join(MonthlyRecord).filter(
+        Expense.id == expense_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not expense:
+        return jsonify({'error': 'Despesa não encontrada'}), 404
+    data = request.get_json()
+    if 'pago' in data:
+        expense.pago = data['pago']
+    if 'categoria' in data:
+        expense.categoria = data['categoria']
+    if 'data' in data:
+        expense.data = data['data']
+    if 'descricao' in data:
+        expense.descricao = data['descricao']
+    if 'valor' in data:
+        expense.valor = data['valor']
+    db.session.commit()
+    return jsonify(expense.to_dict()), 200
 
 @bp.route('/expenses/<int:expense_id>', methods=['DELETE'])
 @jwt_required()

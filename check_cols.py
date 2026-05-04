@@ -1,0 +1,10 @@
+import psycopg2
+conn = psycopg2.connect(host='localhost', user='postgres', dbname='financas_db')
+cur = conn.cursor()
+cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='expenses' ORDER BY ordinal_position")
+print("Colunas expenses:", [r[0] for r in cur.fetchall()])
+cur.execute("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS pago BOOLEAN DEFAULT FALSE")
+conn.commit()
+print("Coluna pago garantida!")
+cur.close()
+conn.close()

@@ -85,6 +85,9 @@ class Expense(db.Model):
     descricao = db.Column(db.String(255), nullable=False)
     valor = db.Column(db.Float, nullable=False)
     tipo = db.Column(db.String(20), default='Despesa')
+    categoria = db.Column(db.String(100), default='Outros')
+    data = db.Column(db.String(10), nullable=True)
+    pago = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -92,7 +95,10 @@ class Expense(db.Model):
             'id': self.id,
             'descricao': self.descricao,
             'valor': self.valor,
-            'tipo': self.tipo
+            'tipo': self.tipo,
+            'categoria': self.categoria or 'Outros',
+            'data': self.data or '',
+            'pago': self.pago or False
         }
 
 class CardDetail(db.Model):
