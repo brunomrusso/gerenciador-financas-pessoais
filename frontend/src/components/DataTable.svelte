@@ -97,8 +97,8 @@
             <td class={item.valor < 0 ? 'negative' : 'positive'}>
               {formatCurrency(item.valor)}
             </td>
-            <td>
-              <button class="btn-del" on:click={() => handleDelete(item)}>x</button>
+            <td class="action-td">
+              <button class="btn-del" on:click={() => handleDelete(item)}>✕</button>
             </td>
           </tr>
         {/each}
@@ -171,22 +171,31 @@
     background: #f44336;
     color: white;
     border: none;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
   }
 
   table { width: 100%; border-collapse: collapse; }
   thead { background-color: #f5f5f5; }
-  th { padding: 0.75rem; text-align: left; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; }
-  td { padding: 0.75rem; border-bottom: 1px solid #eee; }
+  th { padding: 0.75rem; text-align: left; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; font-size: 0.85rem; }
+  td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #eee; color: #222; font-size: 0.875rem; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
+  .action-td { width: 40px; text-align: center; vertical-align: middle; }
 
   .total-row { background: #f9f9f9; }
   .empty { text-align: center; color: #999; font-style: italic; }
   .positive { color: #4caf50; font-weight: 600; }
   .negative { color: #f44336; font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .data-table { padding: 1rem; }
+    .input-desc, .input-valor { min-width: 100%; }
+  }
 </style>

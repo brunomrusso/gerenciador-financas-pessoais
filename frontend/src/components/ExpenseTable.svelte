@@ -183,17 +183,17 @@
   .btn-add { background: #667eea; color: white; border: none; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap; }
   .btn-save { background: #4caf50; color: white; border: none; padding: 0.45rem 1rem; border-radius: 5px; cursor: pointer; }
   .btn-save:disabled { opacity: 0.6; }
-  .btn-edit { background: #2196f3; color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-  .btn-del { background: #f44336; color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-  .btn-ok { background: #4caf50; color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; }
-  .btn-cancel-edit { background: #9e9e9e; color: white; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; }
-  .action-cell { display: flex; gap: 4px; align-items: center; }
+  .btn-edit { background: #2196f3; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-del { background: #f44336; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-ok { background: #4caf50; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-cancel-edit { background: #9e9e9e; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .action-cell { display: flex; gap: 4px; align-items: center; justify-content: flex-start; }
 
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 320px; }
   thead { background: #f5f5f5; }
   th { padding: 0.6rem 0.5rem; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #ddd; font-size: 0.82rem; white-space: nowrap; }
-  td { padding: 0.55rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #333; }
+  td { padding: 0.55rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #222; vertical-align: middle; }
   .desc-cell { color: #222; font-weight: 500; }
   .edit-inp { width: 100%; padding: 0.3rem; border: 1px solid #667eea; border-radius: 4px; font-size: 0.82rem; color: #333; box-sizing: border-box; }
   .edit-row td { background: #f0f4ff; }
