@@ -18,6 +18,7 @@
   let showHistory = false
   let loading = false
   let errorMsg = ''
+  let cardFaturas: any[] = []
 
   onMount(() => {
     loadCurrentMonth()
@@ -130,8 +131,9 @@
           </div>
 
           <DataTable title="Descontos e Creditos" items={currentRecord.discounts} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
-          <ExpenseTable items={currentRecord.expenses} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} />
-          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} />
+          <ExpenseTable items={currentRecord.expenses} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} />
+          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear}
+            on:faturasLoaded={(e) => cardFaturas = e.detail} />
           <DataTable title="Investimentos" items={currentRecord.investments} recordId={currentRecord.id} type="investments" month={selectedMonth} year={selectedYear} />
         </div>
       {:else}

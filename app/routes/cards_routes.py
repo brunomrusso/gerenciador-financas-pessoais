@@ -103,6 +103,7 @@ def add_card_expense():
     parcelas = max(1, int(data.get('parcelas', 1)))
     valor_parcela = round(valor_total / parcelas, 2)
     descricao = data['descricao']
+    categoria = data.get('categoria', 'Outros')
     data_str = data.get('data', '')
 
     created = []
@@ -127,6 +128,7 @@ def add_card_expense():
             record_id=target.id,
             descricao=descricao,
             valor=valor_parcela,
+            categoria=categoria,
             data=data_str,
             parcelas_total=parcelas,
             parcela_atual=i + 1
@@ -153,6 +155,8 @@ def update_card_expense(expense_id):
         exp.descricao = data['descricao']
     if 'valor' in data:
         exp.valor = float(data['valor'])
+    if 'categoria' in data:
+        exp.categoria = data['categoria']
     if 'data' in data:
         exp.data = data['data']
     db.session.commit()

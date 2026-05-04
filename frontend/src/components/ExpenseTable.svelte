@@ -7,6 +7,7 @@
   export let recordId: number
   export let month: string = ''
   export let year: number = 0
+  export let cardFaturas: any[] = []
 
   const DEFAULT_CATS = ['Moradia', 'Alimentacao', 'Transporte', 'Saude', 'Educacao', 'Lazer', 'Cartao', 'Outros']
   let categorias: string[] = [...DEFAULT_CATS]
@@ -75,6 +76,7 @@
   }
 
   const getTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  const cardTotal = () => cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
 
   const handleAdd = async () => {
     if (!newDesc.trim() || !newValor) return
@@ -138,9 +140,14 @@
   }
 
   const buildChart = () => {
-    if (!chartCanvas || !items?.length) return
+    if (!chartCanvas) return
     const grouped: Record<string, number> = {}
-    items.forEach((i: any) => { const c = i.categoria || 'Outros'; grouped[c] = (grouped[c] || 0) + Math.abs(i.valor || 0) })
+    items?.forEach((i: any) => { const c = i.categoria || 'Outros'; grouped[c] = (grouped[c] || 0) + Math.abs(i.valor || 0) })
+    cardFaturas?.forEach((f: any) => f.expenses?.forEach((e: any) => {
+      const c = e.categoria || 'Cartao'
+      grouped[c] = (grouped[c] || 0) + Math.abs(e.valor || 0)
+    }))
+    if (!Object.keys(grouped).length) return
     const labels = Object.keys(grouped)
     const colors = ['#667eea','#764ba2','#f44336','#ff9800','#4caf50','#2196f3','#9c27b0','#607d8b','#795548','#00bcd4']
     if (chart) chart.destroy()
@@ -160,6 +167,10 @@
       const c = i.categoria || 'Outros'
       grouped[c] = (grouped[c] || 0) + Math.abs(i.valor || 0)
     })
+    cardFaturas?.forEach((f: any) => f.expenses?.forEach((e: any) => {
+      const c = e.categoria || 'Cartao'
+      grouped[c] = (grouped[c] || 0) + Math.abs(e.valor || 0)
+    }))
     return Object.entries(grouped).sort((a, b) => b[1] - a[1])
   })()
 
@@ -169,7 +180,7 @@
   $: { if (catRows) catPage = 0 }
 
   onMount(() => loadCats())
-  $: if (items) setTimeout(buildChart, 100)
+  $: if (items || cardFaturas) setTimeout(buildChart, 100)
 </script>
 
 <div class="expense-wrap">
@@ -280,11 +291,25 @@
               {/if}
             {/each}
             <tr class="total-row">
-              <td colspan="2"><strong>Total ({filtered.length})</strong></td>
+              <td colspan="2"><strong>Total despesas ({filtered.length})</strong></td>
               <td class="hide-sm"></td>
               <td class="negative"><strong>{fmt(getTotal())}</strong></td>
               <td colspan="2"></td>
             </tr>
+            {#if cardTotal() > 0}
+            <tr class="total-row">
+              <td colspan="2"><strong>Total cartões</strong></td>
+              <td class="hide-sm"></td>
+              <td class="negative"><strong>{fmt(cardTotal())}</strong></td>
+              <td colspan="2"></td>
+            </tr>
+            <tr class="total-row grand-total">
+              <td colspan="2"><strong>Total geral</strong></td>
+              <td class="hide-sm"></td>
+              <td class="negative"><strong>{fmt(getTotal() + cardTotal())}</strong></td>
+              <td colspan="2"></td>
+            </tr>
+            {/if}
           {:else}
             <tr><td colspan="6" class="empty">{(items?.length || 0) > 0 ? 'Nenhuma despesa corresponde ao filtro.' : 'Nenhuma despesa. Clique em "+ Adicionar".'}</td></tr>
           {/if}
@@ -293,7 +318,7 @@
     </div>
   </div>
 
-  {#if items && items.length > 0}
+  {#if (items && items.length > 0) || cardFaturas.length > 0}
     <div class="chart-section">
       <canvas bind:this={chartCanvas} class="chart-canvas"></canvas>
 
@@ -386,6 +411,7 @@
   .badge { background: #eef; color: #667eea; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; }
   .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.7rem; border-radius: 4px; padding: 1px 4px; margin-left: 4px; }
   .total-row td { background: #f9f9f9; font-size: 0.9rem; }
+  .grand-total td { background: #f0f0ff; font-size: 0.95rem; border-top: 2px solid #ddd; }
   .empty { text-align: center; color: #999; font-style: italic; padding: 1.5rem; }
   .positive { color: #4caf50; font-weight: 600; }
   .negative { color: #f44336; font-weight: 600; }

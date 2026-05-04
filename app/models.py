@@ -156,6 +156,7 @@ class CardExpense(db.Model):
     record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=False, index=True)
     descricao = db.Column(db.String(255), nullable=False)
     valor = db.Column(db.Float, nullable=False)
+    categoria = db.Column(db.String(100), default='Outros')
     data = db.Column(db.String(10), nullable=True)
     parcelas_total = db.Column(db.Integer, default=1)
     parcela_atual = db.Column(db.Integer, default=1)
@@ -168,6 +169,7 @@ class CardExpense(db.Model):
             'record_id': self.record_id,
             'descricao': self.descricao,
             'valor': self.valor,
+            'categoria': self.categoria or 'Outros',
             'data': self.data or '',
             'parcelas_total': self.parcelas_total,
             'parcela_atual': self.parcela_atual

@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, createEventDispatcher } from 'svelte'
 
   export let recordId: number
   export let month: string = ''
   export let year: number = 0
+  export let categorias: string[] = ['Moradia','Alimentacao','Transporte','Saude','Educacao','Lazer','Cartao','Outros']
+
+  const dispatch = createEventDispatcher()
 
   const API = '/api/cards'
   const token = () => localStorage.getItem('token')
@@ -31,6 +34,7 @@
   let addValor = ''
   let addData = ''
   let addParcelas = '1'
+  let addCategoria = 'Outros'
   let saving = false
 
   // edit
@@ -38,6 +42,7 @@
   let editDesc = ''
   let editValor = ''
   let editData = ''
+  let editCategoria = 'Outros'
 
   // ── load ─────────────────────────────────────────────────────────────────
   const loadCards = async () => {
@@ -50,6 +55,7 @@
     if (!recordId) return
     const r = await fetch(`${API}/faturas/${recordId}`, { headers: auth() })
     faturas = await r.json()
+    dispatch('faturasLoaded', faturas)
   }
 
   onMount(async () => {
@@ -95,11 +101,12 @@
           record_id: recordId,
           descricao: addDesc,
           valor: parseFloat(addValor),
+          categoria: addCategoria,
           data: addData,
           parcelas: parseInt(addParcelas) || 1
         })
       })
-      addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'
+      addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'; addCategoria = 'Outros'
       adding = false
       await loadFaturas()
     } finally { saving = false }
@@ -110,12 +117,13 @@
     editDesc = exp.descricao
     editValor = String(exp.valor)
     editData = exp.data || ''
+    editCategoria = exp.categoria || 'Outros'
   }
 
   const saveEdit = async () => {
     await fetch(`${API}/expenses/${editingExpId}`, {
       method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), data: editData })
+      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData })
     })
     editingExpId = null
     await loadFaturas()
@@ -176,6 +184,9 @@
         {#each cards as c}<option value={c.id}>{c.nome}</option>{/each}
       </select>
       <input type="text" placeholder="Descrição *" bind:value={addDesc} class="inp flex2" />
+      <select bind:value={addCategoria} class="inp">
+        {#each categorias as cat}<option>{cat}</option>{/each}
+      </select>
       <input type="number" placeholder="Valor total *" bind:value={addValor} step="0.01" class="inp" />
       <input type="date" bind:value={addData} class="inp" />
       <div class="parcelas-wrap">
@@ -216,6 +227,7 @@
                 <thead>
                   <tr>
                     <th>Descrição</th>
+                    <th>Categoria</th>
                     <th>Data</th>
                     <th>Parcela</th>
                     <th>Valor</th>
@@ -227,6 +239,7 @@
                     {#if editingExpId === exp.id}
                       <tr class="edit-row">
                         <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
+                        <td><select bind:value={editCategoria} class="edit-inp">{#each categorias as cat}<option>{cat}</option>{/each}</select></td>
                         <td><input type="date" bind:value={editData} class="edit-inp" /></td>
                         <td class="parcela-cell">
                           {exp.parcela_atual}/{exp.parcelas_total}
@@ -240,6 +253,7 @@
                     {:else}
                       <tr>
                         <td class="desc">{exp.descricao}</td>
+                        <td><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
                         <td>{exp.data || '—'}</td>
                         <td class="parcela-cell">
                           {#if exp.parcelas_total > 1}
@@ -358,6 +372,7 @@
   .parcela-cell { text-align: center; }
   .parc-badge { background: #e8eeff; color: #667eea; border-radius: 10px; padding: 2px 6px; font-size: 0.75rem; }
   .parc-badge.single { background: #f0f0f0; color: #888; }
+  .cat-badge { background: #eef; color: #667eea; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; }
 
   .action-cell { display: flex; gap: 4px; align-items: center; }
   .btn-edit { background: #2196f3; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
