@@ -1,120 +1,114 @@
-# Script de Setup Automático - Sistema de Controle Financeiro
+# Script de Setup Automatico - Sistema de Controle Financeiro
 # Execute como: powershell -ExecutionPolicy Bypass -File setup.ps1
 
-Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║     🚀 Setup Automático - Sistema de Controle Financeiro      ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "===================================================================" -ForegroundColor Cyan
+Write-Host "  Setup Automatico - Sistema de Controle Financeiro" -ForegroundColor Cyan
+Write-Host "===================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Cores para output
 $success = "Green"
-$error = "Red"
+$errorColor = "Red"
 $info = "Cyan"
 $warning = "Yellow"
 
 # 1. Verificar Python
-Write-Host "1️⃣  Verificando Python..." -ForegroundColor $info
+Write-Host "[1/8] Verificando Python..." -ForegroundColor $info
 $pythonCheck = python --version 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "   ✅ Python encontrado: $pythonCheck" -ForegroundColor $success
+    Write-Host "   [OK] Python encontrado: $pythonCheck" -ForegroundColor $success
 } else {
-    Write-Host "   ❌ Python não encontrado. Instale em: https://www.python.org/" -ForegroundColor $error
+    Write-Host "   [ERRO] Python nao encontrado. Instale em: https://www.python.org/" -ForegroundColor $errorColor
     exit 1
 }
 
 # 2. Verificar Node.js
 Write-Host ""
-Write-Host "2️⃣  Verificando Node.js..." -ForegroundColor $info
+Write-Host "[2/8] Verificando Node.js..." -ForegroundColor $info
 $nodeCheck = node --version 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "   ✅ Node.js encontrado: $nodeCheck" -ForegroundColor $success
+    Write-Host "   [OK] Node.js encontrado: $nodeCheck" -ForegroundColor $success
 } else {
-    Write-Host "   ❌ Node.js não encontrado. Instale em: https://nodejs.org/" -ForegroundColor $error
+    Write-Host "   [ERRO] Node.js nao encontrado. Instale em: https://nodejs.org/" -ForegroundColor $errorColor
     exit 1
 }
 
 # 3. Verificar PostgreSQL
 Write-Host ""
-Write-Host "3️⃣  Verificando PostgreSQL..." -ForegroundColor $info
+Write-Host "[3/8] Verificando PostgreSQL..." -ForegroundColor $info
 $psqlCheck = psql --version 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "   ✅ PostgreSQL encontrado: $psqlCheck" -ForegroundColor $success
+    Write-Host "   [OK] PostgreSQL encontrado: $psqlCheck" -ForegroundColor $success
 } else {
-    Write-Host "   ⚠️  PostgreSQL não encontrado. Instale em: https://www.postgresql.org/" -ForegroundColor $warning
+    Write-Host "   [AVISO] PostgreSQL nao encontrado. Instale em: https://www.postgresql.org/" -ForegroundColor $warning
     Write-Host "   Continuando mesmo assim..." -ForegroundColor $warning
 }
 
 # 4. Criar ambiente virtual Python
 Write-Host ""
-Write-Host "4️⃣  Criando ambiente virtual Python..." -ForegroundColor $info
+Write-Host "[4/8] Criando ambiente virtual Python..." -ForegroundColor $info
 if (Test-Path "venv") {
-    Write-Host "   ⚠️  Ambiente virtual já existe" -ForegroundColor $warning
+    Write-Host "   [AVISO] Ambiente virtual ja existe" -ForegroundColor $warning
 } else {
     python -m venv venv
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "   ✅ Ambiente virtual criado" -ForegroundColor $success
+        Write-Host "   [OK] Ambiente virtual criado" -ForegroundColor $success
     } else {
-        Write-Host "   ❌ Erro ao criar ambiente virtual" -ForegroundColor $error
+        Write-Host "   [ERRO] Erro ao criar ambiente virtual" -ForegroundColor $errorColor
         exit 1
     }
 }
 
 # 5. Ativar ambiente virtual
 Write-Host ""
-Write-Host "5️⃣  Ativando ambiente virtual..." -ForegroundColor $info
+Write-Host "[5/8] Ativando ambiente virtual..." -ForegroundColor $info
 & ".\venv\Scripts\Activate.ps1"
-Write-Host "   ✅ Ambiente virtual ativado" -ForegroundColor $success
+Write-Host "   [OK] Ambiente virtual ativado" -ForegroundColor $success
 
-# 6. Instalar dependências Python
+# 6. Instalar dependencias Python
 Write-Host ""
-Write-Host "6️⃣  Instalando dependências Python..." -ForegroundColor $info
+Write-Host "[6/8] Instalando dependencias Python..." -ForegroundColor $info
 pip install -r requirements.txt --quiet
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "   ✅ Dependências Python instaladas" -ForegroundColor $success
+    Write-Host "   [OK] Dependencias Python instaladas" -ForegroundColor $success
 } else {
-    Write-Host "   ❌ Erro ao instalar dependências Python" -ForegroundColor $error
+    Write-Host "   [ERRO] Erro ao instalar dependencias Python" -ForegroundColor $errorColor
     exit 1
 }
 
 # 7. Criar arquivo .env
 Write-Host ""
-Write-Host "7️⃣  Configurando variáveis de ambiente..." -ForegroundColor $info
+Write-Host "[7/8] Configurando variaveis de ambiente..." -ForegroundColor $info
 if (Test-Path ".env") {
-    Write-Host "   ⚠️  Arquivo .env já existe" -ForegroundColor $warning
+    Write-Host "   [AVISO] Arquivo .env ja existe" -ForegroundColor $warning
 } else {
     Copy-Item ".env.example" ".env"
-    Write-Host "   ✅ Arquivo .env criado" -ForegroundColor $success
-    Write-Host "   ⚠️  IMPORTANTE: Edite .env com suas credenciais PostgreSQL" -ForegroundColor $warning
+    Write-Host "   [OK] Arquivo .env criado" -ForegroundColor $success
+    Write-Host "   [AVISO] IMPORTANTE: Edite .env com suas credenciais PostgreSQL" -ForegroundColor $warning
 }
 
-# 8. Instalar dependências Frontend
+# 8. Instalar dependencias Frontend
 Write-Host ""
-Write-Host "8️⃣  Instalando dependências Frontend..." -ForegroundColor $info
+Write-Host "[8/8] Instalando dependencias Frontend..." -ForegroundColor $info
 Push-Location "frontend"
 npm install --silent
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "   ✅ Dependências Frontend instaladas" -ForegroundColor $success
+    Write-Host "   [OK] Dependencias Frontend instaladas" -ForegroundColor $success
 } else {
-    Write-Host "   ❌ Erro ao instalar dependências Frontend" -ForegroundColor $error
+    Write-Host "   [ERRO] Erro ao instalar dependencias Frontend" -ForegroundColor $errorColor
     Pop-Location
     exit 1
 }
 Pop-Location
 
-# 9. Criar banco de dados PostgreSQL
+# Resumo
 Write-Host ""
-Write-Host "9️⃣  Criando banco de dados PostgreSQL..." -ForegroundColor $info
-Write-Host "   ℹ️  Execute no PostgreSQL (psql):" -ForegroundColor $info
-Write-Host "   CREATE DATABASE financas_db;" -ForegroundColor $warning
-
-# 10. Resumo
-Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor $success
-Write-Host "║                    ✅ SETUP CONCLUÍDO!                         ║" -ForegroundColor $success
-Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor $success
+Write-Host "===================================================================" -ForegroundColor $success
+Write-Host "  [SUCESSO] SETUP CONCLUIDO!" -ForegroundColor $success
+Write-Host "===================================================================" -ForegroundColor $success
 
 Write-Host ""
-Write-Host "📋 Próximos passos:" -ForegroundColor $info
+Write-Host "[PROXIMOS PASSOS]" -ForegroundColor $info
 Write-Host ""
 Write-Host "1. Edite o arquivo .env com suas credenciais PostgreSQL:" -ForegroundColor $info
 Write-Host "   DATABASE_URL=postgresql://usuario:senha@localhost:5432/financas_db" -ForegroundColor $warning
@@ -130,6 +124,6 @@ Write-Host "4. Em outro terminal, inicie o frontend:" -ForegroundColor $info
 Write-Host "   cd frontend" -ForegroundColor $warning
 Write-Host "   npm run dev" -ForegroundColor $warning
 Write-Host ""
-Write-Host "5. Acesse a aplicação:" -ForegroundColor $info
+Write-Host "5. Acesse a aplicacao:" -ForegroundColor $info
 Write-Host "   http://localhost:5173" -ForegroundColor $warning
 Write-Host ""
