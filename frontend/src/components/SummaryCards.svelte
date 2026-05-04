@@ -1,9 +1,11 @@
 <script lang="ts">
   export let record: any
+  export let cardFaturas: any[] = []
 
   $: totalReceitas = (record.salario_bruto || 0) + (record.discounts?.filter((d: any) => d.valor > 0).reduce((sum: number, d: any) => sum + d.valor, 0) || 0)
   $: totalDescontos = record.discounts?.filter((d: any) => d.valor < 0).reduce((sum: number, d: any) => sum + Math.abs(d.valor), 0) || 0
-  $: totalDespesas = record.expenses?.reduce((sum: number, e: any) => sum + e.valor, 0) || 0
+  $: totalCartoes = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
+  $: totalDespesas = (record.expenses?.reduce((sum: number, e: any) => sum + e.valor, 0) || 0) + totalCartoes
   $: totalInvestimentos = record.investments?.reduce((sum: number, i: any) => sum + i.valor, 0) || 0
   $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas - totalDescontos - totalDespesas - totalInvestimentos
 

@@ -91,7 +91,7 @@
     {:else if errorMsg}
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
-      <SummaryCards record={currentRecord} />
+      <SummaryCards record={currentRecord} {cardFaturas} />
 
       <div class="tabs">
         <button

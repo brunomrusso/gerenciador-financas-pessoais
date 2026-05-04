@@ -76,7 +76,7 @@
   }
 
   const getTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
-  const cardTotal = () => cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
+  $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
 
   const handleAdd = async () => {
     if (!newDesc.trim() || !newValor) return
@@ -296,17 +296,17 @@
               <td class="negative"><strong>{fmt(getTotal())}</strong></td>
               <td colspan="2"></td>
             </tr>
-            {#if cardTotal() > 0}
+            {#if cardTotal > 0}
             <tr class="total-row">
               <td colspan="2"><strong>Total cartões</strong></td>
               <td class="hide-sm"></td>
-              <td class="negative"><strong>{fmt(cardTotal())}</strong></td>
+              <td class="negative"><strong>{fmt(cardTotal)}</strong></td>
               <td colspan="2"></td>
             </tr>
             <tr class="total-row grand-total">
               <td colspan="2"><strong>Total geral</strong></td>
               <td class="hide-sm"></td>
-              <td class="negative"><strong>{fmt(getTotal() + cardTotal())}</strong></td>
+              <td class="negative"><strong>{fmt(getTotal() + cardTotal)}</strong></td>
               <td colspan="2"></td>
             </tr>
             {/if}
