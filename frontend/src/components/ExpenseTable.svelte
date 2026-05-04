@@ -253,7 +253,7 @@
                   </td>
                   <td class="hide-sm"><span class="badge">{item.categoria || 'Outros'}</span></td>
                   <td class="hide-sm">{item.data || '-'}</td>
-                  <td class={item.valor < 0 ? 'negative' : 'positive'}>{fmt(item.valor)}</td>
+                  <td class={item.tipo === 'Receita' ? 'positive' : 'negative'}>{fmt(item.valor)}</td>
                   <td><input type="checkbox" checked={item.pago} on:change={() => togglePago(item)} /></td>
                   <td class="action-cell">
                     <button class="btn-edit" on:click={() => startEdit(item)} title="Editar">✎</button>
@@ -265,7 +265,7 @@
             <tr class="total-row">
               <td colspan="2"><strong>Total ({filtered.length})</strong></td>
               <td class="hide-sm"></td>
-              <td class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{fmt(getTotal())}</strong></td>
+              <td class="negative"><strong>{fmt(getTotal())}</strong></td>
               <td colspan="2"></td>
             </tr>
           {:else}
