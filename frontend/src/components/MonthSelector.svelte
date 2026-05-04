@@ -30,7 +30,7 @@
 </script>
 
 <div class="month-selector">
-  <div class="controls">
+  <div class="selector-row">
     <select value={selectedYear} on:change={handleYearChange} class="year-select">
       <option value={2024}>2024</option>
       <option value={2025}>2025</option>
@@ -39,53 +39,56 @@
     </select>
 
     <button on:click={goToCurrentMonth} class="btn-today">Hoje</button>
-  </div>
 
-  <div class="months-grid">
-    {#each months as month}
-      <button
-        class={`month-btn ${selectedMonth === month ? 'active' : ''}`}
-        on:click={() => handleMonthClick(month)}
-      >
-        {month.substring(0, 3)}
-      </button>
-    {/each}
+    <div class="months-grid">
+      {#each months as month}
+        <button
+          class={`month-btn ${selectedMonth === month ? 'active' : ''}`}
+          on:click={() => handleMonthClick(month)}
+        >
+          {month.substring(0, 3)}
+        </button>
+      {/each}
+    </div>
   </div>
 </div>
 
 <style>
   .month-selector {
     background: white;
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
-  .controls {
+  .selector-row {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   .year-select {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.6rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .btn-today {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.9rem;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 0.875rem;
     transition: transform 0.2s;
+    flex-shrink: 0;
   }
 
   .btn-today:hover {
@@ -93,20 +96,23 @@
   }
 
   .months-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    gap: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex: 1;
   }
 
   .month-btn {
-    padding: 0.75rem;
+    padding: 0.45rem 0.6rem;
     border: 2px solid #ddd;
     background: white;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
+    font-size: 0.875rem;
+    transition: all 0.2s;
     color: #333;
+    white-space: nowrap;
   }
 
   .month-btn:hover {
