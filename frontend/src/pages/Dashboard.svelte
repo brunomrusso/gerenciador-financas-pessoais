@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { recordsStore, fetchRecords, createRecord, updateRecord } from '../stores/records'
+  import { authStore } from '../stores/auth'
   import { logout } from '../stores/auth'
   import MonthSelector from '../components/MonthSelector.svelte'
   import SummaryCards from '../components/SummaryCards.svelte'
@@ -19,9 +20,13 @@
   let loading = false
   let errorMsg = ''
   let cardFaturas: any[] = []
+  let userName = ''
 
   onMount(() => {
     loadCurrentMonth()
+    authStore.subscribe(state => {
+      userName = state.user?.nome || state.user?.email?.split('@')[0] || ''
+    })
   })
 
   // Atualiza currentRecord quando o store muda (ex: apos adicionar/remover item)
@@ -79,7 +84,10 @@
 
 <div class="dashboard">
   <header class="dashboard-header">
-    <h1>Controle Financeiro</h1>
+    <div class="header-left">
+      <h1>Controle Financeiro</h1>
+      <p class="greeting">Olá, {userName}</p>
+    </div>
     <button on:click={handleLogout} class="btn-logout">Sair</button>
   </header>
 
@@ -178,6 +186,19 @@
 
   .btn-logout:hover {
     background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .greeting {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 400;
   }
 
   .container {
