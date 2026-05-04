@@ -3,13 +3,12 @@
 
   const dispatch = createEventDispatcher()
 
-  let selectedMonth = 'Janeiro'
-  let selectedYear = new Date().getFullYear()
-
   const months = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ]
+  let selectedMonth = months[new Date().getMonth()]
+  let selectedYear = new Date().getFullYear()
 
   const handleMonthClick = (month: string) => {
     selectedMonth = month

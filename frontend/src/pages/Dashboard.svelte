@@ -7,29 +7,39 @@
   import DataTable from '../components/DataTable.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
 
-  let selectedMonth = 'Janeiro'
+  const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+  // Nota: nomes sem acentos para compatibilidade com URL params e banco de dados
+  let selectedMonth = months[new Date().getMonth()]
   let selectedYear = new Date().getFullYear()
   let currentRecord: any = null
   let showHistory = false
+  let loading = false
+  let errorMsg = ''
 
   onMount(() => {
     loadCurrentMonth()
   })
 
   const loadCurrentMonth = async () => {
-    await fetchRecords(selectedMonth, selectedYear.toString())
-    recordsStore.subscribe(state => {
-      if (state.records.length > 0) {
+    loading = true
+    errorMsg = ''
+    currentRecord = null
+    try {
+      await fetchRecords(selectedMonth, selectedYear.toString())
+      let state: any
+      const unsub = recordsStore.subscribe(s => { state = s })
+      unsub()
+      if (state.records && state.records.length > 0) {
         currentRecord = state.records[0]
       } else {
-        createNewRecord()
+        currentRecord = await createRecord(selectedMonth, selectedYear)
       }
-    })()
-  }
-
-  const createNewRecord = async () => {
-    const record = await createRecord(selectedMonth, selectedYear)
-    currentRecord = record
+    } catch (e: any) {
+      errorMsg = e.message || 'Erro ao carregar dados'
+    } finally {
+      loading = false
+    }
   }
 
   const handleMonthChange = (event: CustomEvent) => {
@@ -66,7 +76,11 @@
   <div class="container">
     <MonthSelector on:change={handleMonthChange} />
 
-    {#if currentRecord}
+    {#if loading}
+      <p style="text-align:center;padding:2rem;color:#666">Carregando...</p>
+    {:else if errorMsg}
+      <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
+    {:else if currentRecord}
       <SummaryCards record={currentRecord} />
 
       <div class="tabs">
@@ -113,6 +127,9 @@
       {:else}
         <HistoryChart month={selectedMonth} year={selectedYear} />
       {/if}
+    {/if}
+    {#if !loading && !currentRecord && !errorMsg}
+      <p style="text-align:center;padding:2rem;color:#666">Nenhum registro encontrado para este mes.</p>
     {/if}
   </div>
 </div>
