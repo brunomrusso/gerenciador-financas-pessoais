@@ -1,0 +1,197 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                  🤖 SCRIPTS DE AUTOMAÇÃO - GUIA RÁPIDO 🤖                 ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📋 SCRIPTS DISPONÍVEIS:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. install.ps1 - INSTALAÇÃO COMPLETA (RECOMENDADO)                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Comando:                                                                 │
+│   powershell -ExecutionPolicy Bypass -File install.ps1                  │
+│                                                                          │
+│ O que faz:                                                               │
+│   • Menu interativo para escolher etapas                                │
+│   • Opção 1: Instalação completa (recomendado)                          │
+│   • Opção 2: Apenas setup                                               │
+│   • Opção 3: Criar banco de dados                                       │
+│   • Opção 4: Migrar dados                                               │
+│   • Opção 5: Iniciar aplicação                                          │
+│                                                                          │
+│ Tempo: ~10 minutos (primeira vez)                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. setup.ps1 - INSTALAR DEPENDÊNCIAS                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Comando:                                                                 │
+│   powershell -ExecutionPolicy Bypass -File setup.ps1                    │
+│                                                                          │
+│ O que faz:                                                               │
+│   ✓ Verifica Python, Node.js, PostgreSQL                                │
+│   ✓ Cria ambiente virtual Python                                        │
+│   ✓ Instala dependências Python (pip)                                   │
+│   ✓ Cria arquivo .env                                                   │
+│   ✓ Instala dependências Node.js (npm)                                  │
+│                                                                          │
+│ Tempo: ~5 minutos                                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. create_db.ps1 - CRIAR BANCO DE DADOS                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Comando:                                                                 │
+│   powershell -ExecutionPolicy Bypass -File create_db.ps1                │
+│                                                                          │
+│ O que faz:                                                               │
+│   ✓ Verifica PostgreSQL                                                 │
+│   ✓ Solicita credenciais                                                │
+│   ✓ Cria banco de dados 'financas_db'                                   │
+│   ✓ Atualiza arquivo .env                                               │
+│                                                                          │
+│ Tempo: ~1 minuto                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. migrate.ps1 - MIGRAR DADOS DO EXCEL                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Comando:                                                                 │
+│   powershell -ExecutionPolicy Bypass -File migrate.ps1                  │
+│                                                                          │
+│ O que faz:                                                               │
+│   ✓ Verifica arquivo controle_financeiro.xlsx                           │
+│   ✓ Ativa ambiente virtual                                              │
+│   ✓ Executa migração de dados                                           │
+│   ✓ Mostra relatório de sucesso                                         │
+│                                                                          │
+│ Pré-requisitos:                                                          │
+│   • Arquivo controle_financeiro.xlsx na pasta raiz                      │
+│   • Arquivo .env configurado                                            │
+│                                                                          │
+│ Tempo: ~2 minutos                                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 5. start.ps1 - INICIAR APLICAÇÃO                                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Comando:                                                                 │
+│   powershell -ExecutionPolicy Bypass -File start.ps1                    │
+│                                                                          │
+│ O que faz:                                                               │
+│   ✓ Ativa ambiente virtual                                              │
+│   ✓ Inicia Backend (Flask) em background                                │
+│   ✓ Inicia Frontend (Svelte) em background                              │
+│   ✓ Monitora processos                                                  │
+│   ✓ Permite parar com Ctrl+C                                            │
+│                                                                          │
+│ Acessar:                                                                 │
+│   • Frontend: http://localhost:5173                                     │
+│   • Backend:  http://localhost:5000                                     │
+│                                                                          │
+│ Tempo: ~5 segundos                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 FLUXO RECOMENDADO:
+
+PRIMEIRA VEZ (Instalação Completa):
+  1. powershell -ExecutionPolicy Bypass -File install.ps1
+  2. Escolha opção 1
+  3. Responda às perguntas
+  4. Aguarde conclusão
+  5. Acesse http://localhost:5173
+
+PRÓXIMAS VEZES (Apenas Iniciar):
+  1. powershell -ExecutionPolicy Bypass -File start.ps1
+  2. Acesse http://localhost:5173
+  3. Pressione Ctrl+C para parar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ PRÉ-REQUISITOS:
+
+Antes de executar os scripts, certifique-se de ter instalado:
+
+1. Python 3.8+
+   → https://www.python.org/
+   → Marque "Add Python to PATH"
+
+2. Node.js 16+ (LTS)
+   → https://nodejs.org/
+
+3. PostgreSQL 12+
+   → https://www.postgresql.org/
+   → Lembre-se da senha do usuário 'postgres'
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 TROUBLESHOOTING:
+
+❌ "PowerShell não reconhece o comando"
+   → Use o caminho completo do arquivo
+   → Ou execute em PowerShell como Administrador
+
+❌ "Acesso negado"
+   → Clique com botão direito em PowerShell
+   → Escolha "Executar como Administrador"
+
+❌ "Python/Node.js/PostgreSQL não encontrado"
+   → Instale a dependência faltante
+   → Reinicie o terminal após instalar
+
+❌ "Porta 5000/5173 já em uso"
+   → Mude a porta nos arquivos de configuração
+   → Ou feche o programa que está usando a porta
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 TEMPO ESTIMADO:
+
+Primeira execução (install.ps1 opção 1):
+  • Setup:           ~5 minutos
+  • Criar BD:        ~1 minuto
+  • Migrar dados:    ~2 minutos (se tiver dados)
+  • Iniciar:         ~5 segundos
+  ─────────────────────────────
+  TOTAL:             ~8-13 minutos
+
+Próximas execuções (start.ps1):
+  • Iniciar:         ~5 segundos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTAÇÃO:
+
+Para mais detalhes, consulte:
+  • SCRIPTS.md - Documentação completa dos scripts
+  • SETUP.md - Guia manual de instalação
+  • INDICE.md - Índice de toda a documentação
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ DICAS:
+
+1. Crie um atalho no Desktop para executar start.ps1 rapidamente
+2. Use um terminal separado para cada script
+3. Monitore os logs para erros
+4. Faça backup do arquivo .env
+5. Atualize dependências regularmente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 PRONTO PARA COMEÇAR?
+
+Execute agora:
+  powershell -ExecutionPolicy Bypass -File install.ps1
+
+Escolha opção 1 e deixe a mágica acontecer! ✨
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Última atualização: Maio 4, 2024
+Versão: 1.0
+
+Desenvolvido com ❤️ para facilitar sua vida!
