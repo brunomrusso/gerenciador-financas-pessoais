@@ -355,8 +355,8 @@
 </div>
 
 <style>
-  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; width: 100%; box-sizing: border-box; overflow-x: hidden; }
-  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; width: 0; overflow-x: hidden; }
+  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
+  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; }
   .chart-section { flex: 1; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 260px; max-width: 340px; display: flex; flex-direction: column; gap: 0.75rem; }
   .chart-canvas { width: 100% !important; }
 
@@ -434,10 +434,14 @@
   @media (max-width: 640px) {
     .expense-wrap { flex-direction: column; }
     .chart-section { max-width: 100%; width: 100%; }
+    .table-section { padding: 0.75rem; flex: 1 1 100%; }
+    .table-wrap { max-height: 500px; }
     .hide-sm { display: none; }
-    .table-section { padding: 1rem; }
     h3 { font-size: 1rem; }
     .header-actions { gap: 0.3rem; }
     .btn-sm { padding: 0.35rem 0.5rem; font-size: 0.72rem; }
+    table { min-width: 500px; }
+    th { padding: 0.5rem 0.4rem; font-size: 0.75rem; }
+    td { padding: 0.4rem 0.3rem; font-size: 0.8rem; }
   }
 </style>
