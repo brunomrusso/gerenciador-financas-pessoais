@@ -290,30 +290,32 @@
                 </tr>
               {/if}
             {/each}
-            <tr class="total-row">
-              <td colspan="2"><strong>Total despesas ({filtered.length})</strong></td>
-              <td class="hide-sm"></td>
-              <td class="negative"><strong>{fmt(getTotal())}</strong></td>
-              <td colspan="2"></td>
-            </tr>
-            {#if cardTotal > 0}
-            <tr class="total-row">
-              <td colspan="2"><strong>Total cartões</strong></td>
-              <td class="hide-sm"></td>
-              <td class="negative"><strong>{fmt(cardTotal)}</strong></td>
-              <td colspan="2"></td>
-            </tr>
-            <tr class="total-row grand-total">
-              <td colspan="2"><strong>Total geral</strong></td>
-              <td class="hide-sm"></td>
-              <td class="negative"><strong>{fmt(getTotal() + cardTotal)}</strong></td>
-              <td colspan="2"></td>
-            </tr>
-            {/if}
           {:else}
             <tr><td colspan="6" class="empty">{(items?.length || 0) > 0 ? 'Nenhuma despesa corresponde ao filtro.' : 'Nenhuma despesa. Clique em "+ Adicionar".'}</td></tr>
           {/if}
         </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2"><strong>Total despesas ({filtered.length})</strong></td>
+            <td class="hide-sm"></td>
+            <td class="negative"><strong>{fmt(getTotal())}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+          {#if cardTotal > 0}
+          <tr class="total-row">
+            <td colspan="2"><strong>Total cartões</strong></td>
+            <td class="hide-sm"></td>
+            <td class="negative"><strong>{fmt(cardTotal)}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+          <tr class="total-row grand-total">
+            <td colspan="2"><strong>Total geral</strong></td>
+            <td class="hide-sm"></td>
+            <td class="negative"><strong>{fmt(getTotal() + cardTotal)}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+          {/if}
+        </tfoot>
       </table>
     </div>
   </div>
@@ -396,9 +398,10 @@
   .chk-label { display: flex; align-items: center; gap: 5px; font-size: 0.875rem; color: #333; }
   .chk-label-sm { display: flex; align-items: center; gap: 3px; font-size: 0.75rem; color: #333; white-space: nowrap; }
 
-  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 420px; }
+  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 460px; }
   table { width: 100%; border-collapse: collapse; min-width: 300px; }
-  thead { background: #f5f5f5; position: sticky; top: 0; z-index: 1; }
+  thead { background: #f5f5f5; position: sticky; top: 0; z-index: 2; }
+  tfoot { position: sticky; bottom: 0; z-index: 2; }
   th { padding: 0.6rem 0.5rem; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #ddd; font-size: 0.82rem; white-space: nowrap; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover { color: #667eea; }
@@ -410,7 +413,7 @@
   .pago-row td { opacity: 0.5; text-decoration: line-through; }
   .badge { background: #eef; color: #667eea; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; }
   .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.7rem; border-radius: 4px; padding: 1px 4px; margin-left: 4px; }
-  .total-row td { background: #f9f9f9; font-size: 0.9rem; }
+  .total-row td { background: #f9f9f9; font-size: 0.9rem; border-top: 1px solid #ddd; }
   .grand-total td { background: #f0f0ff; font-size: 0.95rem; border-top: 2px solid #ddd; }
   .empty { text-align: center; color: #999; font-style: italic; padding: 1.5rem; }
   .positive { color: #4caf50; font-weight: 600; }
