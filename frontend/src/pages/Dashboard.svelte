@@ -21,6 +21,13 @@
     loadCurrentMonth()
   })
 
+  // Atualiza currentRecord quando o store muda (ex: apos adicionar/remover item)
+  recordsStore.subscribe(state => {
+    if (state.records && state.records.length > 0) {
+      currentRecord = state.records[0]
+    }
+  })
+
   const loadCurrentMonth = async () => {
     loading = true
     errorMsg = ''
@@ -120,9 +127,9 @@
             />
           </div>
 
-          <DataTable title="Descontos e Créditos" items={currentRecord.discounts} />
-          <DataTable title="Despesas" items={currentRecord.expenses} />
-          <DataTable title="Investimentos" items={currentRecord.investments} />
+          <DataTable title="Descontos e Creditos" items={currentRecord.discounts} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
+          <DataTable title="Despesas" items={currentRecord.expenses} recordId={currentRecord.id} type="expenses" month={selectedMonth} year={selectedYear} />
+          <DataTable title="Investimentos" items={currentRecord.investments} recordId={currentRecord.id} type="investments" month={selectedMonth} year={selectedYear} />
         </div>
       {:else}
         <HistoryChart month={selectedMonth} year={selectedYear} />
