@@ -377,8 +377,8 @@
   th { padding: 0.6rem 0.5rem; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #ddd; font-size: 0.82rem; white-space: nowrap; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover { color: #667eea; }
-  td { padding: 0.55rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #222; vertical-align: middle; }
-  .desc-cell { color: #222; font-weight: 500; }
+  td { padding: 0.55rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #222; vertical-align: middle; white-space: nowrap; }
+  .desc-cell { color: #222; font-weight: 500; white-space: normal; }
   .edit-inp { width: 100%; padding: 0.3rem; border: 1px solid #667eea; border-radius: 4px; font-size: 0.82rem; color: #333; background: #fff; color-scheme: light; box-sizing: border-box; }
   .edit-inp.narrow { max-width: 90px; }
   .edit-row td { background: #f0f4ff; }
