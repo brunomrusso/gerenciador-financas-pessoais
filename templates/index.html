@@ -45,27 +45,26 @@
 					<div class="bloco-superior-resumo col-content">
 						<div class="resultado-box">
 							<div class="resultado-item receitas">
-								<div class="resultado-label">Receitas</div>
-									<div>
-										<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote-arrow-up-icon lucide-banknote-arrow-up"><path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/><path d="M18 12h.01"/><path d="M19 22v-6"/><path d="m22 19-3-3-3 3"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="2"/></svg>
+									<div class="icones">
+										<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote-arrow-up-icon lucide-banknote-arrow-up"><path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/><path d="M18 12h.01"/><path d="M19 22v-6"/><path d="m22 19-3-3-3 3"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="2"/></svg>
 									</div>
+								<div class="resultado-label">Receitas</div>
 								<div class="resultado-valor" id="receitasBox">R$ 0,00</div>
 							</div>
 							<div class="resultado-item descontos">
-								<div class="resultado-label">Despesas</div>
-									<div>
-										<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<div class="icones">
+										<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 											<circle cx="9" cy="21" r="1"></circle>
 											<circle cx="20" cy="21" r="1"></circle>
 											<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
 										</svg>
 									</div>
+								<div class="resultado-label">Despesas</div>
 								<div class="resultado-valor" id="totalDespesasBox">R$ 0,00</div>
 							</div>
 							<div class="resultado-item liquido">
-								<div class="resultado-label">Saldo</div>
-									<div>
-										<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<div class="icones">
+										<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 											<rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
 											<line x1="8" y1="6" x2="16" y2="6"></line>
 											<line x1="16" y1="14" x2="16" y2="14"></line>
@@ -76,17 +75,18 @@
 											<line x1="8" y1="18" x2="8" y2="18"></line>
 										</svg>
 									</div>
+								<div class="resultado-label">Saldo Final</div>
 								<div class="resultado-valor" id="saldoBox">R$ 0,00</div>
 							</div>
 							<div class="resultado-item investimento">
-								<div class="resultado-label">Investimentos</div>
-									<div>
-										<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<div class="icones">
+										<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 											<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1 .5-1.5 1-2V5z"></path>
 											<path d="M7 11h.01"></path>
 											<path d="M11 2v4"></path>
 										</svg>
-									</div>
+									</div>								
+								<div class="resultado-label">Investimentos</div>
 								<div class="resultado-valor" id="investimentosBox">R$ 0,00</div>
 							</div>
 						</div>
@@ -288,7 +288,7 @@
 						</div>
 						<div class="input-group" style="margin-top:10px;">
 							<div class="input-row-flex">
-								<input type="date" id="dataVencimento" class="input-date-fixed">
+								<input type="date" id="dataVencimento" class="input-date-fixed" onchange="salvarExcel()">
 								<input type="text" id="descricaoDespesa" placeholder="Descrição" class="input-70">
 								<input type="number" id="valorDespesa" placeholder="Valor" class="input-30"> 
 							</div>	

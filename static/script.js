@@ -188,7 +188,7 @@ function carregarExcel() {
                         </td>
                         <td>
                             <input type="date" class="form-control form-control-sm input-vencimento-tabela ${classeStatus}" 
-                                    value="${vencimento}" onchange="reverificarAtraso(this)" readonly>
+                                    value="${vencimento}" onchange="atualizarDataESalvar(this)">
                         </td>   
                         <td>${d.descricao}</td>
                         <td>${d.categoria}</td>
@@ -369,6 +369,19 @@ function salvarExcel() {
     });
 }
 
+function atualizarDataESalvar(input) {
+    // 1. Primeiro atualiza as cores da linha
+    if (typeof reverificarAtraso === 'function') {
+        reverificarAtraso(input);
+    }
+
+    // 2. Aguarda um microssegundo para o DOM processar e salva
+    setTimeout(() => {
+        console.log("Salvando nova data...");
+        salvarExcel();
+    }, 100);
+}
+
 function adicionarDespesa() {    
     const desc = document.getElementById('descricaoDespesa').value;
     const cat = document.getElementById('categoriaDespesa').value;
@@ -508,11 +521,22 @@ function salvarExcelSilencioso() {
 
 function excluirDespesa(botao) {
     const linha = botao.closest('tr');
-    const categoria = linha.cells[2].innerText.trim();
+    const categoria = linha.cells[3].innerText.trim();
+
+    // BLOQUEIO: Verifica se começa com "Cartão"
+    if (categoria.startsWith("Cartão")) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Edição Bloqueada',
+            text: 'Despesas de Cartão de Crédito devem ser editadas diretamente na tabela de Detalhamento do Cartão.',
+            confirmButtonColor: '#d33'
+        });
+        return; // Sai da função e não abre a edição
+    }
     
     // Tenta pegar o valor bruto (se você tiver o atributo data-valor na célula do valor)
     // Se não tiver, ele usa o seu método de limpeza
-    const celulaValor = linha.cells[3];
+    const celulaValor = linha.cells[4];
     const valor = celulaValor.hasAttribute('data-valor') 
         ? parseFloat(celulaValor.getAttribute('data-valor')) 
         : parseFloat(celulaValor.innerText.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
@@ -520,7 +544,7 @@ function excluirDespesa(botao) {
     // ALERTA MODERNO
     Swal.fire({
         title: 'Excluir lançamento?',
-        text: `Você está removendo: ${linha.cells[1].innerText}`,
+        text: `Você está removendo: ${linha.cells[2].innerText}`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -561,7 +585,7 @@ function excluirDespesa(botao) {
                     }
                     });
 
-                }, 1000);
+                }, 300);
         }
     });
 
@@ -627,10 +651,10 @@ function sincronizarTotaisCartoes() {
                             </label>
                         </div>
                     </td>
-                    <td><input type="date" class="form-control form-control-sm" value=""></td> <td>Fatura Mensal</td> <td>${nomeCartao}</td> <td data-valor="${total}">${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-                    <td>Fatura Mensal</td>
-                    <td>${nomeCartao}</td>
-                    <td>${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td><input type="date" class="form-control form-control-sm" value=""></td> 
+                    <td>Fatura Mensal</td> 
+                    <td>${nomeCartao}</td> 
+                    <td data-valor="${total}">${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                     <td style="color: #F44336">Despesa</td>
                     <td>
                         <button class="btn-edit" onclick="editarDespesa(this)">
@@ -676,6 +700,12 @@ function adicionarItemCartao() {
                 <td>${cat}</td>
                 <td>R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 <td style="text-align:center">
+                    <button class="btn-edit" onclick="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
                     <button class="btn-delete" onclick="excluirItemCartao(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
@@ -733,11 +763,9 @@ function excluirItemCartao(btn) {
                 // Se não houver mais nenhum gasto nesse cartão, zeramos ele na tabela principal
                 if (!aindaTemItens) {
                     const linhaPrincipal = Array.from(document.querySelectorAll('#tabelaDespesas tbody tr'))
-                        .find(tr => tr.cells[2].innerText.trim() === nomeCartaoRemovido);
+                        .find(tr => tr.cells[3].innerText.trim() === "Cartão " + nomeCartaoRemovido);
                     if (linhaPrincipal) {
-                        linhaPrincipal.cells[3].innerText = "R$ 0,00";
-                        // Se você usa data-valor na tabela principal, limpe-o também:
-                        linhaPrincipal.cells[3].setAttribute('data-valor', '0');
+                        linhaPrincipal.remove();
                     }
                 }
 
@@ -1223,6 +1251,7 @@ function alternarStatusPago(checkbox) {
         linha.classList.remove('linha-paga');
     }
     calcularTudo(); // Recalcula se necessário
+    setTimeout(salvarExcel(), 300)
 }
 
 // --- EVENTOS E EDIÇÃO ---
@@ -1332,6 +1361,17 @@ function editarDespesa(botao) {
     const categoria = linha.cells[3].innerText.trim();
     const valorTexto = linha.cells[4].innerText;
     const tipo = linha.cells[5].innerText.trim();
+
+    // BLOQUEIO: Verifica se começa com "Cartão"
+    if (categoria.startsWith("Cartão")) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Edição Bloqueada',
+            text: 'Despesas de Cartão de Crédito devem ser editadas diretamente na tabela de Detalhamento Cartão de Crédito',
+            confirmButtonColor: '#d33'
+        });
+        return; // Sai da função e não abre a edição
+    }
 
     // LIMPEZA DO VALOR: Remove R$, espaços, pontos de milhar e troca vírgula por ponto
     // Exemplo: "R$ 1.250,50" -> "1250.50"

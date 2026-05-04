@@ -1,0 +1,213 @@
+<script lang="ts">
+  import { onMount } from 'svelte'
+  import { recordsStore, fetchRecords, createRecord, updateRecord } from '../stores/records'
+  import { logout } from '../stores/auth'
+  import MonthSelector from '../components/MonthSelector.svelte'
+  import SummaryCards from '../components/SummaryCards.svelte'
+  import DataTable from '../components/DataTable.svelte'
+  import HistoryChart from '../components/HistoryChart.svelte'
+
+  let selectedMonth = 'Janeiro'
+  let selectedYear = new Date().getFullYear()
+  let currentRecord: any = null
+  let showHistory = false
+
+  onMount(() => {
+    loadCurrentMonth()
+  })
+
+  const loadCurrentMonth = async () => {
+    await fetchRecords(selectedMonth, selectedYear.toString())
+    recordsStore.subscribe(state => {
+      if (state.records.length > 0) {
+        currentRecord = state.records[0]
+      } else {
+        createNewRecord()
+      }
+    })()
+  }
+
+  const createNewRecord = async () => {
+    const record = await createRecord(selectedMonth, selectedYear)
+    currentRecord = record
+  }
+
+  const handleMonthChange = (event: CustomEvent) => {
+    selectedMonth = event.detail.month
+    selectedYear = event.detail.year
+    loadCurrentMonth()
+  }
+
+  const handleSalaryChange = async (newValue: number) => {
+    if (currentRecord) {
+      await updateRecord(currentRecord.id, { salario_bruto: newValue })
+      currentRecord.salario_bruto = newValue
+    }
+  }
+
+  const handleBalanceChange = async (newValue: number) => {
+    if (currentRecord) {
+      await updateRecord(currentRecord.id, { saldo_anterior: newValue })
+      currentRecord.saldo_anterior = newValue
+    }
+  }
+
+  const handleLogout = () => {
+    logout()
+  }
+</script>
+
+<div class="dashboard">
+  <header class="dashboard-header">
+    <h1>Controle Financeiro</h1>
+    <button on:click={handleLogout} class="btn-logout">Sair</button>
+  </header>
+
+  <div class="container">
+    <MonthSelector on:change={handleMonthChange} />
+
+    {#if currentRecord}
+      <SummaryCards record={currentRecord} />
+
+      <div class="tabs">
+        <button
+          class={`tab-btn ${!showHistory ? 'active' : ''}`}
+          on:click={() => (showHistory = false)}
+        >
+          Detalhes
+        </button>
+        <button
+          class={`tab-btn ${showHistory ? 'active' : ''}`}
+          on:click={() => (showHistory = true)}
+        >
+          Histórico
+        </button>
+      </div>
+
+      {#if !showHistory}
+        <div class="details-section">
+          <div class="input-group">
+            <label>Saldo Anterior</label>
+            <input
+              type="number"
+              value={currentRecord.saldo_anterior}
+              on:change={(e) => handleBalanceChange(parseFloat(e.target.value))}
+              step="0.01"
+            />
+          </div>
+
+          <div class="input-group">
+            <label>Salário Bruto</label>
+            <input
+              type="number"
+              value={currentRecord.salario_bruto}
+              on:change={(e) => handleSalaryChange(parseFloat(e.target.value))}
+              step="0.01"
+            />
+          </div>
+
+          <DataTable title="Descontos e Créditos" items={currentRecord.discounts} />
+          <DataTable title="Despesas" items={currentRecord.expenses} />
+          <DataTable title="Investimentos" items={currentRecord.investments} />
+        </div>
+      {:else}
+        <HistoryChart month={selectedMonth} year={selectedYear} />
+      {/if}
+    {/if}
+  </div>
+</div>
+
+<style>
+  .dashboard {
+    min-height: 100vh;
+    background-color: #f5f5f5;
+  }
+
+  .dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dashboard-header h1 {
+    margin: 0;
+  }
+
+  .btn-logout {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .btn-logout:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0 1rem;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+  }
+
+  .tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+
+  .details-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .input-group label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .input-group input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+</style>
