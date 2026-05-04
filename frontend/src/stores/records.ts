@@ -64,6 +64,7 @@ export const fetchRecords = async (month?: string, year?: string) => {
       loading: false,
       error: error.message
     }))
+    throw error
   }
 }
 
@@ -89,6 +90,7 @@ export const createRecord = async (month: string, year: number) => {
       ...state,
       error: error.message
     }))
+    throw error
   }
 }
 
