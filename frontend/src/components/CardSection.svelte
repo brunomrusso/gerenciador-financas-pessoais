@@ -471,9 +471,9 @@
   .desc { white-space: normal; font-weight: 500; }
 
   .parcela-cell { text-align: center; }
-  .parc-badge { background: #e8eeff; color: #667eea; border-radius: 10px; padding: 2px 6px; font-size: 0.75rem; }
+  .parc-badge { background: #e8eeff; color: #667eea; border-radius: 8px; padding: 1px 5px; font-size: 0.7rem; line-height: 1.3; }
   .parc-badge.single { background: #f0f0f0; color: #888; }
-  .cat-badge { background: #eef; color: #667eea; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; }
+  .cat-badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
 
   .action-cell { display: flex; gap: 4px; align-items: center; }
   .btn-edit { background: #2196f3; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; }
