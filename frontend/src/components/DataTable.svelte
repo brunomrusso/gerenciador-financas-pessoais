@@ -13,9 +13,19 @@
   let adding = false
   let saving = false
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
-  }
+  let editingId: number | null = null
+  let editDesc = ''
+  let editValor = ''
+
+  const fmt = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+
+  const auth = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+  })
+
+  const endpoint = () => type === 'discounts' ? 'discounts' : type === 'investments' ? 'investments' : 'expenses'
 
   const handleAdd = async () => {
     if (!newDesc.trim() || !newValor) return
@@ -26,20 +36,31 @@
       else if (type === 'expenses') await addExpense(recordId, newDesc, valor)
       else if (type === 'investments') await addInvestment(recordId, newDesc, valor)
       await fetchRecords(month, year.toString())
-      newDesc = ''
-      newValor = ''
-      adding = false
-    } finally {
-      saving = false
-    }
+      newDesc = ''; newValor = ''; adding = false
+    } finally { saving = false }
+  }
+
+  const startEdit = (item: any) => {
+    editingId = item.id
+    editDesc = item.descricao || item.card_name || ''
+    editValor = String(item.valor || '')
+  }
+
+  const cancelEdit = () => { editingId = null }
+
+  const saveEdit = async (item: any) => {
+    await fetch(`/api/records/${endpoint()}/${item.id}`, {
+      method: 'PUT', headers: auth(),
+      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor) })
+    })
+    editingId = null
+    await fetchRecords(month, year.toString())
   }
 
   const handleDelete = async (item: any) => {
-    const endpoint = type === 'discounts' ? 'discounts' : type === 'expenses' ? 'expenses' : 'investments'
-    const token = localStorage.getItem('token')
-    await fetch(`/api/records/${endpoint}/${item.id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+    if (!confirm(`Excluir "${item.descricao || item.card_name}"?`)) return
+    await fetch(`/api/records/${endpoint()}/${item.id}`, {
+      method: 'DELETE', headers: auth()
     })
     await fetchRecords(month, year.toString())
   }
@@ -92,19 +113,29 @@
     <tbody>
       {#if items && items.length > 0}
         {#each items as item (item.id)}
-          <tr>
-            <td>{item.descricao || item.card_name || '-'}</td>
-            <td class={item.valor < 0 ? 'negative' : 'positive'}>
-              {formatCurrency(item.valor)}
-            </td>
-            <td class="action-td">
-              <button class="btn-del" on:click={() => handleDelete(item)}>✕</button>
-            </td>
-          </tr>
+          {#if editingId === item.id}
+            <tr class="edit-row">
+              <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
+              <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp" /></td>
+              <td class="action-td">
+                <button class="btn-ok" on:click={() => saveEdit(item)}>✓</button>
+                <button class="btn-cancel" on:click={cancelEdit}>✕</button>
+              </td>
+            </tr>
+          {:else}
+            <tr>
+              <td>{item.descricao || item.card_name || '-'}</td>
+              <td class={item.valor < 0 ? 'negative' : 'positive'}>{fmt(item.valor)}</td>
+              <td class="action-td">
+                <button class="btn-edit" on:click={() => startEdit(item)} title="Editar">✎</button>
+                <button class="btn-del" on:click={() => handleDelete(item)} title="Excluir">✕</button>
+              </td>
+            </tr>
+          {/if}
         {/each}
         <tr class="total-row">
           <td><strong>Total</strong></td>
-          <td class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{formatCurrency(getTotal())}</strong></td>
+          <td class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{fmt(getTotal())}</strong></td>
           <td></td>
         </tr>
       {:else}
@@ -182,12 +213,56 @@
     line-height: 1;
   }
 
+  .btn-edit {
+    background: #2196f3;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-ok {
+    background: #4caf50;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    background: #9e9e9e;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-td { display: flex; gap: 4px; align-items: center; justify-content: flex-start; padding: 0.5rem 0.75rem; }
+
+  .edit-row td { background: #f0f4ff; }
+  .edit-inp { width: 100%; padding: 0.3rem 0.5rem; border: 1px solid #667eea; border-radius: 4px; font-size: 0.875rem; color: #333; background: white; box-sizing: border-box; }
+
   table { width: 100%; border-collapse: collapse; }
   thead { background-color: #f5f5f5; }
   th { padding: 0.75rem; text-align: left; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; font-size: 0.85rem; }
   td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #eee; color: #222; font-size: 0.875rem; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
-  .action-td { width: 40px; text-align: center; vertical-align: middle; }
 
   .total-row { background: #f9f9f9; }
   .empty { text-align: center; color: #999; font-style: italic; }

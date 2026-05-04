@@ -129,6 +129,24 @@ def add_discount(record_id):
     
     return jsonify(discount.to_dict()), 201
 
+@bp.route('/discounts/<int:discount_id>', methods=['PUT'])
+@jwt_required()
+def update_discount(discount_id):
+    user_id = int(get_jwt_identity())
+    discount = Discount.query.join(MonthlyRecord).filter(
+        Discount.id == discount_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not discount:
+        return jsonify({'error': 'Desconto não encontrado'}), 404
+    data = request.get_json()
+    if 'descricao' in data:
+        discount.descricao = data['descricao']
+    if 'valor' in data:
+        discount.valor = data['valor']
+    db.session.commit()
+    return jsonify(discount.to_dict()), 200
+
 @bp.route('/discounts/<int:discount_id>', methods=['DELETE'])
 @jwt_required()
 def delete_discount(discount_id):
@@ -243,6 +261,24 @@ def add_investment(record_id):
     db.session.commit()
     
     return jsonify(investment.to_dict()), 201
+
+@bp.route('/investments/<int:investment_id>', methods=['PUT'])
+@jwt_required()
+def update_investment(investment_id):
+    user_id = int(get_jwt_identity())
+    investment = Investment.query.join(MonthlyRecord).filter(
+        Investment.id == investment_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not investment:
+        return jsonify({'error': 'Investimento não encontrado'}), 404
+    data = request.get_json()
+    if 'descricao' in data:
+        investment.descricao = data['descricao']
+    if 'valor' in data:
+        investment.valor = data['valor']
+    db.session.commit()
+    return jsonify(investment.to_dict()), 200
 
 @bp.route('/investments/<int:investment_id>', methods=['DELETE'])
 @jwt_required()

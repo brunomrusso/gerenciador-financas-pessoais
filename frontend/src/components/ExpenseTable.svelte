@@ -316,11 +316,11 @@
   .inp-cat { flex: 1; padding: 0.35rem 0.6rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; }
 
   .filter-bar { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-  .inp-filter { flex: 2; min-width: 140px; padding: 0.4rem 0.6rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; color: #333; }
-  .inp-filter-sm { flex: 1; min-width: 120px; padding: 0.4rem 0.5rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; color: #333; }
+  .inp-filter { flex: 2; min-width: 140px; padding: 0.4rem 0.6rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; color: #333; background: #fff; color-scheme: light; }
+  .inp-filter-sm { flex: 1; min-width: 120px; padding: 0.4rem 0.5rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; color: #333; background: #fff; color-scheme: light; }
 
   .add-form { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; align-items: center; background: #f9f9ff; border-radius: 8px; padding: 0.75rem; }
-  .inp { padding: 0.45rem 0.6rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.875rem; color: #333; background: white; box-sizing: border-box; }
+  .inp { padding: 0.45rem 0.6rem; border: 1px solid #ddd; border-radius: 5px; font-size: 0.875rem; color: #333; background: #fff; box-sizing: border-box; color-scheme: light; }
   .inp.full { flex: 1 1 100%; }
   .inp.half { flex: 1 1 140px; }
   .chk-label { display: flex; align-items: center; gap: 5px; font-size: 0.875rem; color: #333; }
