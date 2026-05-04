@@ -151,7 +151,7 @@
   .dashboard-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 2rem;
+    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -159,6 +159,7 @@
 
   .dashboard-header h1 {
     margin: 0;
+    font-size: clamp(1rem, 4vw, 1.8rem);
   }
 
   .btn-logout {
@@ -178,7 +179,7 @@
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1.5rem;
   }
 
   .tabs {
@@ -206,9 +207,17 @@
 
   .details-section {
     background: white;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 0.75rem; }
+    .details-section { padding: 0.75rem; }
+    .tabs { gap: 0.5rem; margin: 1rem 0 0.5rem; }
+    .tab-btn { padding: 0.6rem; font-size: 0.9rem; }
+    .input-group input { padding: 0.5rem; font-size: 0.9rem; }
   }
 
   .input-group {
