@@ -214,11 +214,12 @@
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow-x: hidden;
   }
 
   @media (max-width: 640px) {
-    .container { padding: 0.75rem; }
-    .details-section { padding: 0.75rem; }
+    .container { padding: 0.5rem; }
+    .details-section { padding: 0.5rem; overflow-x: hidden; }
     .tabs { gap: 0.5rem; margin: 1rem 0 0.5rem; }
     .tab-btn { padding: 0.6rem; font-size: 0.9rem; }
     .input-group input { padding: 0.5rem; font-size: 0.9rem; }

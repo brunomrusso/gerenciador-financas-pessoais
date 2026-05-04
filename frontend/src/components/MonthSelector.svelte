@@ -30,89 +30,82 @@
 </script>
 
 <div class="month-selector">
-  <div class="selector-row">
+  <div class="top-row">
     <select value={selectedYear} on:change={handleYearChange} class="year-select">
       <option value={2024}>2024</option>
       <option value={2025}>2025</option>
       <option value={2026}>2026</option>
       <option value={2027}>2027</option>
     </select>
-
     <button on:click={goToCurrentMonth} class="btn-today">Hoje</button>
-
-    <div class="months-grid">
-      {#each months as month}
-        <button
-          class={`month-btn ${selectedMonth === month ? 'active' : ''}`}
-          on:click={() => handleMonthClick(month)}
-        >
-          {month.substring(0, 3)}
-        </button>
-      {/each}
-    </div>
+  </div>
+  <div class="months-grid">
+    {#each months as month}
+      <button
+        class={`month-btn ${selectedMonth === month ? 'active' : ''}`}
+        on:click={() => handleMonthClick(month)}
+      >
+        {month.substring(0, 3)}
+      </button>
+    {/each}
   </div>
 </div>
 
 <style>
   .month-selector {
     background: white;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 1.5rem;
   }
 
-  .selector-row {
+  .top-row {
     display: flex;
     gap: 0.5rem;
     align-items: center;
-    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
   }
 
   .year-select {
-    padding: 0.45rem 0.6rem;
+    padding: 0.4rem 0.6rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
-    flex-shrink: 0;
   }
 
   .btn-today {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 0.45rem 0.9rem;
+    padding: 0.4rem 0.9rem;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
     font-size: 0.875rem;
     transition: transform 0.2s;
-    flex-shrink: 0;
   }
 
-  .btn-today:hover {
-    transform: translateY(-2px);
-  }
+  .btn-today:hover { transform: translateY(-2px); }
 
   .months-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.35rem;
   }
 
   .month-btn {
-    padding: 0.45rem 0.6rem;
+    padding: 0.4rem 0.2rem;
     border: 2px solid #ddd;
     background: white;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     transition: all 0.2s;
     color: #333;
-    white-space: nowrap;
+    text-align: center;
   }
 
   .month-btn:hover {
@@ -124,5 +117,10 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: transparent;
+  }
+
+  @media (max-width: 500px) {
+    .months-grid { grid-template-columns: repeat(4, 1fr); }
+    .month-btn { font-size: 0.78rem; padding: 0.45rem 0.1rem; }
   }
 </style>

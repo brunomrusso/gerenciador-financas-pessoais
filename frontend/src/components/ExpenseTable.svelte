@@ -355,8 +355,8 @@
 </div>
 
 <style>
-  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; }
-  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; }
+  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; width: 0; overflow-x: hidden; }
   .chart-section { flex: 1; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 260px; max-width: 340px; display: flex; flex-direction: column; gap: 0.75rem; }
   .chart-canvas { width: 100% !important; }
 
