@@ -6,19 +6,39 @@ Bem-vindo ao projeto reformulado de Controle Financeiro! Este arquivo serve como
 
 ## 🚀 Comece Aqui
 
+### ⚡ Instalação Rápida (Automática)
+1. **[SCRIPTS.md](SCRIPTS.md)** - Guia dos scripts de automação
+2. Execute: `powershell -ExecutionPolicy Bypass -File install.ps1`
+3. Escolha opção 1 para instalação completa
+
 ### Para iniciantes
-1. **[RESUMO_EXECUTIVO.md](RESUMO_EXECUTIVO.md)** - Visão geral do projeto
-2. **[SETUP.md](SETUP.md)** - Guia rápido de instalação
-3. **[TESTE_RAPIDO.md](TESTE_RAPIDO.md)** - Como testar a aplicação
+1. **[COMECE_AQUI.txt](COMECE_AQUI.txt)** - Sumário visual
+2. **[RESUMO_EXECUTIVO.md](RESUMO_EXECUTIVO.md)** - Visão geral do projeto
+3. **[SETUP.md](SETUP.md)** - Guia rápido de instalação
+4. **[TESTE_RAPIDO.md](TESTE_RAPIDO.md)** - Como testar a aplicação
 
 ### Para desenvolvedores
 1. **[README_NEW.md](README_NEW.md)** - Documentação técnica completa
-2. **[SETUP.md](SETUP.md)** - Instruções detalhadas de setup
-3. Código-fonte nos diretórios `app/` e `frontend/`
+2. **[SCRIPTS.md](SCRIPTS.md)** - Scripts de automação
+3. **[SETUP.md](SETUP.md)** - Instruções detalhadas de setup
+4. Código-fonte nos diretórios `app/` e `frontend/`
 
 ---
 
 ## 📚 Documentação Disponível
+
+### 0. SCRIPTS.md
+**O que é**: Guia dos scripts PowerShell de automação
+**Para quem**: Todos que querem instalação rápida
+**Contém**:
+- Scripts disponíveis (install, setup, create_db, migrate, start)
+- Como usar cada script
+- Fluxo recomendado
+- Solução de problemas
+
+**Tempo de leitura**: 5 minutos
+
+---
 
 ### 1. RESUMO_EXECUTIVO.md
 **O que é**: Visão geral executiva do projeto
@@ -140,7 +160,10 @@ Financas/
 
 ## 🎯 Guias Rápidos por Tarefa
 
-### Quero instalar e rodar o projeto
+### Quero instalar e rodar o projeto (Automático)
+→ Leia [SCRIPTS.md](SCRIPTS.md) e execute `powershell -ExecutionPolicy Bypass -File install.ps1`
+
+### Quero instalar e rodar o projeto (Manual)
 → Leia [SETUP.md](SETUP.md)
 
 ### Quero entender a arquitetura
