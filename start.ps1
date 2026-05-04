@@ -18,15 +18,20 @@ if (-not (Test-Path ".env")) {
     exit 1
 }
 
-# Ativar ambiente virtual
-Write-Host "[1/3] Ativando ambiente virtual Python..." -ForegroundColor $info
-& ".\venv\Scripts\Activate.ps1"
-Write-Host "[OK] Ambiente virtual ativado" -ForegroundColor $success
+# Caminho direto para o Python do venv
+$pythonExe = (Resolve-Path ".\venv\Scripts\python.exe").Path
+
+Write-Host "[1/3] Verificando ambiente virtual..." -ForegroundColor $info
+if (-not (Test-Path $pythonExe)) {
+    Write-Host "[ERRO] Ambiente virtual nao encontrado! Execute quick_setup.ps1 primeiro." -ForegroundColor $errorColor
+    exit 1
+}
+Write-Host "[OK] Ambiente virtual encontrado" -ForegroundColor $success
 
 # Iniciar Backend em background
 Write-Host ""
 Write-Host "[2/3] Iniciando Backend (Flask)..." -ForegroundColor $info
-$backendProcess = Start-Process -FilePath "python" -ArgumentList "run.py" -PassThru -NoNewWindow
+$backendProcess = Start-Process -FilePath $pythonExe -ArgumentList "run.py" -PassThru -NoNewWindow
 Write-Host "[OK] Backend iniciado (PID: $($backendProcess.Id))" -ForegroundColor $success
 Write-Host "[INFO] Backend em: http://localhost:5000" -ForegroundColor $warning
 
