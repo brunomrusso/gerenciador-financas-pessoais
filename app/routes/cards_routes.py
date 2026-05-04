@@ -226,6 +226,87 @@ def update_card_expense(expense_id):
         return jsonify(exp.to_dict()), 200
 
 
+@bp.route('/expenses/<int:expense_id>/move', methods=['POST'])
+@jwt_required()
+def move_card_expense(expense_id):
+    user_id = int(get_jwt_identity())
+    exp = (CardExpense.query
+           .join(CreditCard)
+           .filter(CardExpense.id == expense_id, CreditCard.user_id == user_id)
+           .first())
+    if not exp:
+        return jsonify({'error': 'Despesa não encontrada'}), 404
+
+    data = request.get_json()
+    target_month = data.get('month')
+    target_year = int(data.get('year'))
+    if not target_month or not target_year:
+        return jsonify({'error': 'month e year são obrigatórios'}), 400
+
+    target_record = MonthlyRecord.query.filter_by(
+        user_id=user_id, month=target_month, year=target_year
+    ).first()
+    if not target_record:
+        target_record = MonthlyRecord(
+            user_id=user_id, month=target_month, year=target_year,
+            saldo_anterior=0, salario_bruto=0
+        )
+        db.session.add(target_record)
+        db.session.flush()
+
+    card_id = exp.card_id
+    descricao = exp.descricao
+    valor_parcela = exp.valor
+    categoria = exp.categoria
+    data_str = exp.data
+    parcelas_total = exp.parcelas_total
+    group_id = exp.group_id
+
+    if group_id and parcelas_total > 1:
+        group_exps = (CardExpense.query
+                      .join(CreditCard)
+                      .filter(CardExpense.group_id == group_id,
+                              CreditCard.user_id == user_id)
+                      .order_by(CardExpense.parcela_atual)
+                      .all())
+        for ge in group_exps:
+            db.session.delete(ge)
+        db.session.flush()
+
+        created = []
+        for i in range(parcelas_total):
+            if i == 0:
+                target = target_record
+            else:
+                m_name, m_year = _advance_month(target_month, target_year, i)
+                target = MonthlyRecord.query.filter_by(
+                    user_id=user_id, month=m_name, year=m_year
+                ).first()
+                if not target:
+                    target = MonthlyRecord(
+                        user_id=user_id, month=m_name, year=m_year,
+                        saldo_anterior=0, salario_bruto=0
+                    )
+                    db.session.add(target)
+                    db.session.flush()
+            new_exp = CardExpense(
+                card_id=card_id, record_id=target.id,
+                descricao=descricao, valor=valor_parcela,
+                categoria=categoria, data=data_str,
+                parcelas_total=parcelas_total, parcela_atual=i + 1,
+                group_id=group_id
+            )
+            db.session.add(new_exp)
+            created.append(new_exp)
+
+        db.session.commit()
+        return jsonify([e.to_dict() for e in created]), 200
+    else:
+        exp.record_id = target_record.id
+        db.session.commit()
+        return jsonify(exp.to_dict()), 200
+
+
 @bp.route('/expenses/<int:expense_id>', methods=['DELETE'])
 @jwt_required()
 def delete_card_expense(expense_id):

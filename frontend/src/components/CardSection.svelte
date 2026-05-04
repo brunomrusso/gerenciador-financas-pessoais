@@ -49,6 +49,12 @@
   type ModalCtx = { type: 'edit' | 'delete', expId: number, groupId: string, totalParcelas: number, payload?: any }
   let modal: ModalCtx | null = null
 
+  // modal de mover
+  let moveModal: { expId: number, group_id: string, parcelas_total: number } | null = null
+  let moveMonth = ''
+  let moveYear = 0
+  const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
   // ── load ─────────────────────────────────────────────────────────────────
   const loadCards = async () => {
     const r = await fetch(API, { headers: auth() })
@@ -168,6 +174,22 @@
     await loadFaturas()
   }
 
+  const startMove = (exp: any) => {
+    moveModal = { expId: exp.id, group_id: exp.group_id, parcelas_total: exp.parcelas_total }
+    moveMonth = month
+    moveYear = year
+  }
+
+  const confirmMove = async () => {
+    if (!moveModal || !moveMonth || !moveYear) return
+    await fetch(`${API}/expenses/${moveModal.expId}/move`, {
+      method: 'POST', headers: auth(),
+      body: JSON.stringify({ month: moveMonth, year: moveYear })
+    })
+    moveModal = null
+    await loadFaturas()
+  }
+
   const toggle = (cardId: number) => {
     expandedCard = expandedCard === cardId ? null : cardId
   }
@@ -257,6 +279,32 @@
     </div>
   {/if}
 
+  {#if moveModal}
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <p class="modal-title">Mover para outro mês</p>
+        <p class="modal-sub">
+          {moveModal.parcelas_total > 1 ? 'Todas as parcelas serão movidas a partir do mês selecionado.' : 'Mover este lançamento para:'}
+        </p>
+        <div class="move-selects">
+          <select bind:value={moveMonth} class="inp">
+            {#each months as m}<option>{m}</option>{/each}
+          </select>
+          <select bind:value={moveYear} class="inp">
+            <option value={2024}>2024</option>
+            <option value={2025}>2025</option>
+            <option value={2026}>2026</option>
+            <option value={2027}>2027</option>
+          </select>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-modal-all" on:click={confirmMove}>Mover</button>
+          <button class="btn-modal-cancel" on:click={() => moveModal = null}>Cancelar</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   {#if faturas.length === 0 && cards.length === 0}
     <p class="empty-msg">Nenhum cartão cadastrado. Clique em "⚙ Gerenciar Cartões" para começar.</p>
   {:else if faturas.length === 0}
@@ -317,6 +365,7 @@
                         <td class="negative">{fmt(exp.valor)}</td>
                         <td class="action-cell">
                           <button class="btn-edit" on:click={() => startEdit(exp)}>✎</button>
+                          <button class="btn-move" on:click={() => startMove(exp)} title="Mover para outro mês">➜</button>
                           <button class="btn-del" on:click={() => deleteExpense(exp)}>✕</button>
                         </td>
                       </tr>
@@ -428,6 +477,7 @@
 
   .action-cell { display: flex; gap: 4px; align-items: center; }
   .btn-edit { background: #2196f3; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-move { background: #ff9800; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
   .btn-del  { background: #f44336; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;  display: inline-flex; align-items: center; justify-content: center; }
   .btn-ok   { background: #4caf50; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .btn-cancel { background: #9e9e9e; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
@@ -462,6 +512,9 @@
   .btn-modal-all { padding: 0.55rem 1rem; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.875rem; }
   .btn-modal-all:hover { background: #5568d8; }
   .btn-modal-cancel { padding: 0.45rem 1rem; background: none; color: #999; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+  .move-selects { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .move-selects .inp { flex: 1; }
 
   @media (max-width: 640px) {
     .card-section { padding: 1rem; }
