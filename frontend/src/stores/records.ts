@@ -50,7 +50,10 @@ export const fetchRecords = async (month?: string, year?: string) => {
       headers: getAuthHeader()
     })
     
-    if (!response.ok) throw new Error('Falha ao carregar registros')
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}))
+      throw new Error(`Erro ${response.status}: ${errData.error || errData.msg || 'Falha ao carregar registros'}`)
+    }
     
     const data = await response.json()
     recordsStore.update(state => ({

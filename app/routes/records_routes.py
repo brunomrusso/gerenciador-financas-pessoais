@@ -10,7 +10,7 @@ bp = Blueprint('records', __name__, url_prefix='/api/records')
 @bp.route('', methods=['GET'])
 @jwt_required()
 def get_records():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     month = request.args.get('month')
     year = request.args.get('year')
     
@@ -27,7 +27,7 @@ def get_records():
 @bp.route('/<int:record_id>', methods=['GET'])
 @jwt_required()
 def get_record(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -38,7 +38,7 @@ def get_record(record_id):
 @bp.route('', methods=['POST'])
 @jwt_required()
 def create_record():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     
     if not data or not data.get('month') or not data.get('year'):
@@ -69,7 +69,7 @@ def create_record():
 @bp.route('/<int:record_id>', methods=['PUT'])
 @jwt_required()
 def update_record(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -90,7 +90,7 @@ def update_record(record_id):
 @bp.route('/<int:record_id>', methods=['DELETE'])
 @jwt_required()
 def delete_record(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -104,7 +104,7 @@ def delete_record(record_id):
 @bp.route('/<int:record_id>/discounts', methods=['POST'])
 @jwt_required()
 def add_discount(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -129,7 +129,7 @@ def add_discount(record_id):
 @bp.route('/discounts/<int:discount_id>', methods=['DELETE'])
 @jwt_required()
 def delete_discount(discount_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     discount = Discount.query.join(MonthlyRecord).filter(
         Discount.id == discount_id,
         MonthlyRecord.user_id == user_id
@@ -146,7 +146,7 @@ def delete_discount(discount_id):
 @bp.route('/<int:record_id>/expenses', methods=['POST'])
 @jwt_required()
 def add_expense(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -172,7 +172,7 @@ def add_expense(record_id):
 @bp.route('/expenses/<int:expense_id>', methods=['DELETE'])
 @jwt_required()
 def delete_expense(expense_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     expense = Expense.query.join(MonthlyRecord).filter(
         Expense.id == expense_id,
         MonthlyRecord.user_id == user_id
@@ -189,7 +189,7 @@ def delete_expense(expense_id):
 @bp.route('/<int:record_id>/investments', methods=['POST'])
 @jwt_required()
 def add_investment(record_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
     
     if not record:
@@ -214,7 +214,7 @@ def add_investment(record_id):
 @bp.route('/investments/<int:investment_id>', methods=['DELETE'])
 @jwt_required()
 def delete_investment(investment_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     investment = Investment.query.join(MonthlyRecord).filter(
         Investment.id == investment_id,
         MonthlyRecord.user_id == user_id
@@ -231,7 +231,7 @@ def delete_investment(investment_id):
 @bp.route('/history', methods=['GET'])
 @jwt_required()
 def get_history():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     month = request.args.get('month')
     year = request.args.get('year')
     
@@ -303,14 +303,14 @@ def get_history():
 @bp.route('/categories', methods=['GET'])
 @jwt_required()
 def get_categories():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     categories = Category.query.filter_by(user_id=user_id).all()
     return jsonify([c.to_dict() for c in categories]), 200
 
 @bp.route('/categories', methods=['POST'])
 @jwt_required()
 def create_category():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     
     if not data or not data.get('nome'):
