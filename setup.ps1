@@ -36,11 +36,16 @@ if ($LASTEXITCODE -eq 0) {
 # 3. Verificar PostgreSQL
 Write-Host ""
 Write-Host "[3/8] Verificando PostgreSQL..." -ForegroundColor $info
-$psqlCheck = psql --version 2>&1
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "   [OK] PostgreSQL encontrado: $psqlCheck" -ForegroundColor $success
-} else {
-    Write-Host "   [AVISO] PostgreSQL nao encontrado. Instale em: https://www.postgresql.org/" -ForegroundColor $warning
+try {
+    $psqlCheck = psql --version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "   [OK] PostgreSQL encontrado: $psqlCheck" -ForegroundColor $success
+    } else {
+        Write-Host "   [AVISO] PostgreSQL nao encontrado. Instale em: https://www.postgresql.org/" -ForegroundColor $warning
+        Write-Host "   Continuando mesmo assim..." -ForegroundColor $warning
+    }
+} catch {
+    Write-Host "   [AVISO] PostgreSQL nao encontrado no PATH. Instale em: https://www.postgresql.org/" -ForegroundColor $warning
     Write-Host "   Continuando mesmo assim..." -ForegroundColor $warning
 }
 
@@ -68,12 +73,22 @@ Write-Host "   [OK] Ambiente virtual ativado" -ForegroundColor $success
 # 6. Instalar dependencias Python
 Write-Host ""
 Write-Host "[6/8] Instalando dependencias Python..." -ForegroundColor $info
+# Atualizar pip e setuptools primeiro
+pip install --upgrade pip setuptools wheel --quiet
+# Instalar dependencias
 pip install -r requirements.txt --quiet
 if ($LASTEXITCODE -eq 0) {
     Write-Host "   [OK] Dependencias Python instaladas" -ForegroundColor $success
 } else {
     Write-Host "   [ERRO] Erro ao instalar dependencias Python" -ForegroundColor $errorColor
-    exit 1
+    Write-Host "   [INFO] Tentando novamente com opcoes alternativas..." -ForegroundColor $info
+    pip install -r requirements.txt --no-build-isolation --quiet
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "   [OK] Dependencias instaladas com sucesso" -ForegroundColor $success
+    } else {
+        Write-Host "   [ERRO] Falha ao instalar dependencias" -ForegroundColor $errorColor
+        exit 1
+    }
 }
 
 # 7. Criar arquivo .env
