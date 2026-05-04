@@ -467,7 +467,7 @@
 
   table { width: 100%; border-collapse: collapse; }
   th { padding: 0.4rem 0.5rem; font-size: 0.78rem; color: #777; font-weight: 600; border-bottom: 1px solid #eee; text-align: left; white-space: nowrap; }
-  td { padding: 0.3rem 0.4rem; font-size: 0.85rem; color: #333; border-bottom: 1px solid #f5f5f5; white-space: nowrap; vertical-align: middle; }
+  td { padding: 0.25rem 0.4rem; font-size: 0.85rem; color: #333; border-bottom: 1px solid #f5f5f5; white-space: nowrap; vertical-align: middle; line-height: 1.2; }
   .desc { white-space: normal; font-weight: 500; }
 
   .parcela-cell { text-align: center; }
