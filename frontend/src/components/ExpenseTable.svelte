@@ -151,6 +151,23 @@
     })
   }
 
+  const CATS_PER_PAGE = 5
+  let catPage = 0
+
+  $: catRows = (() => {
+    const grouped: Record<string, number> = {}
+    items?.forEach((i: any) => {
+      const c = i.categoria || 'Outros'
+      grouped[c] = (grouped[c] || 0) + Math.abs(i.valor || 0)
+    })
+    return Object.entries(grouped).sort((a, b) => b[1] - a[1])
+  })()
+
+  $: catTotal = catRows.reduce((s, [, v]) => s + v, 0)
+  $: catTotalPages = Math.ceil(catRows.length / CATS_PER_PAGE)
+  $: catPageRows = catRows.slice(catPage * CATS_PER_PAGE, (catPage + 1) * CATS_PER_PAGE)
+  $: { if (catRows) catPage = 0 }
+
   onMount(() => loadCats())
   $: if (items) setTimeout(buildChart, 100)
 </script>
@@ -278,15 +295,43 @@
 
   {#if items && items.length > 0}
     <div class="chart-section">
-      <canvas bind:this={chartCanvas}></canvas>
+      <canvas bind:this={chartCanvas} class="chart-canvas"></canvas>
+
+      {#if catRows.length > 0}
+        <div class="cat-table-wrap">
+          <table class="cat-table">
+            <thead>
+              <tr><th>Categoria</th><th>Total</th><th>%</th></tr>
+            </thead>
+            <tbody>
+              {#each catPageRows as [cat, val]}
+                <tr>
+                  <td class="cat-name">{cat}</td>
+                  <td class="cat-val negative">{fmt(val)}</td>
+                  <td class="cat-pct">{catTotal > 0 ? ((val / catTotal) * 100).toFixed(1) : '0.0'}%</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+
+          {#if catTotalPages > 1}
+            <div class="cat-pager">
+              <button class="pager-btn" disabled={catPage === 0} on:click={() => catPage--}>‹</button>
+              <span class="pager-info">{catPage + 1} / {catTotalPages}</span>
+              <button class="pager-btn" disabled={catPage >= catTotalPages - 1} on:click={() => catPage++}>›</button>
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
 
 <style>
-  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
-  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; width: 100%; }
-  .chart-section { flex: 1; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 200px; max-width: 280px; }
+  .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; }
+  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; }
+  .chart-section { flex: 1; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 260px; max-width: 340px; display: flex; flex-direction: column; gap: 0.75rem; }
+  .chart-canvas { width: 100% !important; }
 
   .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
   h3 { margin: 0; color: #333; font-size: 1.1rem; }
@@ -344,6 +389,18 @@
   .empty { text-align: center; color: #999; font-style: italic; padding: 1.5rem; }
   .positive { color: #4caf50; font-weight: 600; }
   .negative { color: #f44336; font-weight: 600; }
+
+  .cat-table-wrap { border-top: 1px solid #eee; padding-top: 0.5rem; }
+  .cat-table { width: 100%; border-collapse: collapse; }
+  .cat-table th { padding: 0.35rem 0.4rem; font-size: 0.75rem; color: #777; font-weight: 600; border-bottom: 1px solid #eee; text-align: left; }
+  .cat-table td { padding: 0.35rem 0.4rem; font-size: 0.8rem; color: #333; border-bottom: 1px solid #f5f5f5; }
+  .cat-name { color: #444; }
+  .cat-val { font-weight: 600; }
+  .cat-pct { color: #888; text-align: right; }
+  .cat-pager { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+  .pager-btn { background: #667eea; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; }
+  .pager-btn:disabled { background: #ccc; cursor: default; }
+  .pager-info { font-size: 0.8rem; color: #666; }
 
   @media (max-width: 640px) {
     .expense-wrap { flex-direction: column; }
