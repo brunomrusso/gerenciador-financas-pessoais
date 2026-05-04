@@ -371,10 +371,10 @@
   .btn-cat { background: #607d8b; }
   .btn-save { background: #4caf50; color: white; border: none; padding: 0.45rem 1rem; border-radius: 5px; cursor: pointer; }
   .btn-save:disabled { opacity: 0.6; }
-  .btn-edit { background: #2196f3; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
-  .btn-del { background: #f44336; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; }
-  .btn-ok { background: #4caf50; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .btn-cancel-edit { background: #9e9e9e; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-edit { background: #2196f3; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-del { background: #f44336; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-ok { background: #4caf50; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-cancel-edit { background: #9e9e9e; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .action-cell { display: flex; gap: 4px; align-items: center; }
 
   .copy-msg { background: #e8f5e9; color: #2e7d32; padding: 0.5rem 0.75rem; border-radius: 5px; font-size: 0.85rem; margin-bottom: 0.5rem; }
@@ -405,14 +405,14 @@
   th { padding: 0.6rem 0.5rem; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #ddd; font-size: 0.82rem; white-space: nowrap; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover { color: #667eea; }
-  td { padding: 0.55rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #222; vertical-align: middle; white-space: nowrap; }
+  td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.875rem; color: #222; vertical-align: middle; white-space: nowrap; line-height: 1.2; }
   .desc-cell { color: #222; font-weight: 500; white-space: normal; }
   .edit-inp { width: 100%; padding: 0.3rem; border: 1px solid #667eea; border-radius: 4px; font-size: 0.82rem; color: #333; background: #fff; color-scheme: light; box-sizing: border-box; }
   .edit-inp.narrow { max-width: 90px; }
   .edit-row td { background: #f0f4ff; }
   .pago-row td { opacity: 0.5; text-decoration: line-through; }
-  .badge { background: #eef; color: #667eea; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; }
-  .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.7rem; border-radius: 4px; padding: 1px 4px; margin-left: 4px; }
+  .badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
+  .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.65rem; border-radius: 4px; padding: 1px 3px; margin-left: 4px; line-height: 1.3; }
   .total-row td { background: #f9f9f9; font-size: 0.9rem; border-top: 1px solid #ddd; }
   .grand-total td { background: #f0f0ff; font-size: 0.95rem; border-top: 2px solid #ddd; }
   .empty { text-align: center; color: #999; font-style: italic; padding: 1.5rem; }
