@@ -36,7 +36,7 @@ Start-Sleep -Seconds 3
 # Iniciar Frontend em background
 Write-Host ""
 Write-Host "[3/3] Iniciando Frontend (Svelte)..." -ForegroundColor $info
-$frontendProcess = Start-Process -FilePath "npm" -ArgumentList "-C", "frontend", "run", "dev" -PassThru -NoNewWindow
+$frontendProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "npm", "run", "dev" -WorkingDirectory ".\frontend" -PassThru -NoNewWindow
 Write-Host "[OK] Frontend iniciado (PID: $($frontendProcess.Id))" -ForegroundColor $success
 Write-Host "[INFO] Frontend em: http://localhost:5173" -ForegroundColor $warning
 
