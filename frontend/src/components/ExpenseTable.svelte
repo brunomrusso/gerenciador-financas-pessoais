@@ -371,9 +371,9 @@
   .chk-label { display: flex; align-items: center; gap: 5px; font-size: 0.875rem; color: #333; }
   .chk-label-sm { display: flex; align-items: center; gap: 3px; font-size: 0.75rem; color: #333; white-space: nowrap; }
 
-  .table-wrap { overflow-x: auto; }
+  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 420px; }
   table { width: 100%; border-collapse: collapse; min-width: 300px; }
-  thead { background: #f5f5f5; }
+  thead { background: #f5f5f5; position: sticky; top: 0; z-index: 1; }
   th { padding: 0.6rem 0.5rem; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #ddd; font-size: 0.82rem; white-space: nowrap; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover { color: #667eea; }
