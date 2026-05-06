@@ -39,11 +39,18 @@
   }
 
   const saveEdit = async (nome: string) => {
-    const orcamento = parseFloat(editValor.replace(',', '.')) || 0
-    await fetch('/api/records/categories/budget', {
+    const raw = String(editValor ?? '').replace(',', '.')
+    const orcamento = parseFloat(raw) || 0
+    const r = await fetch('/api/records/categories/budget', {
       method: 'PUT', headers: auth(),
       body: JSON.stringify({ nome, orcamento })
     })
+    if (!r.ok) {
+      const err = await r.text()
+      console.error('Erro ao salvar orçamento:', r.status, err)
+      alert('Erro ao salvar orçamento')
+      return
+    }
     editing = null
     await load()
   }
