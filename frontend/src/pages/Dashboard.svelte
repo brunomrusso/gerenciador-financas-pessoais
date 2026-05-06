@@ -96,6 +96,32 @@
   const handleLogout = () => {
     logout()
   }
+
+  const copyRecurring = async () => {
+    if (!currentRecord) return
+    if (!confirm('Copiar descontos e despesas recorrentes do mês anterior?')) return
+    
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/records/${currentRecord.id}/copy-recurring`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      const result = await response.json()
+      if (response.ok) {
+        const msg = `${result.copiadas || 0} despesa(s) e ${result.descontos_copiados || 0} desconto(s) copiados!`
+        alert(msg)
+        await loadCurrentMonth()
+      } else {
+        alert(result.error || 'Erro ao copiar recorrentes')
+      }
+    } catch (e: any) {
+      alert('Erro: ' + (e.message || 'Falha ao copiar'))
+    }
+  }
 </script>
 
 <div class="dashboard">
@@ -113,7 +139,7 @@
   </header>
 
   <div class="container">
-    <MonthSelector on:change={handleMonthChange} />
+    <MonthSelector on:change={handleMonthChange} onCopyRecurring={copyRecurring} />
 
     {#if loading}
       <p style="text-align:center;padding:2rem;color:#666">Carregando...</p>

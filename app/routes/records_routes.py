@@ -635,7 +635,10 @@ def copy_recurring(record_id):
         return jsonify({'error': 'Nenhum registro no mês anterior'}), 404
 
     recorrentes = [e for e in prev_record.expenses if e.recorrente]
+    descontos_recorrentes = [d for d in prev_record.discounts if d.recorrente]
     copiadas = 0
+    descontos_copiados = 0
+    
     for e in recorrentes:
         already = Expense.query.filter_by(record_id=record_id, descricao=e.descricao, recorrente=True).first()
         if not already:
@@ -646,9 +649,24 @@ def copy_recurring(record_id):
                 categoria=e.categoria,
                 tipo=e.tipo,
                 recorrente=True,
-                pago=False
+                pago=False,
+                account_id=e.account_id
             )
             db.session.add(new_exp)
             copiadas += 1
+    
+    for d in descontos_recorrentes:
+        already = Discount.query.filter_by(record_id=record_id, descricao=d.descricao, recorrente=True).first()
+        if not already:
+            new_disc = Discount(
+                record_id=record_id,
+                descricao=d.descricao,
+                valor=d.valor,
+                recorrente=True,
+                account_id=d.account_id
+            )
+            db.session.add(new_disc)
+            descontos_copiados += 1
+    
     db.session.commit()
-    return jsonify({'copiadas': copiadas}), 200
+    return jsonify({'copiadas': copiadas, 'descontos_copiados': descontos_copiados}), 200

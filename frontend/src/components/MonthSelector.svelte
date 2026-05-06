@@ -2,6 +2,8 @@
   import { createEventDispatcher } from 'svelte'
 
   const dispatch = createEventDispatcher()
+  
+  export let onCopyRecurring: (() => Promise<void>) | null = null
 
   const months = [
     'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -38,6 +40,11 @@
       <option value={2027}>2027</option>
     </select>
     <button on:click={goToCurrentMonth} class="btn-today">Hoje</button>
+    {#if onCopyRecurring}
+      <button on:click={onCopyRecurring} class="btn-copy" title="Copiar descontos e despesas recorrentes do mês anterior">
+        📋 Copiar Recorrentes
+      </button>
+    {/if}
   </div>
   <div class="months-grid">
     {#each months as month}
@@ -88,6 +95,21 @@
   }
 
   .btn-today:hover { transform: translateY(-2px); }
+
+  .btn-copy {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: transform 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-copy:hover { transform: translateY(-2px); }
 
   .months-grid {
     display: grid;

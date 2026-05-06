@@ -178,6 +178,7 @@ html[data-theme="dark"] .month-btn.active {
   color: white !important;
 }
 html[data-theme="dark"] .year-select { background: #2a2a3e !important; color: #e8e8f0 !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .btn-copy { background: #45a049 !important; }
 
 /* Dashboard background */
 html[data-theme="dark"] .dashboard { background-color: #15151f !important; }
