@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap');
+
 :root {
   color-scheme: light;
   color: #213547;
@@ -7,6 +9,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
 }
 
 a {
@@ -18,12 +28,22 @@ a:hover {
   color: #764ba2;
 }
 
+body {
+  font-family: var(--font-body);
+  font-weight: var(--font-regular);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-bold);
+}
+
 button {
   border-radius: 6px;
   border: 1px solid transparent;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
+  font-family: var(--font-body);
   background-color: transparent;
   cursor: pointer;
 }
