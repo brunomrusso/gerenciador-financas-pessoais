@@ -6,6 +6,8 @@
     cor: string, icone: string, padrao: boolean, ativa: boolean, saldo: number
   }
 
+  export let refreshKey: number = 0
+
   let accounts: Account[] = []
   let expanded = false
   let adding = false
@@ -96,6 +98,9 @@
   }
 
   $: saldoTotal = accounts.reduce((s, a) => s + (a.saldo || 0), 0)
+
+  // Recarrega sempre que refreshKey mudar (lançamentos novos)
+  $: if (refreshKey >= 0) reload()
 
   onMount(() => reload())
 </script>

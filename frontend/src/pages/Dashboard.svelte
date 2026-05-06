@@ -119,7 +119,7 @@
     {:else if currentRecord}
       <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
 
-      <AccountsSection on:change={() => fetchAccounts()} />
+      <AccountsSection refreshKey={budgetRefreshKey} on:change={() => fetchAccounts()} />
 
       <QuickStats record={currentRecord} {cardFaturas} />
 
