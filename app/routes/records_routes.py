@@ -122,7 +122,8 @@ def add_discount(record_id):
         record_id=record_id,
         descricao=data['descricao'],
         valor=data['valor'],
-        account_id=data.get('account_id') or None
+        account_id=data.get('account_id') or None,
+        recorrente=data.get('recorrente', False)
     )
     
     db.session.add(discount)
@@ -147,6 +148,8 @@ def update_discount(discount_id):
         discount.valor = data['valor']
     if 'account_id' in data:
         discount.account_id = data.get('account_id') or None
+    if 'recorrente' in data:
+        discount.recorrente = data['recorrente']
     db.session.commit()
     return jsonify(discount.to_dict()), 200
 

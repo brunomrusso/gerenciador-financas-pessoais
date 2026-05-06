@@ -36,6 +36,7 @@ def create_app(config_name='development'):
                 conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS tags VARCHAR(255)"))
                 conn.execute(text("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES financial_accounts(id)"))
                 conn.execute(text("ALTER TABLE discounts ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES financial_accounts(id)"))
+                conn.execute(text("ALTER TABLE discounts ADD COLUMN IF NOT EXISTS recorrente BOOLEAN DEFAULT FALSE"))
                 conn.execute(text("ALTER TABLE investment_transactions ADD COLUMN IF NOT EXISTS financial_account_id INTEGER REFERENCES financial_accounts(id)"))
                 conn.commit()
         except Exception:

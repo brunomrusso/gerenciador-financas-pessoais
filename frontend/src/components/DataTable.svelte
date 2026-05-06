@@ -16,6 +16,8 @@
   let editingId: number | null = null
   let editDesc = ''
   let editValor = ''
+  let editRecorrente = false
+  let newRecorrente = false
 
   const fmt = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -32,11 +34,16 @@
     saving = true
     try {
       const valor = parseFloat(newValor)
-      if (type === 'discounts') await addDiscount(recordId, newDesc, valor)
-      else if (type === 'expenses') await addExpense(recordId, newDesc, valor)
+      if (type === 'discounts') {
+        await fetch(`/api/records/${recordId}/discounts`, {
+          method: 'POST',
+          headers: auth(),
+          body: JSON.stringify({ descricao: newDesc, valor, recorrente: newRecorrente })
+        })
+      } else if (type === 'expenses') await addExpense(recordId, newDesc, valor)
       else if (type === 'investments') await addInvestment(recordId, newDesc, valor)
       await fetchRecords(month, year.toString())
-      newDesc = ''; newValor = ''; adding = false
+      newDesc = ''; newValor = ''; newRecorrente = false; adding = false
     } finally { saving = false }
   }
 
@@ -44,14 +51,17 @@
     editingId = item.id
     editDesc = item.descricao || item.card_name || ''
     editValor = String(item.valor || '')
+    editRecorrente = type === 'discounts' ? (item.recorrente || false) : false
   }
 
   const cancelEdit = () => { editingId = null }
 
   const saveEdit = async (item: any) => {
+    const payload: any = { descricao: editDesc, valor: parseFloat(editValor) }
+    if (type === 'discounts') payload.recorrente = editRecorrente
     await fetch(`/api/records/${endpoint()}/${item.id}`, {
       method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor) })
+      body: JSON.stringify(payload)
     })
     editingId = null
     await fetchRecords(month, year.toString())
@@ -91,6 +101,12 @@
         step="0.01"
         class="input-valor"
       />
+      {#if type === 'discounts'}
+        <label class="checkbox-label">
+          <input type="checkbox" bind:checked={newRecorrente} />
+          Recorrente
+        </label>
+      {/if}
       <button class="btn-save" on:click={handleAdd} disabled={saving}>
         {saving ? 'Salvando...' : 'Salvar'}
       </button>
@@ -107,6 +123,7 @@
       <tr>
         <th>Descricao</th>
         <th>Valor</th>
+        {#if type === 'discounts'}<th style="width: 80px; text-align: center;">Recorrente</th>{/if}
         <th></th>
       </tr>
     </thead>
@@ -117,6 +134,11 @@
             <tr class="edit-row">
               <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
               <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp" /></td>
+              {#if type === 'discounts'}
+                <td style="text-align: center;">
+                  <input type="checkbox" bind:checked={editRecorrente} />
+                </td>
+              {/if}
               <td class="action-td">
                 <button class="btn-ok" on:click={() => saveEdit(item)}>✓</button>
                 <button class="btn-cancel" on:click={cancelEdit}>✕</button>
@@ -126,6 +148,13 @@
             <tr>
               <td>{item.descricao || item.card_name || '-'}</td>
               <td class={item.valor < 0 ? 'negative' : 'positive'}>{fmt(item.valor)}</td>
+              {#if type === 'discounts'}
+                <td style="text-align: center;">
+                  {#if item.recorrente}
+                    <span class="badge-recorrente">🔄</span>
+                  {/if}
+                </td>
+              {/if}
               <td class="action-td">
                 <button class="btn-edit" on:click={() => startEdit(item)} title="Editar">✎</button>
                 <button class="btn-del" on:click={() => handleDelete(item)} title="Excluir">✕</button>
@@ -136,6 +165,7 @@
         <tr class="total-row">
           <td><strong>Total</strong></td>
           <td class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{fmt(getTotal())}</strong></td>
+          {#if type === 'discounts'}<td></td>{/if}
           <td></td>
         </tr>
       {:else}
@@ -268,6 +298,9 @@
   .empty { text-align: center; color: #999; font-style: italic; }
   .positive { color: #4caf50; font-weight: 600; }
   .negative { color: #f44336; font-weight: 600; }
+  .badge-recorrente { font-size: 1.1rem; }
+  .checkbox-label { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; font-size: 0.875rem; }
+  .checkbox-label input { cursor: pointer; }
 
   @media (max-width: 640px) {
     .data-table { padding: 1rem; }

@@ -71,6 +71,7 @@ class Discount(db.Model):
     descricao = db.Column(db.String(255), nullable=False)
     valor = db.Column(db.Float, nullable=False)
     account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
+    recorrente = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -78,7 +79,8 @@ class Discount(db.Model):
             'id': self.id,
             'descricao': self.descricao,
             'valor': self.valor,
-            'account_id': self.account_id
+            'account_id': self.account_id,
+            'recorrente': self.recorrente or False
         }
 
 class Expense(db.Model):
