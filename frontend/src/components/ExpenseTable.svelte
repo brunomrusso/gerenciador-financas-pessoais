@@ -83,7 +83,8 @@
     else { sortBy = col; sortDir = 'asc' }
   }
 
-  const getTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  const getTotal = () => (items || []).reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  const getFilteredTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
 
   $: allTags = (() => {
@@ -340,7 +341,7 @@
         </tbody>
         <tfoot>
           <tr class="total-row">
-            <td colspan="2"><strong>Total despesas ({filtered.length})</strong></td>
+            <td colspan="2"><strong>Total despesas ({items?.length || 0})</strong></td>
             <td class="hide-sm"></td>
             <td class="negative"><strong>{fmt(getTotal())}</strong></td>
             <td colspan="2"></td>
