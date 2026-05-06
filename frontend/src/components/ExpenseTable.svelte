@@ -3,6 +3,7 @@
   import { fetchRecords } from '../stores/records'
   import Chart from 'chart.js/auto'
   import TagInput from './TagInput.svelte'
+  import { accountsStore } from '../stores/accounts'
 
   export let items: any[] = []
   export let recordId: number
@@ -18,10 +19,12 @@
 
   let newDesc = '', newValor = '', newCategoria = 'Outros', newData = '', newPago = false, newRecorrente = false
   let newTags: string[] = []
+  let newAccountId: number | '' = ''
   let adding = false, saving = false
   let editingId: number | null = null
   let editDesc = '', editValor = '', editCategoria = 'Outros', editData = '', editPago = false, editRecorrente = false
   let editTags: string[] = []
+  let editAccountId: number | '' = ''
 
   let filterCat = ''
   let filterStatus = ''
@@ -96,10 +99,10 @@
     try {
       await fetch(`/api/records/${recordId}/expenses`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags })
+        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags, account_id: newAccountId || null })
       })
       await fetchRecords(month, year.toString())
-      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newTags = []; adding = false
+      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newTags = []; newAccountId = ''; adding = false
     } finally { saving = false }
   }
 
@@ -107,6 +110,7 @@
     editingId = item.id; editDesc = item.descricao || ''; editValor = String(item.valor || '')
     editCategoria = item.categoria || 'Outros'; editData = item.data || ''; editPago = item.pago || false; editRecorrente = item.recorrente || false
     editTags = Array.isArray(item.tags) ? [...item.tags] : []
+    editAccountId = item.account_id || ''
   }
 
   const cancelEdit = () => { editingId = null }
@@ -114,7 +118,7 @@
   const saveEdit = async (item: any) => {
     await fetch(`/api/records/expenses/${item.id}`, {
       method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente, tags: editTags })
+      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente, tags: editTags, account_id: editAccountId || null })
     })
     editingId = null
     await fetchRecords(month, year.toString())
@@ -237,6 +241,10 @@
           {#each categorias as cat}<option>{cat}</option>{/each}
         </select>
         <input type="date" bind:value={newData} class="inp half" />
+        <select bind:value={newAccountId} class="inp half" title="Conta">
+          <option value="">Conta padrão</option>
+          {#each $accountsStore as a (a.id)}<option value={a.id}>{a.icone} {a.nome}</option>{/each}
+        </select>
         <TagInput bind:tags={newTags} suggestions={allTags} />
         <label class="chk-label"><input type="checkbox" bind:checked={newPago} /> Pago</label>
         <label class="chk-label"><input type="checkbox" bind:checked={newRecorrente} /> Recorrente</label>
@@ -309,7 +317,13 @@
                       </span>
                     {/if}
                   </td>
-                  <td class="hide-sm"><span class="badge">{item.categoria || 'Outros'}</span></td>
+                  <td class="hide-sm">
+                    <span class="badge">{item.categoria || 'Outros'}</span>
+                    {#if item.account_id}
+                      {@const acc = $accountsStore.find(a => a.id === item.account_id)}
+                      {#if acc}<span class="acc-badge" style="background:{acc.cor}22; color:{acc.cor}">{acc.icone} {acc.nome}</span>{/if}
+                    {/if}
+                  </td>
                   <td class="hide-sm">{item.data || '-'}</td>
                   <td class={item.tipo === 'Receita' ? 'positive' : 'negative'}>{fmt(item.valor)}</td>
                   <td><input type="checkbox" checked={item.pago} on:change={() => togglePago(item)} /></td>
@@ -443,6 +457,7 @@
   .pago-row td { opacity: 0.5; text-decoration: line-through; }
   .badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
   .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.65rem; border-radius: 4px; padding: 1px 3px; margin-left: 4px; line-height: 1.3; }
+  .acc-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 0.68rem; margin-left: 4px; line-height: 1.3; font-weight: 500; }
   .row-tags { display: inline-flex; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
   .tag-mini { background: #e8eaff; color: #3949ab; border-radius: 8px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; transition: background-color .2s; }
   .tag-mini:hover { background: #c5cae9; }

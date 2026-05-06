@@ -103,7 +103,8 @@ def create_transaction(account_id):
         tipo=tipo,
         valor=valor,
         descricao=(data.get('descricao') or '').strip() or None,
-        data=data.get('data') or ''
+        data=data.get('data') or '',
+        financial_account_id=data.get('financial_account_id') or None
     )
     db.session.add(tx)
     db.session.commit()

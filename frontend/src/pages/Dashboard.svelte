@@ -12,7 +12,9 @@
   import InvestmentSection from '../components/InvestmentSection.svelte'
   import QuickStats from '../components/QuickStats.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
+  import AccountsSection from '../components/AccountsSection.svelte'
   import { theme, toggleTheme } from '../stores/theme'
+  import { fetchAccounts } from '../stores/accounts'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -33,6 +35,7 @@
     cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
 
   onMount(() => {
+    fetchAccounts()
     loadCurrentMonth()
     authStore.subscribe(state => {
       userName = state.user?.nome || state.user?.email?.split('@')[0] || ''
@@ -115,6 +118,8 @@
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
       <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
+
+      <AccountsSection on:change={() => fetchAccounts()} />
 
       <QuickStats record={currentRecord} {cardFaturas} />
 

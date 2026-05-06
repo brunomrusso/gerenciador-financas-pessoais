@@ -70,13 +70,15 @@ class Discount(db.Model):
     record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=False, index=True)
     descricao = db.Column(db.String(255), nullable=False)
     valor = db.Column(db.Float, nullable=False)
+    account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
         return {
             'id': self.id,
             'descricao': self.descricao,
-            'valor': self.valor
+            'valor': self.valor,
+            'account_id': self.account_id
         }
 
 class Expense(db.Model):
@@ -92,6 +94,7 @@ class Expense(db.Model):
     pago = db.Column(db.Boolean, default=False)
     recorrente = db.Column(db.Boolean, default=False)
     tags = db.Column(db.String(255), nullable=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -104,7 +107,8 @@ class Expense(db.Model):
             'data': self.data or '',
             'pago': self.pago or False,
             'recorrente': self.recorrente or False,
-            'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()]
+            'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()],
+            'account_id': self.account_id
         }
 
 class CardDetail(db.Model):
@@ -184,6 +188,34 @@ class CardExpense(db.Model):
         }
 
 
+class FinancialAccount(db.Model):
+    """Conta financeira: corrente, poupança, carteira, etc."""
+    __tablename__ = 'financial_accounts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    nome = db.Column(db.String(100), nullable=False)
+    tipo = db.Column(db.String(30), default='corrente')  # corrente, poupanca, carteira, outro
+    saldo_inicial = db.Column(db.Float, default=0)
+    cor = db.Column(db.String(20), default='#667eea')
+    icone = db.Column(db.String(10), default='💰')
+    padrao = db.Column(db.Boolean, default=False)
+    ativa = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'tipo': self.tipo or 'corrente',
+            'saldo_inicial': float(self.saldo_inicial or 0),
+            'cor': self.cor or '#667eea',
+            'icone': self.icone or '💰',
+            'padrao': bool(self.padrao),
+            'ativa': bool(self.ativa)
+        }
+
+
 class InvestmentAccount(db.Model):
     __tablename__ = 'investment_accounts'
 
@@ -221,6 +253,7 @@ class InvestmentTransaction(db.Model):
     valor = db.Column(db.Float, nullable=False)
     descricao = db.Column(db.String(255), nullable=True)
     data = db.Column(db.String(10), nullable=True)
+    financial_account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -231,7 +264,8 @@ class InvestmentTransaction(db.Model):
             'tipo': self.tipo,
             'valor': float(self.valor or 0),
             'descricao': self.descricao or '',
-            'data': self.data or ''
+            'data': self.data or '',
+            'financial_account_id': self.financial_account_id
         }
 
 

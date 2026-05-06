@@ -34,14 +34,18 @@ def create_app(config_name='development'):
                 conn.execute(text("ALTER TABLE categories ADD COLUMN IF NOT EXISTS orcamento FLOAT DEFAULT 0"))
                 conn.execute(text("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS tags VARCHAR(255)"))
                 conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS tags VARCHAR(255)"))
+                conn.execute(text("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES financial_accounts(id)"))
+                conn.execute(text("ALTER TABLE discounts ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES financial_accounts(id)"))
+                conn.execute(text("ALTER TABLE investment_transactions ADD COLUMN IF NOT EXISTS financial_account_id INTEGER REFERENCES financial_accounts(id)"))
                 conn.commit()
         except Exception:
             pass
         
-        from app.routes import auth_routes, records_routes, cards_routes, investments_routes
+        from app.routes import auth_routes, records_routes, cards_routes, investments_routes, accounts_routes
         app.register_blueprint(auth_routes.bp)
         app.register_blueprint(records_routes.bp)
         app.register_blueprint(cards_routes.bp)
         app.register_blueprint(investments_routes.bp)
+        app.register_blueprint(accounts_routes.bp)
     
     return app

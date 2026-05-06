@@ -121,7 +121,8 @@ def add_discount(record_id):
     discount = Discount(
         record_id=record_id,
         descricao=data['descricao'],
-        valor=data['valor']
+        valor=data['valor'],
+        account_id=data.get('account_id') or None
     )
     
     db.session.add(discount)
@@ -144,6 +145,8 @@ def update_discount(discount_id):
         discount.descricao = data['descricao']
     if 'valor' in data:
         discount.valor = data['valor']
+    if 'account_id' in data:
+        discount.account_id = data.get('account_id') or None
     db.session.commit()
     return jsonify(discount.to_dict()), 200
 
@@ -193,7 +196,8 @@ def add_expense(record_id):
         data=data.get('data', ''),
         pago=data.get('pago', False),
         recorrente=data.get('recorrente', False),
-        tags=tags_str or None
+        tags=tags_str or None,
+        account_id=data.get('account_id') or None
     )
     
     db.session.add(expense)
@@ -230,6 +234,8 @@ def update_expense(expense_id):
             expense.tags = ','.join(str(t).strip() for t in tg if str(t).strip()) or None
         else:
             expense.tags = (tg or '').strip() or None
+    if 'account_id' in data:
+        expense.account_id = data.get('account_id') or None
     db.session.commit()
     return jsonify(expense.to_dict()), 200
 
