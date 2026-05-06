@@ -34,6 +34,9 @@
     (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0), 0) || 0) +
     cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
 
+  // Força reatividade do SummaryCards quando currentRecord muda
+  $: summaryKey = currentRecord?.id + (currentRecord?.discounts?.length || 0) + (currentRecord?.expenses?.length || 0)
+
   onMount(() => {
     loadUser()
     fetchAccounts()
@@ -46,7 +49,7 @@
   })
 
   // Atualiza currentRecord quando o store muda (ex: apos adicionar/remover item)
-  recordsStore.subscribe(state => {
+  const unsubscribeRecords = recordsStore.subscribe(state => {
     if (state.records && state.records.length > 0) {
       currentRecord = state.records[0]
     }
@@ -146,7 +149,7 @@
     {:else if errorMsg}
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
-      <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
+      <SummaryCards key={summaryKey} record={currentRecord} {cardFaturas} {investmentSummary} />
 
       <AccountsSection refreshKey={budgetRefreshKey} on:change={() => fetchAccounts()} />
 
@@ -191,8 +194,8 @@
             />
           </div>
 
-          <DataTable title="Descontos e Creditos" items={currentRecord.discounts} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
-          <ExpenseTable items={currentRecord.expenses} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} />
+          <DataTable title="Descontos e Creditos" items={currentRecord?.discounts || []} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
+          <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} />
           <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear}
             on:faturasLoaded={(e) => cardFaturas = e.detail} />
           <InvestmentSection recordId={currentRecord.id} on:summary={(e) => investmentSummary = e.detail} />
