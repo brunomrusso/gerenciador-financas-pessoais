@@ -178,6 +178,12 @@ def add_expense(record_id):
     if not data or not data.get('descricao') or data.get('valor') is None:
         return jsonify({'error': 'Descrição e valor são obrigatórios'}), 400
     
+    tags_in = data.get('tags')
+    if isinstance(tags_in, list):
+        tags_str = ','.join(str(t).strip() for t in tags_in if str(t).strip())
+    else:
+        tags_str = (tags_in or '').strip() or None
+
     expense = Expense(
         record_id=record_id,
         descricao=data['descricao'],
@@ -186,7 +192,8 @@ def add_expense(record_id):
         categoria=data.get('categoria', 'Outros'),
         data=data.get('data', ''),
         pago=data.get('pago', False),
-        recorrente=data.get('recorrente', False)
+        recorrente=data.get('recorrente', False),
+        tags=tags_str or None
     )
     
     db.session.add(expense)
@@ -217,6 +224,12 @@ def update_expense(expense_id):
         expense.valor = data['valor']
     if 'recorrente' in data:
         expense.recorrente = data['recorrente']
+    if 'tags' in data:
+        tg = data['tags']
+        if isinstance(tg, list):
+            expense.tags = ','.join(str(t).strip() for t in tg if str(t).strip()) or None
+        else:
+            expense.tags = (tg or '').strip() or None
     db.session.commit()
     return jsonify(expense.to_dict()), 200
 

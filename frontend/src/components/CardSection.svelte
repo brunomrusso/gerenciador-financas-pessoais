@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte'
+  import TagInput from './TagInput.svelte'
 
   export let recordId: number
   export let month: string = ''
@@ -35,6 +36,7 @@
   let addData = ''
   let addParcelas = '1'
   let addCategoria = 'Outros'
+  let addTags: string[] = []
   let saving = false
 
   // edit
@@ -44,6 +46,7 @@
   let editData = ''
   let editCategoria = 'Outros'
   let editParcelas = '1'
+  let editTags: string[] = []
 
   // modal de propagação
   type ModalCtx = { type: 'edit' | 'delete', expId: number, groupId: string, totalParcelas: number, payload?: any }
@@ -114,10 +117,11 @@
           valor: parseFloat(addValor),
           categoria: addCategoria,
           data: addData,
-          parcelas: parseInt(addParcelas) || 1
+          parcelas: parseInt(addParcelas) || 1,
+          tags: addTags
         })
       })
-      addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'; addCategoria = 'Outros'
+      addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'; addCategoria = 'Outros'; addTags = []
       adding = false
       await loadFaturas()
     } finally { saving = false }
@@ -130,6 +134,7 @@
     editData = exp.data || ''
     editCategoria = exp.categoria || 'Outros'
     editParcelas = String(exp.parcelas_total || 1)
+    editTags = Array.isArray(exp.tags) ? [...exp.tags] : []
   }
 
   const saveEdit = async (exp: any) => {
@@ -138,7 +143,8 @@
       valor: parseFloat(editValor),
       categoria: editCategoria,
       data: editData,
-      parcelas_total: parseInt(editParcelas)
+      parcelas_total: parseInt(editParcelas),
+      tags: editTags
     }
     if (exp.group_id) {
       modal = { type: 'edit', expId: exp.id, groupId: exp.group_id, totalParcelas: exp.parcelas_total, payload }
@@ -244,6 +250,7 @@
       </select>
       <input type="number" placeholder="Valor total *" bind:value={addValor} step="0.01" class="inp" />
       <input type="date" bind:value={addData} class="inp" />
+      <TagInput bind:tags={addTags} placeholder="tags..." />
       <div class="parcelas-wrap">
         <label class="inp-label">Parcelas</label>
         <input type="number" min="1" max="60" bind:value={addParcelas} class="inp inp-narrow" />
@@ -352,7 +359,12 @@
                       </tr>
                     {:else}
                       <tr>
-                        <td class="desc">{exp.descricao}</td>
+                        <td class="desc">
+                          {exp.descricao}
+                          {#if Array.isArray(exp.tags) && exp.tags.length > 0}
+                            <span class="row-tags">{#each exp.tags as t}<span class="tag-mini">#{t}</span>{/each}</span>
+                          {/if}
+                        </td>
                         <td><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
                         <td>{exp.data || '—'}</td>
                         <td class="parcela-cell">
@@ -474,6 +486,8 @@
   .parc-badge { background: #e8eeff; color: #667eea; border-radius: 8px; padding: 1px 5px; font-size: 0.7rem; line-height: 1.3; }
   .parc-badge.single { background: #f0f0f0; color: #888; }
   .cat-badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
+  .row-tags { display: inline-flex; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
+  .tag-mini { background: #e8eaff; color: #3949ab; border-radius: 8px; padding: 1px 6px; font-size: 0.7rem; }
 
   .action-cell { display: flex; gap: 4px; align-items: center; }
   .btn-edit { background: #2196f3; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; }

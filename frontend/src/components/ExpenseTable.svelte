@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { fetchRecords } from '../stores/records'
   import Chart from 'chart.js/auto'
+  import TagInput from './TagInput.svelte'
 
   export let items: any[] = []
   export let recordId: number
@@ -16,13 +17,16 @@
   let showCatManager = false
 
   let newDesc = '', newValor = '', newCategoria = 'Outros', newData = '', newPago = false, newRecorrente = false
+  let newTags: string[] = []
   let adding = false, saving = false
   let editingId: number | null = null
   let editDesc = '', editValor = '', editCategoria = 'Outros', editData = '', editPago = false, editRecorrente = false
+  let editTags: string[] = []
 
   let filterCat = ''
   let filterStatus = ''
   let filterText = ''
+  let filterTag = ''
   let sortBy = 'data'
   let sortDir: 'asc' | 'desc' = 'desc'
 
@@ -56,6 +60,7 @@
     let list = items || []
     if (filterText) list = list.filter(i => i.descricao?.toLowerCase().includes(filterText.toLowerCase()))
     if (filterCat) list = list.filter(i => (i.categoria || 'Outros') === filterCat)
+    if (filterTag) list = list.filter(i => Array.isArray(i.tags) && i.tags.includes(filterTag))
     if (filterStatus === 'pago') list = list.filter(i => i.pago)
     if (filterStatus === 'pendente') list = list.filter(i => !i.pago)
     list = [...list].sort((a, b) => {
@@ -78,22 +83,30 @@
   const getTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
 
+  $: allTags = (() => {
+    const set = new Set<string>()
+    items?.forEach((i: any) => Array.isArray(i.tags) && i.tags.forEach((t: string) => set.add(t)))
+    cardFaturas?.forEach((f: any) => f.expenses?.forEach((e: any) => Array.isArray(e.tags) && e.tags.forEach((t: string) => set.add(t))))
+    return Array.from(set).sort()
+  })()
+
   const handleAdd = async () => {
     if (!newDesc.trim() || !newValor) return
     saving = true
     try {
       await fetch(`/api/records/${recordId}/expenses`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente })
+        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags })
       })
       await fetchRecords(month, year.toString())
-      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; adding = false
+      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newTags = []; adding = false
     } finally { saving = false }
   }
 
   const startEdit = (item: any) => {
     editingId = item.id; editDesc = item.descricao || ''; editValor = String(item.valor || '')
     editCategoria = item.categoria || 'Outros'; editData = item.data || ''; editPago = item.pago || false; editRecorrente = item.recorrente || false
+    editTags = Array.isArray(item.tags) ? [...item.tags] : []
   }
 
   const cancelEdit = () => { editingId = null }
@@ -101,7 +114,7 @@
   const saveEdit = async (item: any) => {
     await fetch(`/api/records/expenses/${item.id}`, {
       method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente })
+      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente, tags: editTags })
     })
     editingId = null
     await fetchRecords(month, year.toString())
@@ -224,6 +237,7 @@
           {#each categorias as cat}<option>{cat}</option>{/each}
         </select>
         <input type="date" bind:value={newData} class="inp half" />
+        <TagInput bind:tags={newTags} suggestions={allTags} />
         <label class="chk-label"><input type="checkbox" bind:checked={newPago} /> Pago</label>
         <label class="chk-label"><input type="checkbox" bind:checked={newRecorrente} /> Recorrente</label>
         <button class="btn-save" on:click={handleAdd} disabled={saving}>{saving ? '...' : 'Salvar'}</button>
@@ -241,6 +255,12 @@
         <option value="pago">Pago</option>
         <option value="pendente">Pendente</option>
       </select>
+      {#if allTags.length > 0}
+        <select bind:value={filterTag} class="inp-filter-sm">
+          <option value="">Todas tags</option>
+          {#each allTags as t}<option value={t}>#{t}</option>{/each}
+        </select>
+      {/if}
     </div>
 
     <div class="table-wrap">
@@ -262,7 +282,10 @@
                 <tr class="edit-row">
                   <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
                   <td class="hide-sm"><select bind:value={editCategoria} class="edit-inp">{#each categorias as c}<option>{c}</option>{/each}</select></td>
-                  <td class="hide-sm"><input type="date" bind:value={editData} class="edit-inp" /></td>
+                  <td class="hide-sm">
+                    <input type="date" bind:value={editData} class="edit-inp" />
+                    <div class="tag-edit-wrap"><TagInput bind:tags={editTags} suggestions={allTags} placeholder="tags..." /></div>
+                  </td>
                   <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
                   <td>
                     <label class="chk-label-sm"><input type="checkbox" bind:checked={editPago} /> Pago</label>
@@ -278,6 +301,13 @@
                   <td class="desc-cell">
                     {item.descricao || '-'}
                     {#if item.recorrente}<span class="rec-badge" title="Recorrente">↻</span>{/if}
+                    {#if Array.isArray(item.tags) && item.tags.length > 0}
+                      <span class="row-tags">
+                        {#each item.tags as t}
+                          <span class="tag-mini" on:click={() => filterTag = t}>#{t}</span>
+                        {/each}
+                      </span>
+                    {/if}
                   </td>
                   <td class="hide-sm"><span class="badge">{item.categoria || 'Outros'}</span></td>
                   <td class="hide-sm">{item.data || '-'}</td>
@@ -413,6 +443,10 @@
   .pago-row td { opacity: 0.5; text-decoration: line-through; }
   .badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
   .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.65rem; border-radius: 4px; padding: 1px 3px; margin-left: 4px; line-height: 1.3; }
+  .row-tags { display: inline-flex; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
+  .tag-mini { background: #e8eaff; color: #3949ab; border-radius: 8px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; transition: background-color .2s; }
+  .tag-mini:hover { background: #c5cae9; }
+  .tag-edit-wrap { margin-top: 4px; }
   .total-row td { background: #f9f9f9; font-size: 0.9rem; border-top: 1px solid #ddd; }
   .grand-total td { background: #f0f0ff; font-size: 0.95rem; border-top: 2px solid #ddd; }
   .empty { text-align: center; color: #999; font-style: italic; padding: 1.5rem; }

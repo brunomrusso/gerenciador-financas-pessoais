@@ -91,6 +91,7 @@ class Expense(db.Model):
     data = db.Column(db.String(10), nullable=True)
     pago = db.Column(db.Boolean, default=False)
     recorrente = db.Column(db.Boolean, default=False)
+    tags = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -102,7 +103,8 @@ class Expense(db.Model):
             'categoria': self.categoria or 'Outros',
             'data': self.data or '',
             'pago': self.pago or False,
-            'recorrente': self.recorrente or False
+            'recorrente': self.recorrente or False,
+            'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()]
         }
 
 class CardDetail(db.Model):
@@ -163,6 +165,7 @@ class CardExpense(db.Model):
     parcelas_total = db.Column(db.Integer, default=1)
     parcela_atual = db.Column(db.Integer, default=1)
     group_id = db.Column(db.String(36), nullable=True, index=True)
+    tags = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -176,7 +179,8 @@ class CardExpense(db.Model):
             'data': self.data or '',
             'parcelas_total': self.parcelas_total,
             'parcela_atual': self.parcela_atual,
-            'group_id': self.group_id
+            'group_id': self.group_id,
+            'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()]
         }
 
 

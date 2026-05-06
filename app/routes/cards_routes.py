@@ -106,6 +106,11 @@ def add_card_expense():
     descricao = data['descricao']
     categoria = data.get('categoria', 'Outros')
     data_str = data.get('data', '')
+    tags_in = data.get('tags')
+    if isinstance(tags_in, list):
+        tags_str = ','.join(str(t).strip() for t in tags_in if str(t).strip()) or None
+    else:
+        tags_str = ((tags_in or '').strip() or None)
 
     group_id = str(uuid4())
     created = []
@@ -132,6 +137,7 @@ def add_card_expense():
             valor=valor_parcela,
             categoria=categoria,
             data=data_str,
+            tags=tags_str,
             parcelas_total=parcelas,
             parcela_atual=i + 1,
             group_id=group_id
@@ -214,6 +220,9 @@ def update_card_expense(expense_id):
                 if 'valor' in data: ge.valor = float(data['valor'])
                 if 'categoria' in data: ge.categoria = data['categoria']
                 if 'data' in data: ge.data = data['data']
+                if 'tags' in data:
+                    tg = data['tags']
+                    ge.tags = (','.join(str(t).strip() for t in tg if str(t).strip()) or None) if isinstance(tg, list) else ((tg or '').strip() or None)
             db.session.commit()
             return jsonify(exp.to_dict()), 200
     else:
@@ -222,6 +231,9 @@ def update_card_expense(expense_id):
         if 'categoria' in data: exp.categoria = data['categoria']
         if 'data' in data: exp.data = data['data']
         if 'parcelas_total' in data: exp.parcelas_total = int(data['parcelas_total'])
+        if 'tags' in data:
+            tg = data['tags']
+            exp.tags = (','.join(str(t).strip() for t in tg if str(t).strip()) or None) if isinstance(tg, list) else ((tg or '').strip() or None)
         db.session.commit()
         return jsonify(exp.to_dict()), 200
 
