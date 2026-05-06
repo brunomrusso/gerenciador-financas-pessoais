@@ -57,10 +57,14 @@
 
   $: if (recordId || refreshKey) load()
 
-  $: alerts = items.filter(i => i.excedeu)
-  $: warnings = items.filter(i => !i.excedeu && i.orcamento > 0 && i.percentual >= 80)
-  $: totalOrcamento = items.reduce((s, i) => s + i.orcamento, 0)
-  $: totalGasto = items.reduce((s, i) => s + i.gasto, 0)
+  $: itemsComOrcamento = items.filter(i => i.orcamento > 0)
+  $: itemsSemOrcamento = items.filter(i => i.orcamento === 0)
+  $: alerts = itemsComOrcamento.filter(i => i.excedeu)
+  $: warnings = itemsComOrcamento.filter(i => !i.excedeu && i.percentual >= 80)
+  $: totalOrcamento = itemsComOrcamento.reduce((s, i) => s + i.orcamento, 0)
+  $: totalGasto = itemsComOrcamento.reduce((s, i) => s + i.gasto, 0)
+
+  let showAddOther = false
 
   const barColor = (pct: number, excedeu: boolean) => {
     if (excedeu) return '#f44336'
@@ -93,10 +97,12 @@
     <div class="budget-body">
       {#if loading}
         <p class="empty">Carregando...</p>
-      {:else if items.length === 0}
+      {:else if itemsComOrcamento.length === 0 && itemsSemOrcamento.length === 0}
         <p class="empty">Sem categorias. Adicione despesas ou defina um orçamento.</p>
+      {:else if itemsComOrcamento.length === 0}
+        <p class="empty">Nenhum orçamento definido ainda. Use o atalho abaixo para começar.</p>
       {:else}
-        {#each items as it (it.categoria)}
+        {#each itemsComOrcamento as it (it.categoria)}
           <div class="bud-row" class:over={it.excedeu}>
             <div class="bud-info">
               <div class="bud-cat-line">
@@ -144,6 +150,48 @@
             </div>
           </div>
         {/each}
+      {/if}
+
+      {#if itemsSemOrcamento.length > 0}
+        <div class="add-other">
+          {#if !showAddOther}
+            <button class="btn-add-other" on:click={() => showAddOther = true}>
+              + Definir orçamento para outra categoria ({itemsSemOrcamento.length})
+            </button>
+          {:else}
+            <div class="add-other-list">
+              <div class="add-other-header">
+                <span class="add-other-title">Categorias sem orçamento</span>
+                <button class="btn-close-other" on:click={() => { showAddOther = false; editing = null }}>✕</button>
+              </div>
+              {#each itemsSemOrcamento as it (it.categoria)}
+                <div class="other-row">
+                  {#if editing === it.categoria}
+                    <span class="other-name">{it.categoria}</span>
+                    <div class="edit-wrap">
+                      <input
+                        type="number"
+                        step="0.01"
+                        bind:value={editValor}
+                        placeholder="0,00"
+                        class="bud-inp"
+                        on:keydown={(e) => e.key === 'Enter' && saveEdit(it.categoria)}
+                      />
+                      <button class="btn-save-bud" on:click={() => saveEdit(it.categoria)}>✓</button>
+                      <button class="btn-cancel-bud" on:click={() => editing = null}>✕</button>
+                    </div>
+                  {:else}
+                    <div class="other-info">
+                      <span class="other-name">{it.categoria}</span>
+                      <span class="other-spent">Gasto: {fmt(it.gasto)}</span>
+                    </div>
+                    <button class="btn-set-budget" on:click={() => startEdit(it)}>+ Definir</button>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
       {/if}
     </div>
   {/if}
@@ -228,6 +276,51 @@
   .bud-rest { color: #4caf50; font-weight: 500; }
   .over-text { color: #c62828; font-weight: 600; }
   .bud-only-spent { color: #888; font-style: italic; }
+
+  .add-other { margin-top: 0.25rem; }
+  .btn-add-other {
+    width: 100%;
+    background: none;
+    border: 1px dashed #c0c0d0;
+    color: #667eea;
+    padding: 0.55rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+  .btn-add-other:hover { background: #f0f4ff; border-color: #667eea; }
+
+  .add-other-list { background: #f8f9ff; border-radius: 6px; padding: 0.5rem 0.6rem; }
+  .add-other-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .add-other-title { font-size: 0.78rem; color: #777; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .btn-close-other { background: none; border: none; color: #999; cursor: pointer; font-size: 0.95rem; padding: 2px 6px; }
+
+  .other-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid #ececec;
+    flex-wrap: wrap;
+  }
+  .other-row:last-child { border-bottom: none; }
+  .other-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .other-name { font-weight: 600; color: #333; font-size: 0.85rem; }
+  .other-spent { font-size: 0.72rem; color: #888; }
+
+  .btn-set-budget {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  .btn-set-budget:hover { background: #5568d8; }
 
   @media (max-width: 640px) {
     .budget-header { padding: 0.75rem; }

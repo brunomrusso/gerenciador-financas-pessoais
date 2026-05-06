@@ -209,6 +209,15 @@ html[data-theme="dark"] .desc { color: #d0d0e0 !important; }
 /* Cat manager border */
 html[data-theme="dark"] .cat-manager { border-color: #3a3a52 !important; }
 
+/* Budget add-other */
+html[data-theme="dark"] .add-other-list { background: #2a2a3e !important; }
+html[data-theme="dark"] .other-row { border-color: #3a3a52 !important; }
+html[data-theme="dark"] .other-name { color: #e8e8f0 !important; }
+html[data-theme="dark"] .other-spent,
+html[data-theme="dark"] .add-other-title { color: #9090a8 !important; }
+html[data-theme="dark"] .btn-add-other { background: transparent !important; border-color: #3a3a52 !important; color: #8a9fff !important; }
+html[data-theme="dark"] .btn-add-other:hover { background: #2a2a3e !important; }
+
 /* DataTable */
 html[data-theme="dark"] .data-table { background: #1e1e2e !important; color: #e0e0e8 !important; box-shadow: 0 2px 10px rgba(0,0,0,0.4) !important; }
 html[data-theme="dark"] .data-table thead { background-color: #252535 !important; }
