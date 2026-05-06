@@ -306,19 +306,26 @@ def get_history():
     
     if not month or not year:
         return jsonify({'error': 'Mês e ano são obrigatórios'}), 400
-    
-    meses_lista = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+
+    try:
+        n_months = int(request.args.get('months', 6))
+    except (TypeError, ValueError):
+        n_months = 6
+    n_months = max(2, min(24, n_months))
+
+    meses_lista = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-    
+
     try:
         idx_ref = meses_lista.index(month)
         ano_ref = int(year)
     except (ValueError, IndexError):
         return jsonify({'error': 'Mês ou ano inválido'}), 400
-    
+
+    from app.models import CardExpense, CreditCard
     historico = []
-    
-    for i in range(5, -1, -1):
+
+    for i in range(n_months - 1, -1, -1):
         temp_idx = idx_ref - i
         temp_ano = ano_ref
         
@@ -330,41 +337,54 @@ def get_history():
         
         res_mes = {
             "mes": f"{mes_alvo[:3]}/{str(temp_ano)[2:]}",
+            "mesCompleto": mes_alvo,
+            "ano": temp_ano,
             "salarioBruto": 0,
             "totalDescontos": 0,
             "totalCreditos": 0,
             "outrasReceitas": 0,
             "saldoAnterior": 0,
             "despesas": 0,
-            "totalInvestido": 0
+            "despesasCartao": 0,
+            "totalInvestido": 0,
+            "saldoFinal": 0,
+            "receitas": 0
         }
-        
+
         record = MonthlyRecord.query.filter_by(
             user_id=user_id,
             year=temp_ano,
             month=mes_alvo
         ).first()
-        
+
         if record:
             descontos_lista = [d.to_dict() for d in record.discounts]
             movimentacoes = [e.to_dict() for e in record.expenses]
-            investimentos_lista = [i.to_dict() for i in record.investments]
-            
-            total_investido_mes = sum(float(inv.get('valor', 0)) for inv in investimentos_lista)
+
             total_creditos = sum(d['valor'] for d in descontos_lista if d['valor'] > 0)
             total_descontos = sum(abs(d['valor']) for d in descontos_lista if d['valor'] < 0)
-            
+
             receitas_extras = sum(m['valor'] for m in movimentacoes if m.get('tipo') == 'Receita')
             total_despesas = sum(m['valor'] for m in movimentacoes if m.get('tipo', 'Despesa') == 'Despesa')
-            
+
+            card_exps = (CardExpense.query
+                         .join(CreditCard)
+                         .filter(CardExpense.record_id == record.id, CreditCard.user_id == user_id)
+                         .all())
+            total_cartao = sum(float(c.valor or 0) for c in card_exps)
+
             res_mes["salarioBruto"] = record.salario_bruto or 0
             res_mes["saldoAnterior"] = record.saldo_anterior or 0
             res_mes["totalDescontos"] = total_descontos
             res_mes["totalCreditos"] = total_creditos
             res_mes["outrasReceitas"] = receitas_extras
             res_mes["despesas"] = total_despesas
-            res_mes["totalInvestido"] = total_investido_mes
-        
+            res_mes["despesasCartao"] = total_cartao
+            receitas_total = (record.salario_bruto or 0) + total_creditos + receitas_extras
+            despesas_total = total_despesas + total_cartao
+            res_mes["receitas"] = receitas_total
+            res_mes["saldoFinal"] = (record.saldo_anterior or 0) + receitas_total - total_descontos - despesas_total
+
         historico.append(res_mes)
     
     return jsonify(historico), 200
