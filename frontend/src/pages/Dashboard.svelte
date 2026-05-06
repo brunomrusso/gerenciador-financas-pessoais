@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { recordsStore, fetchRecords, createRecord, updateRecord } from '../stores/records'
   import { authStore } from '../stores/auth'
-  import { logout } from '../stores/auth'
+  import { logout, loadUser } from '../stores/auth'
   import MonthSelector from '../components/MonthSelector.svelte'
   import SummaryCards from '../components/SummaryCards.svelte'
   import DataTable from '../components/DataTable.svelte'
@@ -35,10 +35,13 @@
     cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
 
   onMount(() => {
+    loadUser()
     fetchAccounts()
     loadCurrentMonth()
     authStore.subscribe(state => {
-      userName = state.user?.nome || state.user?.email?.split('@')[0] || ''
+      if (state.user) {
+        userName = state.user.nome && state.user.nome.trim() ? state.user.nome : (state.user.email?.split('@')[0] || 'Usuário')
+      }
     })
   })
 

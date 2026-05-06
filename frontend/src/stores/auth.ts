@@ -89,3 +89,27 @@ export const logout = () => {
     error: null
   })
 }
+
+export const loadUser = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  authStore.update(state => ({ ...state, loading: true }))
+  try {
+    const response = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (response.ok) {
+      const user = await response.json()
+      authStore.update(state => ({
+        ...state,
+        user,
+        loading: false
+      }))
+    } else {
+      logout()
+    }
+  } catch (error) {
+    authStore.update(state => ({ ...state, loading: false }))
+  }
+}
