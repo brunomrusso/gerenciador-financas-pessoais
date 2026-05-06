@@ -10,7 +10,9 @@
   import CardSection from '../components/CardSection.svelte'
   import BudgetSection from '../components/BudgetSection.svelte'
   import InvestmentSection from '../components/InvestmentSection.svelte'
+  import QuickStats from '../components/QuickStats.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
+  import { theme, toggleTheme } from '../stores/theme'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -96,7 +98,12 @@
       <h1>Controle Financeiro</h1>
       <p class="greeting">Olá, {userName}</p>
     </div>
-    <button on:click={handleLogout} class="btn-logout">Sair</button>
+    <div class="header-actions">
+      <button on:click={toggleTheme} class="btn-theme" title="Alternar tema">
+        {$theme === 'dark' ? '☀️' : '🌙'}
+      </button>
+      <button on:click={handleLogout} class="btn-logout">Sair</button>
+    </div>
   </header>
 
   <div class="container">
@@ -108,6 +115,8 @@
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
       <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
+
+      <QuickStats record={currentRecord} {cardFaturas} />
 
       <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
 
@@ -197,6 +206,28 @@
   .btn-logout:hover {
     background-color: rgba(255, 255, 255, 0.3);
   }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .btn-theme {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.05rem;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s, transform 0.3s;
+  }
+  .btn-theme:hover { background-color: rgba(255, 255, 255, 0.3); transform: rotate(20deg); }
 
   .header-left {
     display: flex;
