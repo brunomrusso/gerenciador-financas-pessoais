@@ -512,6 +512,11 @@
     margin-top: 0.25rem;
   }
 
+  :global(html[data-theme="dark"]) .total-row {
+    background: #2a2a3e !important;
+    color: #e0e0e8 !important;
+  }
+
   .negative { color: #f44336; font-weight: 600; }
 
   .parc-cur { font-size: 0.78rem; color: #667eea; }
