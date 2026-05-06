@@ -130,9 +130,9 @@
 <div class="dashboard">
   <header class="dashboard-header">
     <div class="header-left">
-      <img src="/assets/logo.png" alt="CashTrack" class="header-logo" />
+      <img src="/assets/logo.png" alt="CashFlow" class="header-logo" />
       <div>
-        <h1>CashTrack</h1>
+        <h1>CashFlow</h1>
         <p class="greeting">Olá, {userName}</p>
       </div>
     </div>
