@@ -130,8 +130,11 @@
 <div class="dashboard">
   <header class="dashboard-header">
     <div class="header-left">
-      <h1>Controle Financeiro</h1>
-      <p class="greeting">Olá, {userName}</p>
+      <img src="/assets/logo.png" alt="CashTrack" class="header-logo" />
+      <div>
+        <h1>CashTrack</h1>
+        <p class="greeting">Olá, {userName}</p>
+      </div>
     </div>
     <div class="header-actions">
       <button on:click={toggleTheme} class="btn-theme" title="Alternar tema">
@@ -268,8 +271,15 @@
 
   .header-left {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .header-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
   }
 
   .greeting {
