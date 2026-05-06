@@ -277,8 +277,8 @@
   }
 
   .header-logo {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
   }
 
