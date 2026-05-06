@@ -10,6 +10,7 @@
   export let month: string = ''
   export let year: number = 0
   export let cardFaturas: any[] = []
+  export let refreshKey: number = 0
 
   const DEFAULT_CATS = ['Moradia', 'Alimentacao', 'Transporte', 'Saude', 'Educacao', 'Lazer', 'Cartao', 'Outros']
   let categorias: string[] = [...DEFAULT_CATS]
@@ -83,9 +84,10 @@
     else { sortBy = col; sortDir = 'asc' }
   }
 
-  const getTotal = () => (items || []).reduce((s: number, i: any) => s + (i.valor || 0), 0)
-  const getFilteredTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: getTotal = () => (items || []).reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: getFilteredTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
+  $: if (refreshKey) {} // força reatividade quando refreshKey muda
 
   $: allTags = (() => {
     const set = new Set<string>()

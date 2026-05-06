@@ -195,8 +195,8 @@
           </div>
 
           <DataTable title="Descontos e Creditos" items={currentRecord?.discounts || []} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
-          <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} />
-          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear}
+          <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />
+          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} refreshKey={budgetRefreshKey}
             on:faturasLoaded={(e) => cardFaturas = e.detail} />
           <InvestmentSection recordId={currentRecord.id} on:summary={(e) => investmentSummary = e.detail} />
         </div>

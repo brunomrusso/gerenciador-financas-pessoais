@@ -5,6 +5,7 @@
   export let recordId: number
   export let month: string = ''
   export let year: number = 0
+  export let refreshKey: number = 0
   export let categorias: string[] = ['Moradia','Alimentacao','Transporte','Saude','Educacao','Lazer','Cartao','Outros']
 
   const dispatch = createEventDispatcher()
@@ -78,6 +79,7 @@
   })
 
   $: if (recordId) loadFaturas()
+  $: if (refreshKey) loadFaturas()
 
   // ── cards CRUD ───────────────────────────────────────────────────────────
   const createCard = async () => {
