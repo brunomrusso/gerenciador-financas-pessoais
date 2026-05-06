@@ -463,7 +463,7 @@
   .card-total { font-weight: 700; font-size: 1rem; }
   .chevron { color: #667eea; font-size: 0.7rem; margin-left: auto; }
 
-  .fatura-body { padding: 0 0.5rem 0.5rem; }
+  .fatura-body { padding: 0 0.5rem 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   table { width: 100%; border-collapse: collapse; }
   th { padding: 0.4rem 0.5rem; font-size: 0.78rem; color: #777; font-weight: 600; border-bottom: 1px solid #eee; text-align: left; white-space: nowrap; }
@@ -516,9 +516,14 @@
   .move-selects { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
   .move-selects .inp { flex: 1; }
 
+  .card-section { width: 100%; box-sizing: border-box; max-width: 100%; }
+
   @media (max-width: 640px) {
     .card-section { padding: 1rem; }
     .fatura-header { padding: 0.6rem; gap: 0.5rem; font-size: 0.85rem; }
     .card-count { display: none; }
+    .fatura-body table { min-width: 480px; }
+    .fatura-body th { padding: 0.35rem 0.3rem; font-size: 0.72rem; }
+    .fatura-body td { padding: 0.25rem 0.3rem; font-size: 0.78rem; }
   }
 </style>

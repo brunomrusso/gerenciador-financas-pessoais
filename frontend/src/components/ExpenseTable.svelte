@@ -356,7 +356,7 @@
 
 <style>
   .expense-wrap { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
-  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; }
+  .table-section { flex: 2; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden; }
   .chart-section { flex: 1; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); min-width: 260px; max-width: 340px; display: flex; flex-direction: column; gap: 0.75rem; }
   .chart-canvas { width: 100% !important; }
 
@@ -398,7 +398,7 @@
   .chk-label { display: flex; align-items: center; gap: 5px; font-size: 0.875rem; color: #333; }
   .chk-label-sm { display: flex; align-items: center; gap: 3px; font-size: 0.75rem; color: #333; white-space: nowrap; }
 
-  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 460px; }
+  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 460px; -webkit-overflow-scrolling: touch; width: 100%; }
   table { width: 100%; border-collapse: collapse; min-width: 300px; }
   thead { background: #f5f5f5; position: sticky; top: 0; z-index: 2; }
   tfoot { position: sticky; bottom: 0; z-index: 2; }
