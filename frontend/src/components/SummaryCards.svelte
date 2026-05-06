@@ -1,13 +1,19 @@
 <script lang="ts">
   export let record: any
   export let cardFaturas: any[] = []
+  export let investmentSummary: { saldo_total: number, aportes_mes: number, saques_mes: number, rendimentos_mes: number, liquido_mes: number } = {
+    saldo_total: 0, aportes_mes: 0, saques_mes: 0, rendimentos_mes: 0, liquido_mes: 0
+  }
 
   $: totalReceitas = (record.salario_bruto || 0) + (record.discounts?.filter((d: any) => d.valor > 0).reduce((sum: number, d: any) => sum + d.valor, 0) || 0)
   $: totalDescontos = record.discounts?.filter((d: any) => d.valor < 0).reduce((sum: number, d: any) => sum + Math.abs(d.valor), 0) || 0
   $: totalCartoes = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
   $: totalDespesas = (record.expenses?.reduce((sum: number, e: any) => sum + e.valor, 0) || 0) + totalCartoes
-  $: totalInvestimentos = record.investments?.reduce((sum: number, i: any) => sum + i.valor, 0) || 0
-  $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas - totalDescontos - totalDespesas - totalInvestimentos
+  // Saldo total acumulado de todas as contas de investimento
+  $: totalInvestimentos = investmentSummary.saldo_total || 0
+  // Líquido do mês (aportes - saques) afeta o caixa do mês
+  $: liquidoInvestMes = investmentSummary.liquido_mes || 0
+  $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas - totalDescontos - totalDespesas - liquidoInvestMes
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

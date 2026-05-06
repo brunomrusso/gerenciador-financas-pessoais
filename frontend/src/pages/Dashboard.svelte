@@ -9,6 +9,7 @@
   import ExpenseTable from '../components/ExpenseTable.svelte'
   import CardSection from '../components/CardSection.svelte'
   import BudgetSection from '../components/BudgetSection.svelte'
+  import InvestmentSection from '../components/InvestmentSection.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -22,6 +23,7 @@
   let errorMsg = ''
   let cardFaturas: any[] = []
   let userName = ''
+  let investmentSummary = { saldo_total: 0, aportes_mes: 0, saques_mes: 0, rendimentos_mes: 0, liquido_mes: 0 }
 
   // chave reativa para recarregar BudgetSection quando despesas/faturas mudam
   $: budgetRefreshKey = (currentRecord?.expenses?.length || 0) +
@@ -105,7 +107,7 @@
     {:else if errorMsg}
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
-      <SummaryCards record={currentRecord} {cardFaturas} />
+      <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
 
       <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
 
@@ -150,7 +152,7 @@
           <ExpenseTable items={currentRecord.expenses} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} />
           <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear}
             on:faturasLoaded={(e) => cardFaturas = e.detail} />
-          <DataTable title="Investimentos" items={currentRecord.investments} recordId={currentRecord.id} type="investments" month={selectedMonth} year={selectedYear} />
+          <InvestmentSection recordId={currentRecord.id} on:summary={(e) => investmentSummary = e.detail} />
         </div>
       {:else}
         <HistoryChart month={selectedMonth} year={selectedYear} />

@@ -180,6 +180,57 @@ class CardExpense(db.Model):
         }
 
 
+class InvestmentAccount(db.Model):
+    __tablename__ = 'investment_accounts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    nome = db.Column(db.String(150), nullable=False)
+    tipo = db.Column(db.String(50), default='Geral')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    transactions = db.relationship('InvestmentTransaction', backref='account', lazy=True, cascade='all, delete-orphan')
+
+    def saldo(self):
+        total = 0.0
+        for t in self.transactions:
+            if t.tipo == 'aporte' or t.tipo == 'rendimento':
+                total += float(t.valor or 0)
+            elif t.tipo == 'saque':
+                total -= float(t.valor or 0)
+        return round(total, 2)
+
+    def to_dict(self, include_saldo=True):
+        d = {'id': self.id, 'nome': self.nome, 'tipo': self.tipo or 'Geral'}
+        if include_saldo:
+            d['saldo'] = self.saldo()
+        return d
+
+
+class InvestmentTransaction(db.Model):
+    __tablename__ = 'investment_transactions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('investment_accounts.id'), nullable=False, index=True)
+    record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=True, index=True)
+    tipo = db.Column(db.String(20), nullable=False)  # aporte, saque, rendimento
+    valor = db.Column(db.Float, nullable=False)
+    descricao = db.Column(db.String(255), nullable=True)
+    data = db.Column(db.String(10), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'account_id': self.account_id,
+            'record_id': self.record_id,
+            'tipo': self.tipo,
+            'valor': float(self.valor or 0),
+            'descricao': self.descricao or '',
+            'data': self.data or ''
+        }
+
+
 class Category(db.Model):
     __tablename__ = 'categories'
     
