@@ -4,11 +4,18 @@
 
   const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
+  // Usa data LOCAL (não UTC) para evitar bug de fuso à noite
+  const toLocalISO = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
   const today = new Date()
-  const todayStr = today.toISOString().slice(0, 10)
+  const todayStr = toLocalISO(today)
   const startOfWeek = new Date(today)
   startOfWeek.setDate(today.getDate() - today.getDay())
-  const startOfWeekStr = startOfWeek.toISOString().slice(0, 10)
+  const startOfWeekStr = toLocalISO(startOfWeek)
 
   type Item = { valor: number, data?: string }
 
