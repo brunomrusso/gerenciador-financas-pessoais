@@ -147,8 +147,69 @@ html[data-theme="dark"] .cat-badge,
 html[data-theme="dark"] .parc-badge { background: #3a3a52 !important; color: #b0b8ff !important; }
 
 /* Select de mês */
-html[data-theme="dark"] .month-selector,
-html[data-theme="dark"] .month-grid { background: #1e1e2e !important; }
+html[data-theme="dark"] .month-selector { background: #1e1e2e !important; }
+html[data-theme="dark"] .month-btn {
+  background: #2a2a3e !important;
+  color: #d8d8e8 !important;
+  border-color: #3a3a52 !important;
+}
+html[data-theme="dark"] .month-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+}
+html[data-theme="dark"] .year-select { background: #2a2a3e !important; color: #e8e8f0 !important; border-color: #3a3a52 !important; }
+
+/* Dashboard background */
+html[data-theme="dark"] .dashboard { background-color: #15151f !important; }
+
+/* QuickStats cards */
+html[data-theme="dark"] .qs-card { background: #2a2a3e !important; color: #e0e0e8 !important; }
+html[data-theme="dark"] .qs-val { color: #f0f0f5 !important; }
+html[data-theme="dark"] .qs-lbl { color: #9090a8 !important; }
+
+/* SummaryCards */
+html[data-theme="dark"] .summary-cards .card { background: #1e1e2e !important; }
+html[data-theme="dark"] .card-header h3 { color: #b0b0c8 !important; }
+
+/* Inv totals box principal mantém gradiente */
+html[data-theme="dark"] .total-box.main { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+
+/* Categories chip */
+html[data-theme="dark"] .cat-chip { background: #3a3a52 !important; color: #b0b8ff !important; }
+
+/* Filter inputs / add forms backgrounds claros */
+html[data-theme="dark"] .filter-bar,
+html[data-theme="dark"] .copy-msg { background: transparent !important; }
+
+/* Empty/text */
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .copy-msg { color: #9090a8 !important; }
+
+/* Buttons (manter as cores principais, escurecer só os neutros) */
+html[data-theme="dark"] .pager-info { color: #c0c0d0 !important; }
+
+/* Texto genérico em parágrafos dentro do dashboard */
+html[data-theme="dark"] .dashboard p,
+html[data-theme="dark"] .container p { color: #c0c0d0 !important; }
+
+/* Greeting */
+html[data-theme="dark"] .greeting { color: rgba(255,255,255,0.85) !important; }
+
+/* Month "Hoje" / pager-btn que tem gradiente — manter */
+
+/* Inputs específicos de saldo/salário no Dashboard (sem classe própria) */
+html[data-theme="dark"] .input-group input { background-color: #2a2a3e !important; color: #e8e8f0 !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .input-group label { color: #c0c0d0 !important; }
+
+/* CardSection card-icon e similares */
+html[data-theme="dark"] .acc-tipo,
+html[data-theme="dark"] .card-count,
+html[data-theme="dark"] .desc { color: #d0d0e0 !important; }
+
+/* Cat manager border */
+html[data-theme="dark"] .cat-manager { border-color: #3a3a52 !important; }
+
+/* Move modal selects — já tratado via input/select rules */
 
 * {
   margin: 0;
