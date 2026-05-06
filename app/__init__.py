@@ -31,6 +31,7 @@ def create_app(config_name='development'):
                 conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS categoria VARCHAR(100) DEFAULT 'Outros'"))
                 conn.execute(text("ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS group_id VARCHAR(36)"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS nome VARCHAR(100)"))
+                conn.execute(text("ALTER TABLE categories ADD COLUMN IF NOT EXISTS orcamento FLOAT DEFAULT 0"))
                 conn.commit()
         except Exception:
             pass

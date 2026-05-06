@@ -395,6 +395,44 @@ def create_category():
     
     return jsonify(category.to_dict()), 201
 
+@bp.route('/categories/budget', methods=['PUT'])
+@jwt_required()
+def upsert_category_budget():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    nome = (data.get('nome') or '').strip()
+    if not nome:
+        return jsonify({'error': 'Nome é obrigatório'}), 400
+    try:
+        orcamento = float(data.get('orcamento') or 0)
+    except (TypeError, ValueError):
+        orcamento = 0
+    cat = Category.query.filter_by(user_id=user_id, nome=nome).first()
+    if not cat:
+        cat = Category(user_id=user_id, nome=nome, orcamento=orcamento)
+        db.session.add(cat)
+    else:
+        cat.orcamento = orcamento
+    db.session.commit()
+    return jsonify(cat.to_dict()), 200
+
+@bp.route('/categories/<int:category_id>', methods=['PATCH'])
+@jwt_required()
+def update_category(category_id):
+    user_id = int(get_jwt_identity())
+    category = Category.query.filter_by(id=category_id, user_id=user_id).first()
+    if not category:
+        return jsonify({'error': 'Categoria não encontrada'}), 404
+    data = request.get_json() or {}
+    if 'nome' in data: category.nome = data['nome']
+    if 'orcamento' in data:
+        try:
+            category.orcamento = float(data['orcamento'] or 0)
+        except (TypeError, ValueError):
+            category.orcamento = 0
+    db.session.commit()
+    return jsonify(category.to_dict()), 200
+
 @bp.route('/categories/<int:category_id>', methods=['DELETE'])
 @jwt_required()
 def delete_category(category_id):
@@ -405,6 +443,47 @@ def delete_category(category_id):
     db.session.delete(category)
     db.session.commit()
     return jsonify({'message': 'Categoria removida'}), 200
+
+@bp.route('/<int:record_id>/budget-status', methods=['GET'])
+@jwt_required()
+def budget_status(record_id):
+    user_id = int(get_jwt_identity())
+    record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
+    if not record:
+        return jsonify({'error': 'Registro não encontrado'}), 404
+
+    from app.models import CardExpense, CreditCard
+    categories = Category.query.filter_by(user_id=user_id).all()
+    cat_map = {c.nome: float(c.orcamento or 0) for c in categories}
+
+    gasto_por_cat = {}
+    for e in record.expenses:
+        cat = e.categoria or 'Outros'
+        gasto_por_cat[cat] = gasto_por_cat.get(cat, 0) + float(e.valor or 0)
+
+    card_exps = (CardExpense.query
+                 .join(CreditCard)
+                 .filter(CardExpense.record_id == record_id, CreditCard.user_id == user_id)
+                 .all())
+    for ce in card_exps:
+        cat = ce.categoria or 'Outros'
+        gasto_por_cat[cat] = gasto_por_cat.get(cat, 0) + float(ce.valor or 0)
+
+    nomes = set(cat_map.keys()) | set(gasto_por_cat.keys())
+    result = []
+    for nome in sorted(nomes):
+        orc = cat_map.get(nome, 0)
+        gasto = gasto_por_cat.get(nome, 0)
+        pct = (gasto / orc * 100) if orc > 0 else 0
+        result.append({
+            'categoria': nome,
+            'orcamento': round(orc, 2),
+            'gasto': round(gasto, 2),
+            'restante': round(orc - gasto, 2),
+            'percentual': round(pct, 1),
+            'excedeu': orc > 0 and gasto > orc
+        })
+    return jsonify(result), 200
 
 @bp.route('/<int:record_id>/export', methods=['GET'])
 @jwt_required()

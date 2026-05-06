@@ -8,6 +8,7 @@
   import DataTable from '../components/DataTable.svelte'
   import ExpenseTable from '../components/ExpenseTable.svelte'
   import CardSection from '../components/CardSection.svelte'
+  import BudgetSection from '../components/BudgetSection.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -21,6 +22,11 @@
   let errorMsg = ''
   let cardFaturas: any[] = []
   let userName = ''
+
+  // chave reativa para recarregar BudgetSection quando despesas/faturas mudam
+  $: budgetRefreshKey = (currentRecord?.expenses?.length || 0) +
+    (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0), 0) || 0) +
+    cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
 
   onMount(() => {
     loadCurrentMonth()
@@ -100,6 +106,8 @@
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
       <SummaryCards record={currentRecord} {cardFaturas} />
+
+      <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
 
       <div class="tabs">
         <button

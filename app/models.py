@@ -186,6 +186,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     nome = db.Column(db.String(100), nullable=False)
+    orcamento = db.Column(db.Float, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     __table_args__ = (db.UniqueConstraint('user_id', 'nome', name='unique_user_category'),)
@@ -193,5 +194,6 @@ class Category(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'nome': self.nome
+            'nome': self.nome,
+            'orcamento': self.orcamento or 0
         }
