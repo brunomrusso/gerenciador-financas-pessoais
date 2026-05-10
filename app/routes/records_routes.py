@@ -118,7 +118,8 @@ def create_record():
         month=data['month'],
         year=data['year'],
         saldo_anterior=saldo_anterior,
-        salario_bruto=data.get('salario_bruto', 0)
+        salario_bruto=data.get('salario_bruto', 0),
+        salario_account_id=data.get('salario_account_id') or None
     )
     
     db.session.add(record)
@@ -160,6 +161,8 @@ def update_record(record_id):
         record.saldo_anterior = data['saldo_anterior']
     if 'salario_bruto' in data:
         record.salario_bruto = data['salario_bruto']
+    if 'salario_account_id' in data:
+        record.salario_account_id = data.get('salario_account_id') or None
     
     record.updated_at = datetime.utcnow()
     db.session.commit()

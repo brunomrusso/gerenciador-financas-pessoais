@@ -38,6 +38,7 @@ class MonthlyRecord(db.Model):
     month = db.Column(db.String(20), nullable=False)
     saldo_anterior = db.Column(db.Float, default=0)
     salario_bruto = db.Column(db.Float, default=0)
+    salario_account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -55,6 +56,7 @@ class MonthlyRecord(db.Model):
             'month': self.month,
             'saldo_anterior': self.saldo_anterior,
             'salario_bruto': self.salario_bruto,
+            'salario_account_id': self.salario_account_id,
             'discounts': [d.to_dict() for d in self.discounts],
             'expenses': [e.to_dict() for e in self.expenses],
             'card_details': [c.to_dict() for c in self.card_details],

@@ -36,11 +36,17 @@ def _compute_balance(account, all_accounts):
 
     saldo = float(account.saldo_inicial or 0)
 
-    # Salário cai apenas na conta padrão
+    # Salário: vai para a conta especificada em salario_account_id;
+    # se não especificado, cai na conta padrão (compatibilidade com registros antigos)
+    sal_this = db.session.query(db.func.coalesce(db.func.sum(MonthlyRecord.salario_bruto), 0)) \
+        .filter(MonthlyRecord.user_id == user_id,
+                MonthlyRecord.salario_account_id == account.id).scalar()
+    saldo += float(sal_this or 0)
     if is_default:
-        sal_total = db.session.query(db.func.coalesce(db.func.sum(MonthlyRecord.salario_bruto), 0)) \
-            .filter(MonthlyRecord.user_id == user_id).scalar()
-        saldo += float(sal_total or 0)
+        sal_orphan = db.session.query(db.func.coalesce(db.func.sum(MonthlyRecord.salario_bruto), 0)) \
+            .filter(MonthlyRecord.user_id == user_id,
+                    MonthlyRecord.salario_account_id.is_(None)).scalar()
+        saldo += float(sal_orphan or 0)
 
     # Discounts: positivos somam, negativos subtraem (já tem sinal)
     disc_total = db.session.query(db.func.coalesce(db.func.sum(Discount.valor), 0)) \

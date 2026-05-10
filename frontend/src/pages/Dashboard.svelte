@@ -14,7 +14,7 @@
   import HistoryChart from '../components/HistoryChart.svelte'
   import AccountsSection from '../components/AccountsSection.svelte'
   import { theme, toggleTheme } from '../stores/theme'
-  import { fetchAccounts } from '../stores/accounts'
+  import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -89,6 +89,16 @@
     if (currentRecord) {
       await updateRecord(currentRecord.id, { salario_bruto: newValue })
       currentRecord.salario_bruto = newValue
+      await fetchAccounts()
+    }
+  }
+
+  const handleSalaryAccountChange = async (newAccountId: string) => {
+    if (currentRecord) {
+      const id = newAccountId ? parseInt(newAccountId) : null
+      await updateRecord(currentRecord.id, { salario_account_id: id })
+      currentRecord.salario_account_id = id
+      await fetchAccounts()
     }
   }
 
@@ -233,13 +243,27 @@
           </div>
 
           <div class="input-group">
-            <label>Salário Bruto</label>
-            <input
-              type="number"
-              value={currentRecord.salario_bruto}
-              on:change={(e) => handleSalaryChange(parseFloat(e.target.value))}
-              step="0.01"
-            />
+            <label for="salario-input">Salário Bruto</label>
+            <div class="salary-row">
+              <input
+                id="salario-input"
+                type="number"
+                value={currentRecord.salario_bruto}
+                on:change={(e) => handleSalaryChange(parseFloat(e.currentTarget.value))}
+                step="0.01"
+              />
+              <select
+                class="salary-account-select"
+                value={currentRecord.salario_account_id || ''}
+                on:change={(e) => handleSalaryAccountChange(e.currentTarget.value)}
+                title="Conta onde o salário cai"
+              >
+                <option value="">— Conta padrão —</option>
+                {#each $accountsStore.filter(a => a.ativa) as acc}
+                  <option value={acc.id}>{acc.icone} {acc.nome}</option>
+                {/each}
+              </select>
+            </div>
           </div>
 
           <DataTable title="Descontos e Creditos" items={currentRecord?.discounts || []} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
@@ -412,16 +436,36 @@
 
   .lock-icon { font-size: 0.85rem; margin-left: 0.4rem; cursor: help; }
 
-  .saldo-anterior-row {
+  .saldo-anterior-row, .salary-row {
     display: flex;
     gap: 0.5rem;
     align-items: stretch;
     flex-wrap: wrap;
   }
 
-  .saldo-anterior-row input {
+  .saldo-anterior-row input, .salary-row input {
     flex: 1;
     min-width: 150px;
+  }
+
+  .salary-account-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-width: 180px;
+  }
+  .salary-account-select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  :global([data-theme="dark"]) .salary-account-select {
+    background: #1e1e1e;
+    color: #ddd;
+    border-color: #444;
   }
 
   .btn-toggle-lock, .btn-sync {
