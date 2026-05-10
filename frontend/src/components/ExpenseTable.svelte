@@ -86,6 +86,7 @@
 
   $: getDebitoTotal = () => (items || []).filter((i: any) => !i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: getCreditoTotal = () => (items || []).filter((i: any) => i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: debitoCount = (items || []).filter((i: any) => !i.eh_credito).length
   $: getTotal = () => getDebitoTotal()
   $: getFilteredTotal = () => filtered.filter((i: any) => !i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
@@ -358,7 +359,7 @@
           </tr>
           {/if}
           <tr class="total-row">
-            <td colspan="2"><strong>Total débitos ({(items || []).filter((i: any) => !i.eh_credito).length})</strong></td>
+            <td colspan="2"><strong>Total débitos ({debitoCount})</strong></td>
             <td class="hide-sm"></td>
             <td class="negative"><strong>{fmt(getDebitoTotal())}</strong></td>
             <td colspan="2"></td>
