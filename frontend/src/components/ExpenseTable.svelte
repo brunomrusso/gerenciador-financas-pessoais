@@ -84,8 +84,10 @@
     else { sortBy = col; sortDir = 'asc' }
   }
 
-  $: getTotal = () => (items || []).reduce((s: number, i: any) => s + (i.valor || 0), 0)
-  $: getFilteredTotal = () => filtered.reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: getDebitoTotal = () => (items || []).filter((i: any) => !i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: getCreditoTotal = () => (items || []).filter((i: any) => i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
+  $: getTotal = () => getDebitoTotal()
+  $: getFilteredTotal = () => filtered.filter((i: any) => !i.eh_credito).reduce((s: number, i: any) => s + (i.valor || 0), 0)
   $: cardTotal = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
   $: if (refreshKey) {} // força reatividade quando refreshKey muda
 
@@ -347,10 +349,18 @@
           {/if}
         </tbody>
         <tfoot>
+          {#if getCreditoTotal() > 0}
           <tr class="total-row">
-            <td colspan="2"><strong>Total despesas ({items?.length || 0})</strong></td>
+            <td colspan="2"><strong>Total créditos</strong></td>
             <td class="hide-sm"></td>
-            <td class="negative"><strong>{fmt(getTotal())}</strong></td>
+            <td class="positive"><strong>{fmt(getCreditoTotal())}</strong></td>
+            <td colspan="2"></td>
+          </tr>
+          {/if}
+          <tr class="total-row">
+            <td colspan="2"><strong>Total débitos ({(items || []).filter((i: any) => !i.eh_credito).length})</strong></td>
+            <td class="hide-sm"></td>
+            <td class="negative"><strong>{fmt(getDebitoTotal())}</strong></td>
             <td colspan="2"></td>
           </tr>
           {#if cardTotal > 0}
@@ -360,13 +370,13 @@
             <td class="negative"><strong>{fmt(cardTotal)}</strong></td>
             <td colspan="2"></td>
           </tr>
+          {/if}
           <tr class="total-row grand-total">
             <td colspan="2"><strong>Total geral</strong></td>
             <td class="hide-sm"></td>
-            <td class="negative"><strong>{fmt(getTotal() + cardTotal)}</strong></td>
+            <td class={getDebitoTotal() + cardTotal - getCreditoTotal() >= 0 ? 'negative' : 'positive'}><strong>{fmt(getDebitoTotal() + cardTotal - getCreditoTotal())}</strong></td>
             <td colspan="2"></td>
           </tr>
-          {/if}
         </tfoot>
       </table>
     </div>

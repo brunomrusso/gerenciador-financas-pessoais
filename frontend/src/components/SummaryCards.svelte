@@ -8,12 +8,14 @@
   $: totalReceitas = (record.salario_bruto || 0) + (record.discounts?.filter((d: any) => d.valor > 0).reduce((sum: number, d: any) => sum + d.valor, 0) || 0)
   $: totalDescontos = record.discounts?.filter((d: any) => d.valor < 0).reduce((sum: number, d: any) => sum + Math.abs(d.valor), 0) || 0
   $: totalCartoes = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
-  $: totalDespesas = (record.expenses?.reduce((sum: number, e: any) => sum + e.valor, 0) || 0) + totalCartoes
+  $: totalDebitos = (record.expenses?.filter((e: any) => !e.eh_credito).reduce((sum: number, e: any) => sum + (e.valor || 0), 0) || 0) + totalCartoes
+  $: totalCreditos = record.expenses?.filter((e: any) => e.eh_credito).reduce((sum: number, e: any) => sum + (e.valor || 0), 0) || 0
+  $: totalDespesas = totalDebitos
   // Saldo total acumulado de todas as contas de investimento
   $: totalInvestimentos = investmentSummary.saldo_total || 0
   // Líquido do mês (aportes - saques) afeta o caixa do mês
   $: liquidoInvestMes = investmentSummary.liquido_mes || 0
-  $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas - totalDescontos - totalDespesas - liquidoInvestMes
+  $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas + totalCreditos - totalDescontos - totalDebitos - liquidoInvestMes
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
