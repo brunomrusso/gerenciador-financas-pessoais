@@ -34,8 +34,15 @@
     (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0), 0) || 0) +
     cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
 
-  // Força reatividade do SummaryCards quando currentRecord muda
-  $: summaryKey = currentRecord?.id + (currentRecord?.discounts?.length || 0) + (currentRecord?.expenses?.length || 0)
+  // Sincroniza currentRecord automaticamente com o store (reatividade garantida)
+  $: if ($recordsStore.records && $recordsStore.records.length > 0) {
+    currentRecord = $recordsStore.records[0]
+  }
+
+  // Força reatividade do SummaryCards incluindo valores de eh_credito
+  $: summaryKey = (currentRecord?.id || 0) +
+    (currentRecord?.discounts?.length || 0) +
+    (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0) + (e.eh_credito ? 1 : 0), 0) || 0)
 
   onMount(() => {
     loadUser()
@@ -48,12 +55,6 @@
     })
   })
 
-  // Atualiza currentRecord quando o store muda (ex: apos adicionar/remover item)
-  const unsubscribeRecords = recordsStore.subscribe(state => {
-    if (state.records && state.records.length > 0) {
-      currentRecord = state.records[0]
-    }
-  })
 
   const loadCurrentMonth = async () => {
     loading = true
