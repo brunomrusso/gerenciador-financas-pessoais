@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte'
   import TagInput from './TagInput.svelte'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let recordId: number
   export let month: string = ''
@@ -17,8 +19,7 @@
     Authorization: `Bearer ${token()}`,
     ...extra
   })
-  const fmt = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
 
   // ── state ────────────────────────────────────────────────────────────────
   let cards: any[] = []

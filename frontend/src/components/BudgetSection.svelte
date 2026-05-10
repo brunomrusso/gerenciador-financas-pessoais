@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let recordId: number
   export let refreshKey: number = 0
@@ -19,7 +21,7 @@
   let editValor = ''
   let expanded = false
 
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
   const auth = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
   const load = async () => {

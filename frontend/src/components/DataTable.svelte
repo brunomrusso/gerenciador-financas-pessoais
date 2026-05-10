@@ -1,5 +1,7 @@
 <script lang="ts">
   import { addDiscount, addExpense, addInvestment, fetchRecords } from '../stores/records'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let title: string
   export let items: any[] = []
@@ -19,8 +21,7 @@
   let editRecorrente = false
   let newRecorrente = false
 
-  const fmt = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+  $: fmt = (value: number) => fmtMasked(value, $valuesHidden)
 
   const auth = () => ({
     'Content-Type': 'application/json',

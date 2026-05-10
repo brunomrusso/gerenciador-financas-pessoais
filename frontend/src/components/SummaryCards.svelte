@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
+
   export let record: any
   export let cardFaturas: any[] = []
   export let investmentSummary: { saldo_total: number, aportes_mes: number, saques_mes: number, rendimentos_mes: number, liquido_mes: number } = {
@@ -17,12 +20,7 @@
   $: liquidoInvestMes = investmentSummary.liquido_mes || 0
   $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas + totalCreditos - totalDescontos - totalDebitos - liquidoInvestMes
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value)
-  }
+  $: formatCurrency = (value: number) => fmtMasked(value, $valuesHidden)
 </script>
 
 <div class="summary-cards">

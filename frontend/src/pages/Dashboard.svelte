@@ -15,6 +15,7 @@
   import AccountsSection from '../components/AccountsSection.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts } from '../stores/accounts'
+  import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -153,6 +154,9 @@
       </div>
     </div>
     <div class="header-actions">
+      <button on:click={toggleValuesHidden} class="btn-theme" title={$valuesHidden ? 'Mostrar valores' : 'Ocultar valores'}>
+        {$valuesHidden ? '🙈' : '👁️'}
+      </button>
       <button on:click={toggleTheme} class="btn-theme" title="Alternar tema">
         {$theme === 'dark' ? '☀️' : '🌙'}
       </button>

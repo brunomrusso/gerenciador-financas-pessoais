@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let recordId: number
 
@@ -26,7 +28,7 @@
 
   const API = '/api/investments'
   const auth = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` })
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
 
   const loadSummary = async () => {
     const url = recordId ? `${API}/summary?record_id=${recordId}` : `${API}/summary`

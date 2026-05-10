@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
+
   export let record: any
   export let cardFaturas: any[] = []
 
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
 
   // Usa data LOCAL (não UTC) para evitar bug de fuso à noite
   const toLocalISO = (d: Date) => {

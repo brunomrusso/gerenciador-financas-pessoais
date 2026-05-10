@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import Chart from 'chart.js/auto'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let month: string
   export let year: number
@@ -12,7 +14,7 @@
   let data: any[] = []
   let loading = false
 
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
 
   const loadData = async () => {
     loading = true

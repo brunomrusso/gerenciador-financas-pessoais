@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   type Account = {
     id: number, nome: string, tipo: string, saldo_inicial: number,
@@ -32,7 +34,7 @@
 
   const dispatch = createEventDispatcher()
   const auth = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` })
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
 
   export const reload = async () => {
     const r = await fetch('/api/accounts', { headers: auth() })

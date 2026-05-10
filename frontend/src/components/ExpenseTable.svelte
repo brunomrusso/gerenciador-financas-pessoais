@@ -4,6 +4,8 @@
   import Chart from 'chart.js/auto'
   import TagInput from './TagInput.svelte'
   import { accountsStore } from '../stores/accounts'
+  import { valuesHidden } from '../stores/privacy'
+  import { fmtMasked } from '../utils/format'
 
   export let items: any[] = []
   export let recordId: number
@@ -38,7 +40,7 @@
   let chart: Chart | null = null
   let copyMsg = ''
 
-  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  $: fmt = (v: number) => fmtMasked(v, $valuesHidden)
   const auth = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
   const loadCats = async () => {
