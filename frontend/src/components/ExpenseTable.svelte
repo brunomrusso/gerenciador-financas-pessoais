@@ -18,12 +18,12 @@
   let newCatName = ''
   let showCatManager = false
 
-  let newDesc = '', newValor = '', newCategoria = 'Outros', newData = '', newPago = false, newRecorrente = false
+  let newDesc = '', newValor = '', newCategoria = 'Outros', newData = '', newPago = false, newRecorrente = false, newEhCredito = false
   let newTags: string[] = []
   let newAccountId: number | '' = ''
   let adding = false, saving = false
   let editingId: number | null = null
-  let editDesc = '', editValor = '', editCategoria = 'Outros', editData = '', editPago = false, editRecorrente = false
+  let editDesc = '', editValor = '', editCategoria = 'Outros', editData = '', editPago = false, editRecorrente = false, editEhCredito = false
   let editTags: string[] = []
   let editAccountId: number | '' = ''
 
@@ -102,16 +102,16 @@
     try {
       await fetch(`/api/records/${recordId}/expenses`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags, account_id: newAccountId || null })
+        body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags, account_id: newAccountId || null, eh_credito: newEhCredito })
       })
       await fetchRecords(month, year.toString())
-      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newTags = []; newAccountId = ''; adding = false
+      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newEhCredito = false; newTags = []; newAccountId = ''; adding = false
     } finally { saving = false }
   }
 
   const startEdit = (item: any) => {
     editingId = item.id; editDesc = item.descricao || ''; editValor = String(item.valor || '')
-    editCategoria = item.categoria || 'Outros'; editData = item.data || ''; editPago = item.pago || false; editRecorrente = item.recorrente || false
+    editCategoria = item.categoria || 'Outros'; editData = item.data || ''; editPago = item.pago || false; editRecorrente = item.recorrente || false; editEhCredito = item.eh_credito || false
     editTags = Array.isArray(item.tags) ? [...item.tags] : []
     editAccountId = item.account_id || ''
   }
@@ -121,7 +121,7 @@
   const saveEdit = async (item: any) => {
     await fetch(`/api/records/expenses/${item.id}`, {
       method: 'PUT', headers: auth(),
-      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente, tags: editTags, account_id: editAccountId || null })
+      body: JSON.stringify({ descricao: editDesc, valor: parseFloat(editValor), categoria: editCategoria, data: editData, pago: editPago, recorrente: editRecorrente, tags: editTags, account_id: editAccountId || null, eh_credito: editEhCredito })
     })
     editingId = null
     await fetchRecords(month, year.toString())
@@ -251,6 +251,7 @@
         <TagInput bind:tags={newTags} suggestions={allTags} />
         <label class="chk-label"><input type="checkbox" bind:checked={newPago} /> Pago</label>
         <label class="chk-label"><input type="checkbox" bind:checked={newRecorrente} /> Recorrente</label>
+        <label class="chk-label"><input type="checkbox" bind:checked={newEhCredito} /> É crédito?</label>
         <button class="btn-save" on:click={handleAdd} disabled={saving}>{saving ? '...' : 'Salvar'}</button>
       </div>
     {/if}
@@ -301,6 +302,7 @@
                   <td>
                     <label class="chk-label-sm"><input type="checkbox" bind:checked={editPago} /> Pago</label>
                     <label class="chk-label-sm"><input type="checkbox" bind:checked={editRecorrente} /> Rec.</label>
+                    <label class="chk-label-sm"><input type="checkbox" bind:checked={editEhCredito} /> Crédito</label>
                   </td>
                   <td class="action-cell">
                     <button class="btn-ok" on:click={() => saveEdit(item)}>✓</button>
@@ -328,7 +330,10 @@
                     {/if}
                   </td>
                   <td class="hide-sm">{item.data || '-'}</td>
-                  <td class={item.tipo === 'Receita' ? 'positive' : 'negative'}>{fmt(item.valor)}</td>
+                  <td class={item.eh_credito ? 'positive' : (item.tipo === 'Receita' ? 'positive' : 'negative')}>
+                    {#if item.eh_credito}<span class="credit-badge">✓ Crédito</span>{/if}
+                    {fmt(item.valor)}
+                  </td>
                   <td><input type="checkbox" checked={item.pago} on:change={() => togglePago(item)} /></td>
                   <td class="action-cell">
                     <button class="btn-edit" on:click={() => startEdit(item)} title="Editar">✎</button>
@@ -460,6 +465,7 @@
   .pago-row td { opacity: 0.5; text-decoration: line-through; }
   .badge { background: #eef; color: #667eea; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; line-height: 1.3; }
   .rec-badge { background: #e8f5e9; color: #4caf50; font-size: 0.65rem; border-radius: 4px; padding: 1px 3px; margin-left: 4px; line-height: 1.3; }
+  .credit-badge { background: #e8f5e9; color: #4caf50; font-size: 0.7rem; border-radius: 4px; padding: 2px 5px; margin-right: 4px; line-height: 1.3; font-weight: 500; display: inline-block; }
   .acc-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 0.68rem; margin-left: 4px; line-height: 1.3; font-weight: 500; }
   .row-tags { display: inline-flex; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
   .tag-mini { background: #e8eaff; color: #3949ab; border-radius: 8px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; transition: background-color .2s; }

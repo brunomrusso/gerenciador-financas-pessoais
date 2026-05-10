@@ -200,7 +200,8 @@ def add_expense(record_id):
         pago=data.get('pago', False),
         recorrente=data.get('recorrente', False),
         tags=tags_str or None,
-        account_id=data.get('account_id') or None
+        account_id=data.get('account_id') or None,
+        eh_credito=data.get('eh_credito', False)
     )
     
     db.session.add(expense)
@@ -239,6 +240,8 @@ def update_expense(expense_id):
             expense.tags = (tg or '').strip() or None
     if 'account_id' in data:
         expense.account_id = data.get('account_id') or None
+    if 'eh_credito' in data:
+        expense.eh_credito = data['eh_credito']
     db.session.commit()
     return jsonify(expense.to_dict()), 200
 

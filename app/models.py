@@ -97,6 +97,7 @@ class Expense(db.Model):
     recorrente = db.Column(db.Boolean, default=False)
     tags = db.Column(db.String(255), nullable=True)
     account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
+    eh_credito = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -110,7 +111,8 @@ class Expense(db.Model):
             'pago': self.pago or False,
             'recorrente': self.recorrente or False,
             'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()],
-            'account_id': self.account_id
+            'account_id': self.account_id,
+            'eh_credito': self.eh_credito or False
         }
 
 class CardDetail(db.Model):
