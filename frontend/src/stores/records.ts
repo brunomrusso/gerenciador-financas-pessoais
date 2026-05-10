@@ -97,6 +97,24 @@ export const createRecord = async (month: string, year: number) => {
   }
 }
 
+export const syncSaldoAnterior = async (recordId: number, month?: string, year?: string) => {
+  try {
+    const response = await fetch(`/api/records/${recordId}/sync-saldo-anterior`, {
+      method: 'POST',
+      headers: getAuthHeader()
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || 'Falha ao sincronizar saldo anterior')
+    }
+    await fetchRecords(month, year)
+    return await response.json()
+  } catch (error: any) {
+    recordsStore.update(state => ({ ...state, error: error.message }))
+    throw error
+  }
+}
+
 export const updateRecord = async (recordId: number, updates: any) => {
   try {
     const response = await fetch(`/api/records/${recordId}`, {

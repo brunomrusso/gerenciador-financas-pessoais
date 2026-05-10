@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category
+from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction
 from datetime import datetime
 import json
 import io
@@ -9,6 +9,57 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
 bp = Blueprint('records', __name__, url_prefix='/api/records')
+
+MONTHS_ORDER = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+def get_previous_month(month, year):
+    """Retorna (mes_anterior, ano_anterior)."""
+    try:
+        idx = MONTHS_ORDER.index(month)
+    except ValueError:
+        return None, None
+    if idx == 0:
+        return 'Dezembro', year - 1
+    return MONTHS_ORDER[idx - 1], year
+
+def compute_saldo_final(record):
+    """Calcula saldo final de um registro, mesma fórmula do frontend."""
+    if not record:
+        return 0.0
+    saldo_anterior = record.saldo_anterior or 0
+    salario = record.salario_bruto or 0
+    receitas_extras = sum((d.valor or 0) for d in record.discounts if (d.valor or 0) > 0)
+    descontos = sum(abs(d.valor or 0) for d in record.discounts if (d.valor or 0) < 0)
+    creditos = sum((e.valor or 0) for e in record.expenses if e.eh_credito)
+    debitos = sum((e.valor or 0) for e in record.expenses if not e.eh_credito)
+    cartoes = sum((c.valor or 0) for c in record.card_details)
+    # Liquido investimentos do mês (aportes - saques)
+    liquido_invest = 0.0
+    txs = InvestmentTransaction.query.filter_by(record_id=record.id).all()
+    for t in txs:
+        if t.tipo == 'aporte':
+            liquido_invest += float(t.valor or 0)
+        elif t.tipo == 'saque':
+            liquido_invest -= float(t.valor or 0)
+    return round(saldo_anterior + salario + receitas_extras + creditos - descontos - debitos - cartoes - liquido_invest, 2)
+
+def get_previous_saldo_final(user_id, month, year):
+    """Retorna o saldo_final do mês anterior, ou None se não existe."""
+    prev_month, prev_year = get_previous_month(month, year)
+    if not prev_month:
+        return None
+    prev = MonthlyRecord.query.filter_by(user_id=user_id, month=prev_month, year=prev_year).first()
+    if not prev:
+        return None
+    return compute_saldo_final(prev)
+
+def _enrich_record(record, user_id):
+    """Adiciona campos calculados (saldo_anterior_calculado, saldo_final) ao dict do record."""
+    d = record.to_dict()
+    d['saldo_anterior_calculado'] = get_previous_saldo_final(user_id, record.month, record.year)
+    d['saldo_final_calculado'] = compute_saldo_final(record)
+    return d
 
 @bp.route('', methods=['GET'])
 @jwt_required()
@@ -25,7 +76,7 @@ def get_records():
         query = query.filter_by(year=int(year))
     
     records = query.all()
-    return jsonify([r.to_dict() for r in records]), 200
+    return jsonify([_enrich_record(r, user_id) for r in records]), 200
 
 @bp.route('/<int:record_id>', methods=['GET'])
 @jwt_required()
@@ -36,7 +87,7 @@ def get_record(record_id):
     if not record:
         return jsonify({'error': 'Registro não encontrado'}), 404
     
-    return jsonify(record.to_dict()), 200
+    return jsonify(_enrich_record(record, user_id)), 200
 
 @bp.route('', methods=['POST'])
 @jwt_required()
@@ -56,18 +107,43 @@ def create_record():
     if existing:
         return jsonify({'error': 'Registro para este mês já existe'}), 409
     
+    # Auto-preenche saldo_anterior do mês anterior se não foi fornecido
+    saldo_anterior = data.get('saldo_anterior')
+    if saldo_anterior is None:
+        prev_saldo = get_previous_saldo_final(user_id, data['month'], data['year'])
+        saldo_anterior = prev_saldo if prev_saldo is not None else 0
+    
     record = MonthlyRecord(
         user_id=user_id,
         month=data['month'],
         year=data['year'],
-        saldo_anterior=data.get('saldo_anterior', 0),
+        saldo_anterior=saldo_anterior,
         salario_bruto=data.get('salario_bruto', 0)
     )
     
     db.session.add(record)
     db.session.commit()
     
-    return jsonify(record.to_dict()), 201
+    return jsonify(_enrich_record(record, user_id)), 201
+
+@bp.route('/<int:record_id>/sync-saldo-anterior', methods=['POST'])
+@jwt_required()
+def sync_saldo_anterior(record_id):
+    """Sincroniza o saldo_anterior com o saldo final do mês anterior."""
+    user_id = int(get_jwt_identity())
+    record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
+    if not record:
+        return jsonify({'error': 'Registro não encontrado'}), 404
+    
+    prev_saldo = get_previous_saldo_final(user_id, record.month, record.year)
+    if prev_saldo is None:
+        return jsonify({'error': 'Não há registro do mês anterior'}), 404
+    
+    record.saldo_anterior = prev_saldo
+    record.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify(_enrich_record(record, user_id)), 200
 
 @bp.route('/<int:record_id>', methods=['PUT'])
 @jwt_required()

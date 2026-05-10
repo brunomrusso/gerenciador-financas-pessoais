@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { recordsStore, fetchRecords, createRecord, updateRecord } from '../stores/records'
+  import { recordsStore, fetchRecords, createRecord, updateRecord, syncSaldoAnterior } from '../stores/records'
   import { authStore } from '../stores/auth'
   import { logout, loadUser } from '../stores/auth'
   import MonthSelector from '../components/MonthSelector.svelte'
@@ -98,6 +98,20 @@
     }
   }
 
+  let saldoAnteriorLocked = true
+  let syncingSaldo = false
+  const handleSyncSaldoAnterior = async () => {
+    if (!currentRecord) return
+    syncingSaldo = true
+    try {
+      await syncSaldoAnterior(currentRecord.id, selectedMonth, selectedYear.toString())
+    } catch (e: any) {
+      alert(e.message || 'Erro ao sincronizar saldo')
+    } finally {
+      syncingSaldo = false
+    }
+  }
+
   const handleLogout = () => {
     logout()
   }
@@ -182,13 +196,36 @@
       {#if !showHistory}
         <div class="details-section">
           <div class="input-group">
-            <label>Saldo Anterior</label>
-            <input
-              type="number"
-              value={currentRecord.saldo_anterior}
-              on:change={(e) => handleBalanceChange(parseFloat(e.target.value))}
-              step="0.01"
-            />
+            <label for="saldo-anterior-input">
+              Saldo Anterior
+              <span class="lock-icon" title="Travado: sincronizado com mês anterior. Clique no botão para sincronizar manualmente ou edite desbloqueando.">{saldoAnteriorLocked ? '🔒' : '🔓'}</span>
+            </label>
+            <div class="saldo-anterior-row">
+              <input
+                id="saldo-anterior-input"
+                type="number"
+                value={currentRecord.saldo_anterior}
+                on:change={(e) => handleBalanceChange(parseFloat(e.currentTarget.value))}
+                step="0.01"
+                readonly={saldoAnteriorLocked}
+                class={saldoAnteriorLocked ? 'locked' : ''}
+              />
+              <button type="button" class="btn-toggle-lock" on:click={() => saldoAnteriorLocked = !saldoAnteriorLocked} title={saldoAnteriorLocked ? 'Desbloquear edição manual' : 'Bloquear edição'}>
+                {saldoAnteriorLocked ? '✏️' : '🔒'}
+              </button>
+              {#if currentRecord.saldo_anterior_calculado !== null && currentRecord.saldo_anterior_calculado !== undefined}
+                <button type="button" class="btn-sync" on:click={handleSyncSaldoAnterior} title="Sincronizar com saldo final do mês anterior" disabled={syncingSaldo}>
+                  {syncingSaldo ? '...' : '🔄 Sincronizar'}
+                </button>
+              {/if}
+            </div>
+            {#if currentRecord.saldo_anterior_calculado !== null && currentRecord.saldo_anterior_calculado !== undefined && Math.abs((currentRecord.saldo_anterior_calculado || 0) - (currentRecord.saldo_anterior || 0)) > 0.01}
+              <div class="saldo-warning">
+                ⚠️ Mês anterior fechou com <strong>R$ {(currentRecord.saldo_anterior_calculado || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+              </div>
+            {:else if currentRecord.saldo_anterior_calculado === null}
+              <div class="saldo-info">ℹ️ Não há registro do mês anterior</div>
+            {/if}
           </div>
 
           <div class="input-group">
@@ -362,4 +399,64 @@
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
+
+  .input-group input.locked {
+    background: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+  }
+
+  .lock-icon { font-size: 0.85rem; margin-left: 0.4rem; cursor: help; }
+
+  .saldo-anterior-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .saldo-anterior-row input {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .btn-toggle-lock, .btn-sync {
+    padding: 0 0.75rem;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .btn-toggle-lock:hover, .btn-sync:hover { background: #f0f4ff; border-color: #667eea; }
+  .btn-sync { background: #f0f4ff; color: #667eea; font-weight: 500; }
+  .btn-sync:hover { background: #667eea; color: #fff; }
+  .btn-sync:disabled { opacity: 0.5; cursor: wait; }
+
+  .saldo-warning {
+    margin-top: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff8e1;
+    border-left: 3px solid #ffa726;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #6d4c00;
+  }
+  .saldo-info {
+    margin-top: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  :global([data-theme="dark"]) .input-group input.locked { background: #2a2a2a; color: #aaa; }
+  :global([data-theme="dark"]) .btn-toggle-lock,
+  :global([data-theme="dark"]) .btn-sync { background: #2a2a2a; border-color: #444; color: #ddd; }
+  :global([data-theme="dark"]) .btn-sync { background: #1e2a4a; color: #99b3ff; }
+  :global([data-theme="dark"]) .saldo-warning { background: #3a2e10; color: #ffd180; border-left-color: #ffa726; }
+  :global([data-theme="dark"]) .saldo-info { background: #2a2a2a; color: #aaa; }
 </style>
