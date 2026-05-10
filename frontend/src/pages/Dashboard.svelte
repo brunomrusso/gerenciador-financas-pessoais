@@ -39,10 +39,11 @@
     currentRecord = $recordsStore.records[0]
   }
 
-  // Força reatividade do SummaryCards incluindo valores de eh_credito
-  $: summaryKey = (currentRecord?.id || 0) +
-    (currentRecord?.discounts?.length || 0) +
-    (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0) + (e.eh_credito ? 1 : 0), 0) || 0)
+  // summaryKey muda sempre que qualquer valor ou eh_credito de despesa mudar
+  $: summaryKey = JSON.stringify(currentRecord?.expenses?.map((e: any) => ({ id: e.id, valor: e.valor, eh_credito: e.eh_credito }))) +
+    JSON.stringify(currentRecord?.discounts?.map((d: any) => ({ id: d.id, valor: d.valor }))) +
+    (currentRecord?.saldo_anterior || 0) +
+    (currentRecord?.salario_bruto || 0)
 
   onMount(() => {
     loadUser()
@@ -153,7 +154,9 @@
     {:else if errorMsg}
       <p style="text-align:center;padding:2rem;color:red">{errorMsg}</p>
     {:else if currentRecord}
-      <SummaryCards key={summaryKey} record={currentRecord} {cardFaturas} {investmentSummary} />
+      {#key summaryKey}
+      <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
+      {/key}
 
       <AccountsSection refreshKey={budgetRefreshKey} on:change={() => fetchAccounts()} />
 
