@@ -8,7 +8,8 @@
     saldo_total: 0, aportes_mes: 0, saques_mes: 0, rendimentos_mes: 0, liquido_mes: 0
   }
 
-  $: totalReceitas = (record.salario_bruto || 0) + (record.discounts?.filter((d: any) => d.valor > 0).reduce((sum: number, d: any) => sum + d.valor, 0) || 0)
+  $: totalSalariosExtras = (record.salaries || []).reduce((s: number, x: any) => s + (x.valor || 0), 0)
+  $: totalReceitas = (record.salario_bruto || 0) + totalSalariosExtras + (record.discounts?.filter((d: any) => d.valor > 0).reduce((sum: number, d: any) => sum + d.valor, 0) || 0)
   $: totalDescontos = record.discounts?.filter((d: any) => d.valor < 0).reduce((sum: number, d: any) => sum + Math.abs(d.valor), 0) || 0
   $: totalCartoes = cardFaturas.reduce((s: number, f: any) => s + (f.total || 0), 0)
   $: totalDebitos = (record.expenses?.filter((e: any) => !e.eh_credito).reduce((sum: number, e: any) => sum + (e.valor || 0), 0) || 0) + totalCartoes

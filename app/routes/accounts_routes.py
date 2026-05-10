@@ -4,7 +4,7 @@ from sqlalchemy import or_
 from app import db
 from app.models import (
     FinancialAccount, Discount, Expense, MonthlyRecord,
-    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard
+    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard, Salary
 )
 
 bp = Blueprint('accounts', __name__, url_prefix='/api/accounts')
@@ -36,7 +36,7 @@ def _compute_balance(account, all_accounts):
 
     saldo = float(account.saldo_inicial or 0)
 
-    # Salário: vai para a conta especificada em salario_account_id;
+    # Salário primário do MonthlyRecord: vai para a conta especificada em salario_account_id;
     # se não especificado, cai na conta padrão (compatibilidade com registros antigos)
     sal_this = db.session.query(db.func.coalesce(db.func.sum(MonthlyRecord.salario_bruto), 0)) \
         .filter(MonthlyRecord.user_id == user_id,
@@ -47,6 +47,12 @@ def _compute_balance(account, all_accounts):
             .filter(MonthlyRecord.user_id == user_id,
                     MonthlyRecord.salario_account_id.is_(None)).scalar()
         saldo += float(sal_orphan or 0)
+
+    # Salários adicionais (tabela salaries): seguem a regra de matches() (account_id ou null=padrão)
+    extra_sal = db.session.query(db.func.coalesce(db.func.sum(Salary.valor), 0)) \
+        .join(MonthlyRecord) \
+        .filter(MonthlyRecord.user_id == user_id, matches(Salary.account_id)).scalar()
+    saldo += float(extra_sal or 0)
 
     # Discounts: positivos somam, negativos subtraem (já tem sinal)
     disc_total = db.session.query(db.func.coalesce(db.func.sum(Discount.valor), 0)) \

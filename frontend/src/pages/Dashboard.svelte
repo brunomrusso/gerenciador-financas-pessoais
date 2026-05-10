@@ -13,6 +13,7 @@
   import QuickStats from '../components/QuickStats.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
   import AccountsSection from '../components/AccountsSection.svelte'
+  import SalariesSection from '../components/SalariesSection.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
@@ -40,9 +41,10 @@
     currentRecord = $recordsStore.records[0]
   }
 
-  // summaryKey muda sempre que qualquer valor ou eh_credito de despesa mudar
+  // summaryKey muda sempre que qualquer valor relevante mudar
   $: summaryKey = JSON.stringify(currentRecord?.expenses?.map((e: any) => ({ id: e.id, valor: e.valor, eh_credito: e.eh_credito }))) +
     JSON.stringify(currentRecord?.discounts?.map((d: any) => ({ id: d.id, valor: d.valor }))) +
+    JSON.stringify(currentRecord?.salaries?.map((s: any) => ({ id: s.id, valor: s.valor }))) +
     (currentRecord?.saldo_anterior || 0) +
     (currentRecord?.salario_bruto || 0)
 
@@ -265,6 +267,13 @@
               </select>
             </div>
           </div>
+
+          <SalariesSection
+            recordId={currentRecord.id}
+            salaries={currentRecord.salaries || []}
+            month={selectedMonth}
+            year={selectedYear}
+          />
 
           <DataTable title="Descontos e Creditos" items={currentRecord?.discounts || []} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
           <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />

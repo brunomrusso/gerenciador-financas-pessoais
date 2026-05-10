@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction
+from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction, Salary
 from datetime import datetime
 import json
 import io
@@ -28,7 +28,7 @@ def compute_saldo_final(record):
     if not record:
         return 0.0
     saldo_anterior = record.saldo_anterior or 0
-    salario = record.salario_bruto or 0
+    salario = (record.salario_bruto or 0) + sum((s.valor or 0) for s in record.salaries)
     receitas_extras = sum((d.valor or 0) for d in record.discounts if (d.valor or 0) > 0)
     descontos = sum(abs(d.valor or 0) for d in record.discounts if (d.valor or 0) < 0)
     creditos = sum((e.valor or 0) for e in record.expenses if e.eh_credito)
@@ -168,6 +168,63 @@ def update_record(record_id):
     db.session.commit()
     
     return jsonify(record.to_dict()), 200
+
+@bp.route('/<int:record_id>/salaries', methods=['POST'])
+@jwt_required()
+def add_salary(record_id):
+    user_id = int(get_jwt_identity())
+    record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
+    if not record:
+        return jsonify({'error': 'Registro não encontrado'}), 404
+    data = request.get_json() or {}
+    if data.get('valor') is None:
+        return jsonify({'error': 'Valor é obrigatório'}), 400
+    sal = Salary(
+        record_id=record_id,
+        descricao=(data.get('descricao') or 'Salário').strip(),
+        valor=float(data.get('valor') or 0),
+        account_id=data.get('account_id') or None,
+        recorrente=bool(data.get('recorrente'))
+    )
+    db.session.add(sal)
+    db.session.commit()
+    return jsonify(sal.to_dict()), 201
+
+@bp.route('/salaries/<int:salary_id>', methods=['PUT'])
+@jwt_required()
+def update_salary(salary_id):
+    user_id = int(get_jwt_identity())
+    sal = Salary.query.join(MonthlyRecord).filter(
+        Salary.id == salary_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not sal:
+        return jsonify({'error': 'Salário não encontrado'}), 404
+    data = request.get_json() or {}
+    if 'descricao' in data:
+        sal.descricao = (data.get('descricao') or 'Salário').strip()
+    if 'valor' in data:
+        sal.valor = float(data.get('valor') or 0)
+    if 'account_id' in data:
+        sal.account_id = data.get('account_id') or None
+    if 'recorrente' in data:
+        sal.recorrente = bool(data.get('recorrente'))
+    db.session.commit()
+    return jsonify(sal.to_dict()), 200
+
+@bp.route('/salaries/<int:salary_id>', methods=['DELETE'])
+@jwt_required()
+def delete_salary(salary_id):
+    user_id = int(get_jwt_identity())
+    sal = Salary.query.join(MonthlyRecord).filter(
+        Salary.id == salary_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not sal:
+        return jsonify({'error': 'Salário não encontrado'}), 404
+    db.session.delete(sal)
+    db.session.commit()
+    return jsonify({'message': 'Salário removido'}), 200
 
 @bp.route('/<int:record_id>', methods=['DELETE'])
 @jwt_required()

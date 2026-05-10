@@ -46,6 +46,7 @@ class MonthlyRecord(db.Model):
     expenses = db.relationship('Expense', backref='record', lazy=True, cascade='all, delete-orphan')
     card_details = db.relationship('CardDetail', backref='record', lazy=True, cascade='all, delete-orphan')
     investments = db.relationship('Investment', backref='record', lazy=True, cascade='all, delete-orphan')
+    salaries = db.relationship('Salary', backref='record', lazy=True, cascade='all, delete-orphan')
     
     __table_args__ = (db.UniqueConstraint('user_id', 'year', 'month', name='unique_user_month'),)
     
@@ -57,6 +58,7 @@ class MonthlyRecord(db.Model):
             'saldo_anterior': self.saldo_anterior,
             'salario_bruto': self.salario_bruto,
             'salario_account_id': self.salario_account_id,
+            'salaries': [s.to_dict() for s in self.salaries],
             'discounts': [d.to_dict() for d in self.discounts],
             'expenses': [e.to_dict() for e in self.expenses],
             'card_details': [c.to_dict() for c in self.card_details],
@@ -291,4 +293,26 @@ class Category(db.Model):
             'id': self.id,
             'nome': self.nome,
             'orcamento': self.orcamento or 0
+        }
+
+
+class Salary(db.Model):
+    """Salário/renda de um mês. Permite múltiplas entradas em contas diferentes."""
+    __tablename__ = 'salaries'
+
+    id = db.Column(db.Integer, primary_key=True)
+    record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=False, index=True)
+    descricao = db.Column(db.String(255), nullable=False, default='Salário')
+    valor = db.Column(db.Float, nullable=False, default=0)
+    account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
+    recorrente = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'descricao': self.descricao or 'Salário',
+            'valor': float(self.valor or 0),
+            'account_id': self.account_id,
+            'recorrente': bool(self.recorrente)
         }
