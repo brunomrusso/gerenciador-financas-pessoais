@@ -54,19 +54,20 @@ def _compute_balance(account, all_accounts):
         .filter(MonthlyRecord.user_id == user_id, matches(Discount.account_id)).scalar()
     saldo += float(disc_total or 0)
 
-    # Despesas (subtraem)
+    # Despesas/débitos (subtraem): não é Receita E não é crédito
     exp_total = db.session.query(db.func.coalesce(db.func.sum(Expense.valor), 0)) \
         .join(MonthlyRecord) \
         .filter(MonthlyRecord.user_id == user_id,
                 Expense.tipo != 'Receita',
+                or_(Expense.eh_credito.is_(None), Expense.eh_credito == False),
                 matches(Expense.account_id)).scalar()
     saldo -= float(exp_total or 0)
 
-    # Receitas dentro da tabela expenses (Tipo=Receita)
+    # Receitas/créditos (somam): tipo='Receita' OU eh_credito=True
     rec_total = db.session.query(db.func.coalesce(db.func.sum(Expense.valor), 0)) \
         .join(MonthlyRecord) \
         .filter(MonthlyRecord.user_id == user_id,
-                Expense.tipo == 'Receita',
+                or_(Expense.tipo == 'Receita', Expense.eh_credito == True),
                 matches(Expense.account_id)).scalar()
     saldo += float(rec_total or 0)
 
