@@ -129,6 +129,159 @@ def list_accounts():
     return jsonify(result), 200
 
 
+MONTHS_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+             'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+
+def _month_index(name: str) -> int:
+    """Aceita nomes com ou sem acento (ex.: 'Marco' ou 'Março')."""
+    if not name:
+        return 0
+    norm = name.strip().lower().replace('ç', 'c').replace('ã', 'a').replace('á', 'a')
+    for i, m in enumerate(MONTHS_PT):
+        m_norm = m.lower().replace('ç', 'c').replace('ã', 'a').replace('á', 'a')
+        if norm == m_norm:
+            return i
+    return 0
+
+
+def _record_date(record, day: str = '01') -> str:
+    """Retorna data ISO YYYY-MM-DD para um record (usado quando o item não tem data)."""
+    if not record:
+        return ''
+    mi = _month_index(record.month) + 1
+    return f"{record.year:04d}-{mi:02d}-{day}"
+
+
+@bp.route('/<int:account_id>/history', methods=['GET'])
+@jwt_required()
+def account_history(account_id):
+    """Retorna timeline cronológica de todas as transações que afetam o saldo desta conta."""
+    user_id = int(get_jwt_identity())
+    account = FinancialAccount.query.filter_by(id=account_id, user_id=user_id).first()
+    if not account:
+        return jsonify({'error': 'Conta não encontrada'}), 404
+
+    is_default = account.padrao
+    events = []
+
+    # Função helper: linha de evento
+    def add(date, type_, descricao, valor, source_id=None, record=None, extra=None):
+        ev = {
+            'date': date or '',
+            'type': type_,
+            'descricao': descricao,
+            'valor': round(float(valor), 2),
+            'source_id': source_id,
+            'month': record.month if record else None,
+            'year': record.year if record else None,
+        }
+        if extra:
+            ev.update(extra)
+        events.append(ev)
+
+    # Match: registros desta conta ou (se padrão) aqueles sem conta atribuída
+    def matches(account_id_val):
+        if account_id_val == account.id:
+            return True
+        if is_default and (account_id_val is None):
+            return True
+        return False
+
+    # 1) Salário primário (MonthlyRecord.salario_bruto)
+    records = MonthlyRecord.query.filter_by(user_id=user_id).all()
+    for r in records:
+        if (r.salario_bruto or 0) > 0 and matches(r.salario_account_id):
+            add(_record_date(r), 'salary_primary', 'Salário', r.salario_bruto, r.id, r)
+
+    # 2) Salários extras
+    extra_salaries = (Salary.query.join(MonthlyRecord)
+                      .filter(MonthlyRecord.user_id == user_id).all())
+    for s in extra_salaries:
+        if matches(s.account_id):
+            add(_record_date(s.record), 'salary_extra', s.descricao or 'Salário', s.valor, s.id, s.record)
+
+    # 3) Descontos/Créditos da tabela discounts (positivos somam, negativos subtraem)
+    discounts = (Discount.query.join(MonthlyRecord)
+                 .filter(MonthlyRecord.user_id == user_id).all())
+    for d in discounts:
+        if matches(d.account_id):
+            type_ = 'credit_misc' if (d.valor or 0) > 0 else 'discount'
+            add(_record_date(d.record), type_, d.descricao, d.valor, d.id, d.record)
+
+    # 4) Despesas (Expense) — débitos negativos, créditos positivos
+    expenses = (Expense.query.join(MonthlyRecord)
+                .filter(MonthlyRecord.user_id == user_id).all())
+    for e in expenses:
+        if matches(e.account_id):
+            if e.eh_credito:
+                add(e.data or _record_date(e.record), 'expense_credit', e.descricao, e.valor, e.id, e.record,
+                    {'categoria': e.categoria, 'pago': e.pago})
+            else:
+                add(e.data or _record_date(e.record), 'expense', e.descricao, -abs(e.valor or 0), e.id, e.record,
+                    {'categoria': e.categoria, 'pago': e.pago})
+
+    # 5) Transferências
+    transfers = (Transfer.query.join(MonthlyRecord)
+                 .filter(MonthlyRecord.user_id == user_id).all())
+    for t in transfers:
+        if t.from_account_id == account.id:
+            add(t.data or _record_date(t.record), 'transfer_out',
+                t.descricao or 'Transferência saída', -abs(t.valor or 0), t.id, t.record,
+                {'to_account_id': t.to_account_id})
+        if t.to_account_id == account.id:
+            add(t.data or _record_date(t.record), 'transfer_in',
+                t.descricao or 'Transferência entrada', abs(t.valor or 0), t.id, t.record,
+                {'from_account_id': t.from_account_id})
+
+    # 6) Investimentos (aportes saem, saques entram)
+    inv_txs = (InvestmentTransaction.query.join(InvestmentAccount)
+               .filter(InvestmentAccount.user_id == user_id).all())
+    for it in inv_txs:
+        if matches(it.financial_account_id):
+            if it.tipo == 'aporte':
+                add(it.data or '', 'investment_aporte',
+                    f'Aporte: {it.account.nome if it.account else ""}',
+                    -abs(it.valor or 0), it.id, None,
+                    {'investment_account_id': it.investment_account_id})
+            elif it.tipo == 'saque':
+                add(it.data or '', 'investment_saque',
+                    f'Saque: {it.account.nome if it.account else ""}',
+                    abs(it.valor or 0), it.id, None,
+                    {'investment_account_id': it.investment_account_id})
+
+    # 7) Faturas de cartão (caem na conta padrão)
+    if is_default:
+        card_exps = (CardExpense.query.join(CreditCard)
+                     .filter(CreditCard.user_id == user_id).all())
+        for ce in card_exps:
+            add(ce.data or '', 'card_expense',
+                f'{ce.descricao} (Cartão: {ce.card.nome if ce.card else ""})',
+                -abs(ce.valor or 0), ce.id, None,
+                {'categoria': ce.categoria, 'card_id': ce.card_id})
+
+    # Ordena: data desc, depois id desc
+    events.sort(key=lambda e: (e['date'] or '0000-00-00', e.get('source_id') or 0), reverse=True)
+
+    # Saldo inicial como evento ancorado
+    if account.saldo_inicial:
+        events.append({
+            'date': '',
+            'type': 'initial_balance',
+            'descricao': 'Saldo inicial',
+            'valor': round(float(account.saldo_inicial), 2),
+            'source_id': None,
+            'month': None,
+            'year': None,
+        })
+
+    return jsonify({
+        'account': account.to_dict(),
+        'events': events,
+        'total': len(events)
+    }), 200
+
+
 @bp.route('', methods=['POST'])
 @jwt_required()
 def create_account():

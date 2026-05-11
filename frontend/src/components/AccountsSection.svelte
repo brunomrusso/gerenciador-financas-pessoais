@@ -2,6 +2,9 @@
   import { onMount, createEventDispatcher } from 'svelte'
   import { valuesHidden } from '../stores/privacy'
   import { fmtMasked } from '../utils/format'
+  import AccountHistory from './AccountHistory.svelte'
+
+  let historyAccount: { id: number; nome: string } | null = null
 
   type Account = {
     id: number, nome: string, tipo: string, saldo_inicial: number,
@@ -137,6 +140,7 @@
             </div>
             <div class="acc-saldo" class:negativo={acc.saldo < 0}>{fmt(acc.saldo)}</div>
             <div class="acc-actions">
+              <button class="btn-mini" title="Histórico" on:click={() => historyAccount = { id: acc.id, nome: acc.nome }}>📜</button>
               {#if !acc.padrao}
                 <button class="btn-mini" title="Tornar padrão" on:click={() => setDefault(acc)}>★</button>
               {/if}
@@ -186,6 +190,14 @@
     </div>
   {/if}
 </div>
+
+{#if historyAccount}
+  <AccountHistory
+    accountId={historyAccount.id}
+    accountName={historyAccount.nome}
+    onClose={() => historyAccount = null}
+  />
+{/if}
 
 <style>
   .acc-section { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); margin-bottom: 1.5rem; overflow: hidden; }
