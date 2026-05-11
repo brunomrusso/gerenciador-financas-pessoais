@@ -2,11 +2,12 @@
   import { onMount, createEventDispatcher } from 'svelte'
   import { valuesHidden } from '../stores/privacy'
   import { fmtMasked } from '../utils/format'
+  import { accountsStore, fetchAccounts } from '../stores/accounts'
 
   export let recordId: number
 
   type Account = { id: number, nome: string, tipo: string, saldo: number }
-  type Tx = { id: number, account_id: number, record_id: number | null, tipo: string, valor: number, descricao: string, data: string }
+  type Tx = { id: number, account_id: number, record_id: number | null, tipo: string, valor: number, descricao: string, data: string, financial_account_id?: number | null }
 
   let accounts: Account[] = []
   let transactions: Record<number, Tx[]> = {}
@@ -21,6 +22,7 @@
   let txValor = ''
   let txDesc = ''
   let txData = ''
+  let txFinAccountId = ''
 
   let confirmDelAcc: { id: number, nome: string } | null = null
 
@@ -76,6 +78,9 @@
     txValor = ''
     txDesc = ''
     txData = new Date().toISOString().slice(0, 10)
+    // Por padrão, sugere a conta padrão do usuário
+    const defaultAcc: any = $accountsStore.find((a: any) => a.padrao && a.ativa)
+    txFinAccountId = defaultAcc ? String(defaultAcc.id) : ''
   }
 
   const submitTx = async () => {
@@ -92,7 +97,8 @@
     const r = await fetch(`${API}/${txModal.accountId}/transactions`, {
       method: 'POST', headers: auth(),
       body: JSON.stringify({
-        tipo: txModal.tipo, valor, descricao: txDesc, data: txData, record_id: recordId
+        tipo: txModal.tipo, valor, descricao: txDesc, data: txData, record_id: recordId,
+        financial_account_id: txFinAccountId ? parseInt(txFinAccountId) : null
       })
     })
     if (r.ok) {
@@ -100,6 +106,8 @@
       txModal = null
       await loadSummary()
       if (expanded[accId]) await loadTxs(accId)
+      // Atualiza saldos das contas financeiras pra refletir aporte/saque
+      await fetchAccounts()
     } else {
       const err = await r.json().catch(() => ({}))
       alert(err.error || 'Erro ao salvar movimentação')
@@ -111,6 +119,7 @@
     await fetch(`${API}/transactions/${tx.id}`, { method: 'DELETE', headers: auth() })
     await loadSummary()
     await loadTxs(tx.account_id)
+    await fetchAccounts()
   }
 
   const deleteAccount = async () => {
@@ -196,13 +205,15 @@
               {:else}
                 <table>
                   <thead>
-                    <tr><th>Tipo</th><th>Descrição</th><th>Data</th><th class="r">Valor</th><th></th></tr>
+                    <tr><th>Tipo</th><th>Descrição</th><th>Conta</th><th>Data</th><th class="r">Valor</th><th></th></tr>
                   </thead>
                   <tbody>
                     {#each transactions[acc.id] as tx (tx.id)}
+                      {@const finAcc = tx.financial_account_id ? $accountsStore.find(a => a.id === tx.financial_account_id) : null}
                       <tr>
                         <td><span class="tx-tipo" style:color={tipoColor(tx.tipo)}>{tipoIcon(tx.tipo)} {tipoLabel(tx.tipo)}</span></td>
                         <td>{tx.descricao || '-'}</td>
+                        <td class="fin-acc">{finAcc ? `${finAcc.icone} ${finAcc.nome}` : (tx.tipo === 'rendimento' ? '—' : 'padrão')}</td>
                         <td>{tx.data || '-'}</td>
                         <td class="r" style:color={tipoColor(tx.tipo)}>
                           {tx.tipo === 'saque' ? '-' : '+'}{fmt(tx.valor)}
@@ -230,6 +241,18 @@
       <input class="inp full" type="text" inputmode="decimal" placeholder="Valor (R$)" bind:value={txValor} />
       <input class="inp full" type="text" placeholder="Descrição (opcional)" bind:value={txDesc} />
       <input class="inp full" type="date" bind:value={txData} />
+
+      {#if txModal.tipo !== 'rendimento'}
+        <label class="modal-lbl">
+          {txModal.tipo === 'aporte' ? 'Sai da conta:' : 'Entra na conta:'}
+        </label>
+        <select class="inp full" bind:value={txFinAccountId}>
+          <option value="">— Conta padrão —</option>
+          {#each $accountsStore.filter(a => a.ativa) as acc (acc.id)}
+            <option value={String(acc.id)}>{acc.icone} {acc.nome}</option>
+          {/each}
+        </select>
+      {/if}
 
       <div class="modal-btns">
         <button class="btn-modal-all" on:click={submitTx}>Confirmar</button>
@@ -310,6 +333,8 @@
   .modal-box { background: white; padding: 1.25rem; border-radius: 10px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
   .modal-title { margin: 0 0 0.25rem; font-weight: 700; font-size: 1.05rem; color: #333; }
   .modal-sub { margin: 0 0 0.75rem; font-size: 0.85rem; color: #666; }
+  .modal-lbl { font-size: 0.78rem; color: #666; font-weight: 600; display: block; margin: 0.25rem 0 0.25rem; }
+  .fin-acc { color: #667eea; font-size: 0.82rem; font-weight: 500; }
   .modal-btns { display: flex; flex-direction: column; gap: 0.5rem; }
   .btn-modal-all { padding: 0.55rem 1rem; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.875rem; }
   .btn-modal-all.danger { background: #f44336; }
