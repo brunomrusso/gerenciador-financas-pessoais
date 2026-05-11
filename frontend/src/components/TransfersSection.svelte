@@ -110,14 +110,15 @@
   {#if transfers.length === 0 && !adding}
     <p class="empty">Nenhuma transferência neste mês.</p>
   {:else}
+    <div class="table-wrap">
     <table class="t-table">
       <thead>
         <tr>
           <th>Descrição</th>
           <th>De → Para</th>
           <th class="right">Valor</th>
-          <th>Data</th>
-          <th class="center">Rec.</th>
+          <th class="hide-sm">Data</th>
+          <th class="center hide-sm">Rec.</th>
           <th></th>
         </tr>
       </thead>
@@ -140,8 +141,8 @@
                 </div>
               </td>
               <td><input type="number" step="0.01" bind:value={valor} class="inp right" /></td>
-              <td><input type="date" bind:value={data} class="inp" /></td>
-              <td class="center"><input type="checkbox" bind:checked={recorrente} /></td>
+              <td class="hide-sm"><input type="date" bind:value={data} class="inp" /></td>
+              <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
               <td class="actions">
                 <button class="btn-save" on:click={handleSave}>✓</button>
                 <button class="btn-cancel" on:click={reset}>✕</button>
@@ -149,15 +150,18 @@
             </tr>
           {:else}
             <tr>
-              <td>{t.descricao || '—'}</td>
+              <td>
+                <div>{t.descricao || '—'}</div>
+                <div class="sub-mobile">{t.data || ''}{t.recorrente ? ' · 🔁' : ''}</div>
+              </td>
               <td class="from-to-display">
                 <span class="acc-pill from">{accountName(t.from_account_id)}</span>
                 <span class="arrow">→</span>
                 <span class="acc-pill to">{accountName(t.to_account_id)}</span>
               </td>
               <td class="right value-cell">{fmt(t.valor)}</td>
-              <td>{t.data || '—'}</td>
-              <td class="center">{t.recorrente ? '✓' : ''}</td>
+              <td class="hide-sm">{t.data || '—'}</td>
+              <td class="center hide-sm">{t.recorrente ? '✓' : ''}</td>
               <td class="actions">
                 <button class="btn-edit" on:click={() => startEdit(t)} title="Editar">✏️</button>
                 <button class="btn-del" on:click={() => handleDelete(t.id)} title="Excluir">🗑️</button>
@@ -182,8 +186,8 @@
               </div>
             </td>
             <td><input type="number" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" /></td>
-            <td><input type="date" bind:value={data} class="inp" /></td>
-            <td class="center"><input type="checkbox" bind:checked={recorrente} /></td>
+            <td class="hide-sm"><input type="date" bind:value={data} class="inp" /></td>
+            <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
             <td class="actions">
               <button class="btn-save" on:click={handleSave}>✓</button>
               <button class="btn-cancel" on:click={reset}>✕</button>
@@ -196,11 +200,13 @@
           <tr>
             <td colspan="2"><strong>Total movimentado</strong></td>
             <td class="right"><strong>{fmt(total)}</strong></td>
-            <td colspan="3" class="hint">(não afeta saldo total)</td>
+            <td class="hint hide-sm" colspan="3">(não afeta saldo total)</td>
+            <td></td>
           </tr>
         </tfoot>
       {/if}
     </table>
+    </div>
   {/if}
 </div>
 
@@ -241,6 +247,23 @@
   :global([data-theme="dark"]) .inp { background: #2a2a2a; color: #ddd; border-color: #444; }
   :global([data-theme="dark"]) .edit-row { background: #1a2238; }
   :global([data-theme="dark"]) tfoot { background: #2a2a2a; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  .sub-mobile { display: none; font-size: 0.7rem; color: #888; margin-top: 2px; }
+  :global([data-theme="dark"]) .sub-mobile { color: #999; }
+
+  @media (max-width: 640px) {
+    .transfers-section { padding: 0.75rem; }
+    .t-header h3 { font-size: 0.95rem; }
+    .hide-sm { display: none !important; }
+    .sub-mobile { display: block; }
+    .t-table { font-size: 0.82rem; }
+    .t-table th, .t-table td { padding: 0.4rem 0.3rem; }
+    .acc-pill { padding: 0.15rem 0.4rem; font-size: 0.72rem; }
+    .from-to-display { gap: 0.25rem; }
+    .from-to-display .arrow { font-size: 0.8rem; }
+    .actions button { padding: 0.4rem 0.5rem; min-width: 32px; min-height: 32px; }
+  }
   :global([data-theme="dark"]) .acc-pill.from { background: #4a1f1f; color: #ff9b9b; }
   :global([data-theme="dark"]) .acc-pill.to { background: #1f4a26; color: #8eee9d; }
   :global([data-theme="dark"]) .actions button:hover { background: #2a2a2a; }

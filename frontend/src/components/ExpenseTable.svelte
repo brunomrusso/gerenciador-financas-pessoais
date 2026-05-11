@@ -513,11 +513,14 @@
     .chart-section { max-width: 100%; width: 100%; }
     .table-section { padding: 0.75rem; flex: 1 1 100%; }
     .table-wrap { max-height: 500px; }
-    .hide-sm { display: none; }
+    .hide-sm { display: none !important; }
     h3 { font-size: 1rem; }
     .header-actions { gap: 0.3rem; }
-    .btn-sm { padding: 0.35rem 0.5rem; font-size: 0.72rem; }
-    table { min-width: 500px; }
+    .btn-sm { padding: 0.4rem 0.55rem; font-size: 0.72rem; min-height: 32px; }
+    .filter-bar { gap: 0.3rem; }
+    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.5rem; }
+    .pager-btn { width: 36px; height: 36px; font-size: 1.05rem; }
+    table { min-width: 360px; }
     th { padding: 0.5rem 0.4rem; font-size: 0.75rem; }
     td { padding: 0.4rem 0.3rem; font-size: 0.8rem; }
   }

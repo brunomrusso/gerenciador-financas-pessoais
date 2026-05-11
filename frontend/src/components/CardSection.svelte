@@ -337,9 +337,9 @@
                 <thead>
                   <tr>
                     <th>Descrição</th>
-                    <th>Categoria</th>
+                    <th class="hide-sm">Categoria</th>
                     <th>Data</th>
-                    <th>Parcela</th>
+                    <th class="hide-sm">Parcela</th>
                     <th>Valor</th>
                     <th></th>
                   </tr>
@@ -349,9 +349,9 @@
                     {#if editingExpId === exp.id}
                       <tr class="edit-row">
                         <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
-                        <td><select bind:value={editCategoria} class="edit-inp">{#each categorias as cat}<option>{cat}</option>{/each}</select></td>
+                        <td class="hide-sm"><select bind:value={editCategoria} class="edit-inp">{#each categorias as cat}<option>{cat}</option>{/each}</select></td>
                         <td><input type="date" bind:value={editData} class="edit-inp" /></td>
-                        <td class="parcela-cell">
+                        <td class="parcela-cell hide-sm">
                           <span class="parc-cur">{exp.parcela_atual}/</span><input type="number" bind:value={editParcelas} min="1" max="60" class="edit-inp" style="width:44px" />
                         </td>
                         <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
@@ -367,10 +367,14 @@
                           {#if Array.isArray(exp.tags) && exp.tags.length > 0}
                             <span class="row-tags">{#each exp.tags as t}<span class="tag-mini">#{t}</span>{/each}</span>
                           {/if}
+                          <div class="sub-mobile">
+                            <span class="cat-badge">{exp.categoria || 'Outros'}</span>
+                            {#if exp.parcelas_total > 1}<span class="parc-badge">{exp.parcela_atual}/{exp.parcelas_total}</span>{/if}
+                          </div>
                         </td>
-                        <td><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
+                        <td class="hide-sm"><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
                         <td>{exp.data || '—'}</td>
-                        <td class="parcela-cell">
+                        <td class="parcela-cell hide-sm">
                           {#if exp.parcelas_total > 1}
                             <span class="parc-badge">{exp.parcela_atual}/{exp.parcelas_total}</span>
                           {:else}
@@ -540,12 +544,18 @@
 
   .card-section { width: 100%; box-sizing: border-box; max-width: 100%; }
 
+  .sub-mobile { display: none; margin-top: 3px; }
+  .sub-mobile .cat-badge, .sub-mobile .parc-badge { font-size: 0.65rem; margin-right: 4px; }
+
   @media (max-width: 640px) {
     .card-section { padding: 1rem; }
     .fatura-header { padding: 0.6rem; gap: 0.5rem; font-size: 0.85rem; }
     .card-count { display: none; }
-    .fatura-body table { min-width: 480px; }
+    .hide-sm { display: none !important; }
+    .sub-mobile { display: block; }
+    .fatura-body table { min-width: 0; }
     .fatura-body th { padding: 0.35rem 0.3rem; font-size: 0.72rem; }
-    .fatura-body td { padding: 0.25rem 0.3rem; font-size: 0.78rem; }
+    .fatura-body td { padding: 0.3rem 0.3rem; font-size: 0.78rem; }
+    .action-cell button { min-width: 30px; min-height: 30px; }
   }
 </style>

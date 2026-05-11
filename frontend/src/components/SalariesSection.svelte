@@ -98,13 +98,14 @@
   {#if salaries.length === 0 && !adding}
     <p class="empty">Nenhum salário adicional.</p>
   {:else}
+    <div class="table-wrap">
     <table class="sal-table">
       <thead>
         <tr>
           <th>Descrição</th>
-          <th>Conta</th>
+          <th class="hide-sm">Conta</th>
           <th class="right">Valor</th>
-          <th>Rec.</th>
+          <th class="hide-sm">Rec.</th>
           <th></th>
         </tr>
       </thead>
@@ -113,7 +114,7 @@
           {#if editingId === s.id}
             <tr class="edit-row">
               <td><input bind:value={descricao} class="inp" /></td>
-              <td>
+              <td class="hide-sm">
                 <select bind:value={accountId} class="inp">
                   <option value="">— padrão —</option>
                   {#each $accountsStore.filter(a => a.ativa) as acc}
@@ -122,7 +123,7 @@
                 </select>
               </td>
               <td><input type="number" step="0.01" bind:value={valor} class="inp right" /></td>
-              <td><input type="checkbox" bind:checked={recorrente} /></td>
+              <td class="hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
               <td class="actions">
                 <button class="btn-save" on:click={handleSave}>✓</button>
                 <button class="btn-cancel" on:click={reset}>✕</button>
@@ -130,10 +131,13 @@
             </tr>
           {:else}
             <tr>
-              <td>{s.descricao}</td>
-              <td class="acc-cell">{accountName(s.account_id)}</td>
+              <td>
+                <div class="desc-cell">{s.descricao}</div>
+                <div class="sub-mobile">{accountName(s.account_id)}{s.recorrente ? ' · 🔁' : ''}</div>
+              </td>
+              <td class="acc-cell hide-sm">{accountName(s.account_id)}</td>
               <td class="right positive">{fmt(s.valor)}</td>
-              <td>{s.recorrente ? '✓' : ''}</td>
+              <td class="hide-sm">{s.recorrente ? '✓' : ''}</td>
               <td class="actions">
                 <button class="btn-edit" on:click={() => startEdit(s)} title="Editar">✏️</button>
                 <button class="btn-del" on:click={() => handleDelete(s.id)} title="Excluir">🗑️</button>
@@ -144,7 +148,7 @@
         {#if adding}
           <tr class="edit-row">
             <td><input bind:value={descricao} placeholder="ex: Freela" class="inp" /></td>
-            <td>
+            <td class="hide-sm">
               <select bind:value={accountId} class="inp">
                 <option value="">— padrão —</option>
                 {#each $accountsStore.filter(a => a.ativa) as acc}
@@ -153,7 +157,7 @@
               </select>
             </td>
             <td><input type="number" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" /></td>
-            <td><input type="checkbox" bind:checked={recorrente} /></td>
+            <td class="hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
             <td class="actions">
               <button class="btn-save" on:click={handleSave}>✓</button>
               <button class="btn-cancel" on:click={reset}>✕</button>
@@ -164,13 +168,16 @@
       {#if salaries.length > 0}
         <tfoot>
           <tr>
-            <td colspan="2"><strong>Total adicional</strong></td>
+            <td><strong>Total adicional</strong></td>
+            <td class="hide-sm"></td>
             <td class="right positive"><strong>{fmt(total)}</strong></td>
-            <td colspan="2"></td>
+            <td class="hide-sm"></td>
+            <td></td>
           </tr>
         </tfoot>
       {/if}
     </table>
+    </div>
   {/if}
 </div>
 
@@ -207,4 +214,18 @@
   :global([data-theme="dark"]) .edit-row { background: #1a2238; }
   :global([data-theme="dark"]) tfoot { background: #2a2a2a; }
   :global([data-theme="dark"]) .actions button:hover { background: #2a2a2a; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  .sub-mobile { display: none; font-size: 0.72rem; color: #888; margin-top: 2px; }
+  :global([data-theme="dark"]) .sub-mobile { color: #999; }
+
+  @media (max-width: 640px) {
+    .salaries-section { padding: 0.75rem; }
+    .sal-header h3 { font-size: 0.95rem; }
+    .hide-sm { display: none !important; }
+    .sub-mobile { display: block; }
+    .sal-table { min-width: 0; font-size: 0.85rem; }
+    .sal-table th, .sal-table td { padding: 0.4rem 0.35rem; }
+    .actions button { padding: 0.4rem 0.5rem; min-width: 32px; min-height: 32px; }
+  }
 </style>

@@ -165,12 +165,13 @@
         </div>
       {/if}
 
+      <div class="table-wrap">
       <table class="d-table">
         <thead>
           <tr>
             <th>Descrição</th>
             <th class="right">Valor</th>
-            <th class="center">Rec.</th>
+            <th class="center hide-sm">Rec.</th>
             <th></th>
           </tr>
         </thead>
@@ -188,7 +189,7 @@
                     <input type="number" step="0.01" bind:value={valor} class="inp right" />
                   </div>
                 </td>
-                <td class="center"><input type="checkbox" bind:checked={recorrente} /></td>
+                <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
                 <td class="actions">
                   <button class="btn-save" on:click={() => handleSave(g.account.id)}>✓</button>
                   <button class="btn-cancel" on:click={resetForm}>✕</button>
@@ -196,11 +197,14 @@
               </tr>
             {:else}
               <tr>
-                <td>{d.descricao}</td>
+                <td>
+                  <div>{d.descricao}</div>
+                  {#if d.recorrente}<div class="sub-mobile">🔁 Recorrente</div>{/if}
+                </td>
                 <td class="right {(d.valor || 0) < 0 ? 'negative' : 'positive'}">
                   {(d.valor || 0) < 0 ? '−' : '+'} {fmt(Math.abs(d.valor || 0))}
                 </td>
-                <td class="center">{d.recorrente ? '✓' : ''}</td>
+                <td class="center hide-sm">{d.recorrente ? '✓' : ''}</td>
                 <td class="actions">
                   <button class="btn-edit" on:click={() => startEdit(d)} title="Editar">✏️</button>
                   <button class="btn-del" on:click={() => handleDelete(d.id)} title="Excluir">🗑️</button>
@@ -221,7 +225,7 @@
                   <input type="number" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" />
                 </div>
               </td>
-              <td class="center"><input type="checkbox" bind:checked={recorrente} /></td>
+              <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
               <td class="actions">
                 <button class="btn-save" on:click={() => handleSave(g.account.id)}>✓</button>
                 <button class="btn-cancel" on:click={resetForm}>✕</button>
@@ -230,6 +234,7 @@
           {/if}
         </tbody>
       </table>
+      </div>
 
       {#if addingForAccount !== g.account.id && editingId === null}
         <button class="btn-add-row" on:click={() => startAdd(g.account.id)}>+ Adicionar desconto/crédito</button>
@@ -329,4 +334,22 @@
   :global([data-theme="dark"]) .actions button:hover { background: #2a2a2a; }
   :global([data-theme="dark"]) .btn-add-row { border-color: #444; color: #99b3ff; }
   :global([data-theme="dark"]) .btn-add-row:hover { background: #1e2a4a; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  .sub-mobile { display: none; font-size: 0.7rem; color: #888; margin-top: 2px; }
+  :global([data-theme="dark"]) .sub-mobile { color: #999; }
+
+  @media (max-width: 640px) {
+    .group-card { padding: 0.6rem 0.6rem 0.5rem; }
+    .group-header { gap: 0.4rem; }
+    .group-totals { gap: 0.5rem; font-size: 0.78rem; }
+    .salary-info { padding: 0.4rem 0.5rem; gap: 0.4rem; flex-wrap: wrap; }
+    .sal-chip { font-size: 0.72rem; padding: 0.15rem 0.45rem; }
+    .hide-sm { display: none !important; }
+    .sub-mobile { display: block; }
+    .d-table { font-size: 0.85rem; }
+    .d-table th, .d-table td { padding: 0.35rem 0.3rem; }
+    .actions button { padding: 0.4rem 0.5rem; min-width: 32px; min-height: 32px; }
+    .section-title { font-size: 1rem; }
+  }
 </style>
