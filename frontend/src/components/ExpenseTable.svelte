@@ -33,6 +33,7 @@
   let filterStatus = ''
   let filterText = ''
   let filterTag = ''
+  let filterAccount: number | '' = ''
   let sortBy = 'data'
   let sortDir: 'asc' | 'desc' = 'desc'
 
@@ -69,6 +70,7 @@
     if (filterTag) list = list.filter(i => Array.isArray(i.tags) && i.tags.includes(filterTag))
     if (filterStatus === 'pago') list = list.filter(i => i.pago)
     if (filterStatus === 'pendente') list = list.filter(i => !i.pago)
+    if (filterAccount !== '') list = list.filter(i => (i.account_id || null) === (filterAccount || null))
     list = [...list].sort((a, b) => {
       let va: any, vb: any
       if (sortBy === 'valor') { va = a.valor; vb = b.valor }
@@ -271,6 +273,10 @@
         <option value="">Todos status</option>
         <option value="pago">Pago</option>
         <option value="pendente">Pendente</option>
+      </select>
+      <select bind:value={filterAccount} class="inp-filter-sm">
+        <option value="">Todas contas</option>
+        {#each $accountsStore.filter(a => a.ativa) as a (a.id)}<option value={a.id}>{a.icone} {a.nome}</option>{/each}
       </select>
       {#if allTags.length > 0}
         <select bind:value={filterTag} class="inp-filter-sm">
