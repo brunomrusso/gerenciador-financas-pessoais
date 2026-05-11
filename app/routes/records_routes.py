@@ -545,8 +545,34 @@ def get_history():
     except (ValueError, IndexError):
         return jsonify({'error': 'Mês ou ano inválido'}), 400
 
-    from app.models import CardExpense, CreditCard
+    from app.models import CardExpense, CreditCard, InvestmentTransaction, InvestmentAccount
     historico = []
+    gastos_categoria_agg: dict = {}
+
+    # Calcula saldo de investimentos acumulado até o fim de um (mês, ano)
+    def saldo_investimentos_ate(target_year, target_idx):
+        """Soma aportes - saques - todos os meses até target inclusive."""
+        # Usa data ISO quando disponível, senão ignora (não dá pra estimar)
+        # Cria string limite: último dia possível do mês
+        from calendar import monthrange
+        last_day = monthrange(target_year, target_idx + 1)[1]
+        limit_date = f"{target_year:04d}-{(target_idx + 1):02d}-{last_day:02d}"
+        txs = (InvestmentTransaction.query
+               .join(InvestmentAccount)
+               .filter(InvestmentAccount.user_id == user_id)
+               .all())
+        total = 0.0
+        for t in txs:
+            d = t.data or ''
+            if d and d > limit_date:
+                continue
+            if t.tipo == 'aporte':
+                total += float(t.valor or 0)
+            elif t.tipo == 'saque':
+                total -= float(t.valor or 0)
+            elif t.tipo == 'rendimento':
+                total += float(t.valor or 0)
+        return total
 
     for i in range(n_months - 1, -1, -1):
         temp_idx = idx_ref - i
@@ -571,7 +597,9 @@ def get_history():
             "despesasCartao": 0,
             "totalInvestido": 0,
             "saldoFinal": 0,
-            "receitas": 0
+            "receitas": 0,
+            "saldoInvestimentos": round(saldo_investimentos_ate(temp_ano, temp_idx), 2),
+            "patrimonio": 0
         }
 
         record = MonthlyRecord.query.filter_by(
@@ -606,10 +634,36 @@ def get_history():
             receitas_total = (record.salario_bruto or 0) + total_creditos + receitas_extras
             despesas_total = total_despesas + total_cartao
             res_mes["receitas"] = receitas_total
-            res_mes["saldoFinal"] = (record.saldo_anterior or 0) + receitas_total - total_descontos - despesas_total
+            saldo_final = (record.saldo_anterior or 0) + receitas_total - total_descontos - despesas_total
+            res_mes["saldoFinal"] = saldo_final
+            res_mes["patrimonio"] = round(saldo_final + res_mes["saldoInvestimentos"], 2)
+
+            # Agrega categorias do período (despesas + cartão)
+            for e in record.expenses:
+                if e.eh_credito:
+                    continue
+                cat = e.categoria or 'Outros'
+                gastos_categoria_agg[cat] = gastos_categoria_agg.get(cat, 0) + float(e.valor or 0)
+            for ce in card_exps:
+                cat = ce.categoria or 'Outros'
+                gastos_categoria_agg[cat] = gastos_categoria_agg.get(cat, 0) + float(ce.valor or 0)
+        else:
+            # Sem record: patrimônio = só investimentos (saldoFinal=0)
+            res_mes["patrimonio"] = res_mes["saldoInvestimentos"]
 
         historico.append(res_mes)
-    
+
+    # Aceita query param ?detailed=1 pra retornar objeto enriquecido (back-compat)
+    if request.args.get('detailed'):
+        categorias_lista = sorted(
+            [{'categoria': k, 'total': round(v, 2)} for k, v in gastos_categoria_agg.items()],
+            key=lambda x: x['total'], reverse=True
+        )
+        return jsonify({
+            'historico': historico,
+            'gastosPorCategoria': categorias_lista
+        }), 200
+
     return jsonify(historico), 200
 
 @bp.route('/categories', methods=['GET'])

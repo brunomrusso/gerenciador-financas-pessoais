@@ -209,7 +209,7 @@
           class={`tab-btn ${showHistory ? 'active' : ''}`}
           on:click={() => (showHistory = true)}
         >
-          Histórico
+          📊 Painel
         </button>
       </div>
 
