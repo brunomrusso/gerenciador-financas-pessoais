@@ -14,6 +14,7 @@
   import HistoryChart from '../components/HistoryChart.svelte'
   import AccountsSection from '../components/AccountsSection.svelte'
   import SalariesSection from '../components/SalariesSection.svelte'
+  import DiscountsGrouped from '../components/DiscountsGrouped.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
@@ -275,7 +276,7 @@
             year={selectedYear}
           />
 
-          <DataTable title="Descontos e Creditos" items={currentRecord?.discounts || []} recordId={currentRecord.id} type="discounts" month={selectedMonth} year={selectedYear} />
+          <DiscountsGrouped record={currentRecord} month={selectedMonth} year={selectedYear} />
           <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />
           <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} refreshKey={budgetRefreshKey}
             on:faturasLoaded={(e) => cardFaturas = e.detail} />
