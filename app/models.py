@@ -320,6 +320,26 @@ class Salary(db.Model):
         }
 
 
+class TagBudget(db.Model):
+    """Orçamento por tag. Uma despesa pode ter múltiplas tags, então contribui para cada uma."""
+    __tablename__ = 'tag_budgets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    tag = db.Column(db.String(100), nullable=False)
+    orcamento = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'tag', name='unique_user_tag_budget'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'tag': self.tag,
+            'orcamento': float(self.orcamento or 0)
+        }
+
+
 class Transfer(db.Model):
     """Transferência entre contas: sai de from_account_id e entra em to_account_id.
     Não afeta o saldo total do mês (cancela)."""

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction, Salary, Transfer
+from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction, Salary, Transfer, TagBudget
 from datetime import datetime
 import json
 import io
@@ -727,6 +727,99 @@ def budget_status(record_id):
             'excedeu': orc > 0 and gasto > orc
         })
     return jsonify(result), 200
+
+
+# ===== Orçamento por TAG =====
+
+@bp.route('/tag-budgets', methods=['GET'])
+@jwt_required()
+def list_tag_budgets():
+    user_id = int(get_jwt_identity())
+    items = TagBudget.query.filter_by(user_id=user_id).order_by(TagBudget.tag).all()
+    return jsonify([t.to_dict() for t in items]), 200
+
+@bp.route('/tag-budgets', methods=['PUT'])
+@jwt_required()
+def upsert_tag_budget():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    tag = (data.get('tag') or '').strip().lower()
+    if not tag:
+        return jsonify({'error': 'tag é obrigatória'}), 400
+    try:
+        orc = float(data.get('orcamento') or 0)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'orcamento inválido'}), 400
+    item = TagBudget.query.filter_by(user_id=user_id, tag=tag).first()
+    if item:
+        item.orcamento = orc
+    else:
+        item = TagBudget(user_id=user_id, tag=tag, orcamento=orc)
+        db.session.add(item)
+    db.session.commit()
+    return jsonify(item.to_dict()), 200
+
+@bp.route('/tag-budgets/<path:tag>', methods=['DELETE'])
+@jwt_required()
+def delete_tag_budget(tag):
+    user_id = int(get_jwt_identity())
+    item = TagBudget.query.filter_by(user_id=user_id, tag=tag.lower()).first()
+    if not item:
+        return jsonify({'error': 'Tag não encontrada'}), 404
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'message': 'Removido'}), 200
+
+@bp.route('/<int:record_id>/tag-budget-status', methods=['GET'])
+@jwt_required()
+def tag_budget_status(record_id):
+    user_id = int(get_jwt_identity())
+    record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
+    if not record:
+        return jsonify({'error': 'Registro não encontrado'}), 404
+
+    from app.models import CardExpense, CreditCard
+
+    budgets = TagBudget.query.filter_by(user_id=user_id).all()
+    bud_map = {b.tag: float(b.orcamento or 0) for b in budgets}
+
+    gasto_por_tag = {}
+
+    def add_tags(tags_str, valor):
+        tags = [t.strip().lower() for t in (tags_str or '').split(',') if t.strip()]
+        for t in tags:
+            gasto_por_tag[t] = gasto_por_tag.get(t, 0) + float(valor or 0)
+
+    # Despesas do mês (excluindo créditos, que somam ao saldo)
+    for e in record.expenses:
+        if e.eh_credito:
+            continue
+        add_tags(e.tags, e.valor)
+
+    # Despesas de cartão do mês
+    card_exps = (CardExpense.query
+                 .join(CreditCard)
+                 .filter(CardExpense.record_id == record_id, CreditCard.user_id == user_id)
+                 .all())
+    for ce in card_exps:
+        add_tags(ce.tags, ce.valor)
+
+    tags_all = set(bud_map.keys()) | set(gasto_por_tag.keys())
+    result = []
+    for tag in sorted(tags_all):
+        orc = bud_map.get(tag, 0)
+        gasto = gasto_por_tag.get(tag, 0)
+        pct = (gasto / orc * 100) if orc > 0 else 0
+        result.append({
+            'tag': tag,
+            'orcamento': round(orc, 2),
+            'gasto': round(gasto, 2),
+            'restante': round(orc - gasto, 2),
+            'percentual': round(pct, 1),
+            'excedeu': orc > 0 and gasto > orc
+        })
+    return jsonify(result), 200
+
 
 @bp.route('/<int:record_id>/export', methods=['GET'])
 @jwt_required()

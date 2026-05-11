@@ -9,6 +9,7 @@
   import ExpenseTable from '../components/ExpenseTable.svelte'
   import CardSection from '../components/CardSection.svelte'
   import BudgetSection from '../components/BudgetSection.svelte'
+  import TagBudgetSection from '../components/TagBudgetSection.svelte'
   import InvestmentSection from '../components/InvestmentSection.svelte'
   import QuickStats from '../components/QuickStats.svelte'
   import HistoryChart from '../components/HistoryChart.svelte'
@@ -195,6 +196,7 @@
       <QuickStats record={currentRecord} {cardFaturas} />
 
       <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
+      <TagBudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
 
       <div class="tabs">
         <button
