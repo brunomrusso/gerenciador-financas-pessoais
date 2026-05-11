@@ -16,18 +16,18 @@
   const auth = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` })
 
   const TYPE_LABELS: Record<string, { label: string; icon: string; class: string }> = {
-    initial_balance:   { label: 'Saldo inicial', icon: '🏁', class: 'neutral' },
-    salary_primary:    { label: 'Salário',       icon: '💼', class: 'income' },
-    salary_extra:      { label: 'Salário extra', icon: '💼', class: 'income' },
-    credit_misc:       { label: 'Crédito',       icon: '➕', class: 'income' },
-    discount:          { label: 'Desconto',      icon: '➖', class: 'expense' },
-    expense:           { label: 'Despesa',       icon: '🛒', class: 'expense' },
-    expense_credit:    { label: 'Reembolso',     icon: '↩️', class: 'income' },
-    transfer_in:       { label: 'Transf. recebida', icon: '⬇️', class: 'income' },
-    transfer_out:      { label: 'Transf. enviada',  icon: '⬆️', class: 'expense' },
-    investment_aporte: { label: 'Aporte',        icon: '📈', class: 'expense' },
-    investment_saque:  { label: 'Saque inv.',    icon: '📉', class: 'income' },
-    card_expense:      { label: 'Fatura cartão', icon: '💳', class: 'expense' },
+    initial_balance:   { label: 'Saldo inicial',    icon: '○', class: 'neutral' },
+    salary_primary:    { label: 'Salário',          icon: '↓', class: 'income' },
+    salary_extra:      { label: 'Salário extra',    icon: '↓', class: 'income' },
+    credit_misc:       { label: 'Crédito',          icon: '+', class: 'income' },
+    discount:          { label: 'Desconto',         icon: '−', class: 'expense' },
+    expense:           { label: 'Despesa',          icon: '−', class: 'expense' },
+    expense_credit:    { label: 'Reembolso',        icon: '↺', class: 'income' },
+    transfer_in:       { label: 'Transf. recebida', icon: '⇠', class: 'income' },
+    transfer_out:      { label: 'Transf. enviada',  icon: '⇢', class: 'expense' },
+    investment_aporte: { label: 'Aporte',           icon: '↗', class: 'expense' },
+    investment_saque:  { label: 'Saque inv.',       icon: '↙', class: 'income' },
+    card_expense:      { label: 'Fatura cartão',    icon: '▦', class: 'expense' },
   }
 
   const load = async () => {
@@ -174,14 +174,17 @@
   .event-row:last-child { border-bottom: none; }
 
   .ev-icon {
-    font-size: 1.3rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
-    width: 32px; height: 32px;
+    width: 24px; height: 24px;
     display: flex; align-items: center; justify-content: center;
-    background: #f5f5f5; border-radius: 50%;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    color: #999;
+    font-weight: 500;
   }
-  .event-row.income .ev-icon { background: #e8f5e9; }
-  .event-row.expense .ev-icon { background: #ffebee; }
+  .event-row.income .ev-icon { color: #4caf50; border-color: #c8e6c9; }
+  .event-row.expense .ev-icon { color: #e57373; border-color: #ffcdd2; }
 
   .ev-main { flex: 1; min-width: 0; }
   .ev-line-1 { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
@@ -205,9 +208,9 @@
   :global([data-theme="dark"]) .event-row { border-color: #2a2a2a; }
   :global([data-theme="dark"]) .event-row:hover { background: #252550; }
   :global([data-theme="dark"]) .ev-desc { color: #ddd; }
-  :global([data-theme="dark"]) .ev-icon { background: #2a2a2a; }
-  :global([data-theme="dark"]) .event-row.income .ev-icon { background: #1f3f25; }
-  :global([data-theme="dark"]) .event-row.expense .ev-icon { background: #3f1f1f; }
+  :global([data-theme="dark"]) .ev-icon { border-color: #3a3a3a; color: #777; }
+  :global([data-theme="dark"]) .event-row.income .ev-icon { color: #81c784; border-color: #2d4a32; }
+  :global([data-theme="dark"]) .event-row.expense .ev-icon { color: #e57373; border-color: #4a2d2d; }
   :global([data-theme="dark"]) .ev-type { background: #2a2f4a; color: #b3c0ff; }
   :global([data-theme="dark"]) .ev-tag { background: #333; color: #bbb; }
 
@@ -215,7 +218,7 @@
     .history-modal { max-height: 95vh; }
     .filters { padding: 0.5rem 0.75rem; flex-direction: column; }
     .totals { padding: 0.5rem 0.75rem; gap: 0.5rem; }
-    .ev-icon { width: 28px; height: 28px; font-size: 1.1rem; }
+    .ev-icon { width: 22px; height: 22px; font-size: 0.85rem; }
     .ev-desc { font-size: 0.85rem; }
   }
 </style>
