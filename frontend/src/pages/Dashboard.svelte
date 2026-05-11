@@ -15,6 +15,7 @@
   import AccountsSection from '../components/AccountsSection.svelte'
   import SalariesSection from '../components/SalariesSection.svelte'
   import DiscountsGrouped from '../components/DiscountsGrouped.svelte'
+  import TransfersSection from '../components/TransfersSection.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
@@ -277,6 +278,12 @@
           />
 
           <DiscountsGrouped record={currentRecord} month={selectedMonth} year={selectedYear} />
+          <TransfersSection
+            recordId={currentRecord.id}
+            transfers={currentRecord.transfers || []}
+            month={selectedMonth}
+            year={selectedYear}
+          />
           <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />
           <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} refreshKey={budgetRefreshKey}
             on:faturasLoaded={(e) => cardFaturas = e.detail} />

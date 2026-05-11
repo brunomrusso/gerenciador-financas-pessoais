@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction, Salary
+from app.models import MonthlyRecord, Discount, Expense, CardDetail, Investment, Category, InvestmentTransaction, Salary, Transfer
 from datetime import datetime
 import json
 import io
@@ -225,6 +225,68 @@ def delete_salary(salary_id):
     db.session.delete(sal)
     db.session.commit()
     return jsonify({'message': 'Salário removido'}), 200
+
+
+@bp.route('/<int:record_id>/transfers', methods=['POST'])
+@jwt_required()
+def add_transfer(record_id):
+    user_id = int(get_jwt_identity())
+    record = MonthlyRecord.query.filter_by(id=record_id, user_id=user_id).first()
+    if not record:
+        return jsonify({'error': 'Registro não encontrado'}), 404
+    data = request.get_json() or {}
+    if data.get('valor') is None or not data.get('from_account_id') or not data.get('to_account_id'):
+        return jsonify({'error': 'valor, from_account_id e to_account_id são obrigatórios'}), 400
+    if data.get('from_account_id') == data.get('to_account_id'):
+        return jsonify({'error': 'Conta de origem e destino devem ser diferentes'}), 400
+    t = Transfer(
+        record_id=record_id,
+        descricao=(data.get('descricao') or '').strip(),
+        valor=abs(float(data.get('valor') or 0)),
+        from_account_id=data.get('from_account_id'),
+        to_account_id=data.get('to_account_id'),
+        data=data.get('data') or None,
+        recorrente=bool(data.get('recorrente'))
+    )
+    db.session.add(t)
+    db.session.commit()
+    return jsonify(t.to_dict()), 201
+
+@bp.route('/transfers/<int:transfer_id>', methods=['PUT'])
+@jwt_required()
+def update_transfer(transfer_id):
+    user_id = int(get_jwt_identity())
+    t = Transfer.query.join(MonthlyRecord).filter(
+        Transfer.id == transfer_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not t:
+        return jsonify({'error': 'Transferência não encontrada'}), 404
+    data = request.get_json() or {}
+    if 'descricao' in data: t.descricao = (data.get('descricao') or '').strip()
+    if 'valor' in data: t.valor = abs(float(data.get('valor') or 0))
+    if 'from_account_id' in data: t.from_account_id = data.get('from_account_id') or None
+    if 'to_account_id' in data: t.to_account_id = data.get('to_account_id') or None
+    if 'data' in data: t.data = data.get('data') or None
+    if 'recorrente' in data: t.recorrente = bool(data.get('recorrente'))
+    if t.from_account_id and t.to_account_id and t.from_account_id == t.to_account_id:
+        return jsonify({'error': 'Conta de origem e destino devem ser diferentes'}), 400
+    db.session.commit()
+    return jsonify(t.to_dict()), 200
+
+@bp.route('/transfers/<int:transfer_id>', methods=['DELETE'])
+@jwt_required()
+def delete_transfer(transfer_id):
+    user_id = int(get_jwt_identity())
+    t = Transfer.query.join(MonthlyRecord).filter(
+        Transfer.id == transfer_id,
+        MonthlyRecord.user_id == user_id
+    ).first()
+    if not t:
+        return jsonify({'error': 'Transferência não encontrada'}), 404
+    db.session.delete(t)
+    db.session.commit()
+    return jsonify({'message': 'Transferência removida'}), 200
 
 @bp.route('/<int:record_id>', methods=['DELETE'])
 @jwt_required()

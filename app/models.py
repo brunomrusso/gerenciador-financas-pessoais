@@ -47,6 +47,7 @@ class MonthlyRecord(db.Model):
     card_details = db.relationship('CardDetail', backref='record', lazy=True, cascade='all, delete-orphan')
     investments = db.relationship('Investment', backref='record', lazy=True, cascade='all, delete-orphan')
     salaries = db.relationship('Salary', backref='record', lazy=True, cascade='all, delete-orphan')
+    transfers = db.relationship('Transfer', backref='record', lazy=True, cascade='all, delete-orphan')
     
     __table_args__ = (db.UniqueConstraint('user_id', 'year', 'month', name='unique_user_month'),)
     
@@ -59,6 +60,7 @@ class MonthlyRecord(db.Model):
             'salario_bruto': self.salario_bruto,
             'salario_account_id': self.salario_account_id,
             'salaries': [s.to_dict() for s in self.salaries],
+            'transfers': [t.to_dict() for t in self.transfers],
             'discounts': [d.to_dict() for d in self.discounts],
             'expenses': [e.to_dict() for e in self.expenses],
             'card_details': [c.to_dict() for c in self.card_details],
@@ -314,5 +316,32 @@ class Salary(db.Model):
             'descricao': self.descricao or 'Salário',
             'valor': float(self.valor or 0),
             'account_id': self.account_id,
+            'recorrente': bool(self.recorrente)
+        }
+
+
+class Transfer(db.Model):
+    """Transferência entre contas: sai de from_account_id e entra em to_account_id.
+    Não afeta o saldo total do mês (cancela)."""
+    __tablename__ = 'transfers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    record_id = db.Column(db.Integer, db.ForeignKey('monthly_records.id'), nullable=False, index=True)
+    descricao = db.Column(db.String(255), nullable=True)
+    valor = db.Column(db.Float, nullable=False, default=0)
+    from_account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
+    to_account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=True, index=True)
+    data = db.Column(db.String(10), nullable=True)  # YYYY-MM-DD
+    recorrente = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'descricao': self.descricao or '',
+            'valor': float(self.valor or 0),
+            'from_account_id': self.from_account_id,
+            'to_account_id': self.to_account_id,
+            'data': self.data,
             'recorrente': bool(self.recorrente)
         }

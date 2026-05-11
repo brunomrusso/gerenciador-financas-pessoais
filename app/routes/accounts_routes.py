@@ -4,7 +4,7 @@ from sqlalchemy import or_
 from app import db
 from app.models import (
     FinancialAccount, Discount, Expense, MonthlyRecord,
-    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard, Salary
+    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard, Salary, Transfer
 )
 
 bp = Blueprint('accounts', __name__, url_prefix='/api/accounts')
@@ -97,6 +97,18 @@ def _compute_balance(account, all_accounts):
                 matches(InvestmentTransaction.financial_account_id)).scalar()
     saldo -= float(aportes or 0)
     saldo += float(saques or 0)
+
+    # Transferências: sai da from_account, entra na to_account
+    out_total = db.session.query(db.func.coalesce(db.func.sum(Transfer.valor), 0)) \
+        .join(MonthlyRecord) \
+        .filter(MonthlyRecord.user_id == user_id,
+                Transfer.from_account_id == account.id).scalar()
+    in_total = db.session.query(db.func.coalesce(db.func.sum(Transfer.valor), 0)) \
+        .join(MonthlyRecord) \
+        .filter(MonthlyRecord.user_id == user_id,
+                Transfer.to_account_id == account.id).scalar()
+    saldo -= float(out_total or 0)
+    saldo += float(in_total or 0)
 
     return round(saldo, 2)
 
