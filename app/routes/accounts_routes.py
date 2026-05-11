@@ -243,12 +243,12 @@ def account_history(account_id):
                 add(it.data or '', 'investment_aporte',
                     f'Aporte: {it.account.nome if it.account else ""}',
                     -abs(it.valor or 0), it.id, None,
-                    {'investment_account_id': it.investment_account_id})
+                    {'investment_account_id': it.account_id})
             elif it.tipo == 'saque':
                 add(it.data or '', 'investment_saque',
                     f'Saque: {it.account.nome if it.account else ""}',
                     abs(it.valor or 0), it.id, None,
-                    {'investment_account_id': it.investment_account_id})
+                    {'investment_account_id': it.account_id})
 
     # 7) Faturas de cartão (caem na conta padrão)
     if is_default:
