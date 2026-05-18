@@ -13,6 +13,7 @@ Fluxos por menu (inline keyboard):
 - Resumo: receitas/despesas do mes atual
 """
 import os
+import functools
 from datetime import datetime, date
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
@@ -41,16 +42,27 @@ _STATE_APP = {'app': None}
 
 # ──────────────────── Helpers ────────────────────
 
+def with_app_ctx(func):
+    """Decorator que garante app_context Flask em handlers async do bot."""
+    @functools.wraps(func)
+    async def wrapper(update, context):
+        app = _flask_app()
+        if app is None:
+            return await func(update, context)
+        with app.app_context():
+            return await func(update, context)
+    return wrapper
+
+
 def _format_brl(v: float) -> str:
     return f'R$ {v:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
 def _get_user_id(chat_id: int):
-    """Retorna user_id vinculado ao chat ou None."""
-    with _flask_app().app_context():
-        from app.models import TelegramLink
-        link = TelegramLink.query.filter_by(chat_id=chat_id).first()
-        return link.user_id if link else None
+    """Retorna user_id vinculado ao chat ou None. Requer app_context ativo."""
+    from app.models import TelegramLink
+    link = TelegramLink.query.filter_by(chat_id=chat_id).first()
+    return link.user_id if link else None
 
 
 def _current_record(user_id: int):
@@ -83,6 +95,7 @@ def _categorias(user_id: int):
 
 # ──────────────────── Comandos ────────────────────
 
+@with_app_ctx
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     args = context.args or []
@@ -140,6 +153,7 @@ async def _try_link(update: Update, code: str):
     )
 
 
+@with_app_ctx
 async def cmd_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _show_menu(update, context)
 
@@ -167,17 +181,18 @@ async def _show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.callback_query.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 
+@with_app_ctx
 async def cmd_unlink(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    with _flask_app().app_context():
-        from app import db
-        from app.models import TelegramLink
-        TelegramLink.query.filter_by(chat_id=chat_id).delete()
-        db.session.commit()
+    from app import db
+    from app.models import TelegramLink
+    TelegramLink.query.filter_by(chat_id=chat_id).delete()
+    db.session.commit()
     STATE.pop(chat_id, None)
     await update.message.reply_text('🔌 Desvinculado. Use /start <código> para vincular novamente.')
 
 
+@with_app_ctx
 async def cmd_saldo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = _get_user_id(chat_id)
@@ -207,6 +222,7 @@ async def _send_saldo(update: Update, user_id: int):
 
 # ──────────────────── Callbacks (botoes) ────────────────────
 
+@with_app_ctx
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -404,6 +420,7 @@ async def _save_entry(update, context, chat_id, user_id):
 
 # ──────────────────── Mensagens de texto ────────────────────
 
+@with_app_ctx
 async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = (update.message.text or '').strip()
