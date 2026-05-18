@@ -99,9 +99,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             '1️⃣ Entre no app web\n'
             '2️⃣ Abra seu perfil → Telegram\n'
             '3️⃣ Gere um código de 6 dígitos\n'
-            '4️⃣ Envie aqui: /start <código>\n\n'
-            'Exemplo: <code>/start 123456</code>',
-            parse_mode='HTML'
+            '4️⃣ Envie aqui: /start SEU_CODIGO\n\n'
+            'Exemplo: /start 123456'
         )
         return
 
