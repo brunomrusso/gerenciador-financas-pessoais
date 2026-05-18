@@ -20,6 +20,7 @@ from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, MessageHandler,
     filters, ContextTypes
 )
+from telegram.request import HTTPXRequest
 
 
 MONTHS_PT = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -500,7 +501,15 @@ def run_bot(flask_app):
 
     _STATE_APP['app'] = flask_app
 
-    app = Application.builder().token(token).build()
+    # Timeouts generosos para Render free (cold start lento)
+    request = HTTPXRequest(
+        connection_pool_size=8,
+        read_timeout=30.0,
+        write_timeout=30.0,
+        connect_timeout=30.0,
+        pool_timeout=10.0,
+    )
+    app = Application.builder().token(token).request(request).build()
     app.add_handler(CommandHandler('start', cmd_start))
     app.add_handler(CommandHandler('menu', cmd_menu))
     app.add_handler(CommandHandler('saldo', cmd_saldo))
