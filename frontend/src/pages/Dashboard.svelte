@@ -187,7 +187,10 @@
       <button on:click={() => profileOpen = true} class="btn-avatar" title="Perfil">
         {($authStore.user?.nome || $authStore.user?.email || '?')[0].toUpperCase()}
       </button>
-      <button on:click={handleLogout} class="btn-logout">Sair</button>
+      <button on:click={handleLogout} class="btn-logout" title="Sair">
+        <span class="logout-text">Sair</span>
+        <span class="logout-icon">⎋</span>
+      </button>
     </div>
   </header>
 
@@ -432,6 +435,48 @@
     font-size: 0.9rem;
     opacity: 0.9;
     font-weight: 400;
+  }
+
+  .logout-icon { display: none; }
+
+  @media (max-width: 768px) {
+    .dashboard-header {
+      padding: 0.75rem 0.85rem;
+      gap: 0.5rem;
+    }
+    .header-left { gap: 0.55rem; min-width: 0; flex: 1; }
+    .header-logo { width: 44px; height: 44px; }
+    .dashboard-header h1 { font-size: 1.05rem; }
+    .greeting {
+      font-size: 0.78rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 40vw;
+    }
+    .header-actions { gap: 0.35rem; flex-shrink: 0; }
+    .btn-theme,
+    .btn-avatar {
+      width: 34px;
+      height: 34px;
+      font-size: 0.9rem;
+    }
+    .btn-logout {
+      padding: 0.4rem 0.55rem;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .logout-text { display: none; }
+    .logout-icon { display: inline; font-size: 1.1rem; font-weight: 700; }
+  }
+
+  @media (max-width: 420px) {
+    .header-logo { width: 36px; height: 36px; }
+    .dashboard-header h1 { font-size: 0.95rem; }
+    .greeting { display: none; }
+    .header-actions { gap: 0.3rem; }
+    .btn-theme,
+    .btn-avatar { width: 32px; height: 32px; font-size: 0.85rem; }
   }
 
   .container {
