@@ -158,6 +158,39 @@ async def cmd_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _show_menu(update, context)
 
 
+HELP_TEXT = (
+    '📖 *Como usar o bot do CashFlow*\n\n'
+    '*Comandos:*\n'
+    '• /menu — abre o menu principal\n'
+    '• /saldo — mostra saldos de cada conta\n'
+    '• /help — exibe esta ajuda\n'
+    '• /unlink — desvincula este celular\n\n'
+    '*O que dá pra fazer:*\n'
+    '💸 Lançar despesa (conta → valor → descrição → categoria)\n'
+    '💰 Lançar receita\n'
+    '🔁 Transferir entre contas\n'
+    '📊 Ver saldo total\n'
+    '📋 Resumo do mês\n\n'
+    '*Exemplo rápido — nova despesa:*\n'
+    '1. /menu\n'
+    '2. Toque em 💸 Despesa\n'
+    '3. Escolha a conta\n'
+    '4. Digite o valor (ex: 45.90)\n'
+    '5. Digite a descrição (ex: Almoço)\n'
+    '6. Escolha a categoria\n'
+    '7. Confirma ✅\n\n'
+    '*Não vinculado ainda?*\n'
+    'No app web → avatar → 🤖 Telegram → Gerar código.\n'
+    'Depois envie aqui: `/start CODIGO`\n\n'
+    'Tudo o que você lança aqui aparece imediatamente no app.'
+)
+
+
+@with_app_ctx
+async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(HELP_TEXT, parse_mode='Markdown')
+
+
 async def _show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_id = _get_user_id(chat_id)
@@ -530,6 +563,9 @@ def run_bot(flask_app):
     app.add_handler(CommandHandler('menu', cmd_menu))
     app.add_handler(CommandHandler('saldo', cmd_saldo))
     app.add_handler(CommandHandler('unlink', cmd_unlink))
+    app.add_handler(CommandHandler('help', cmd_help))
+    app.add_handler(CommandHandler('tutorial', cmd_help))
+    app.add_handler(CommandHandler('ajuda', cmd_help))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
 

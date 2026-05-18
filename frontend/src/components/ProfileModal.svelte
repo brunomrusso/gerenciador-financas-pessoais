@@ -1,9 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte'
   import { authStore, loadUser } from '../stores/auth'
+  import TutorialModal from './TutorialModal.svelte'
+
+  const BOT_USERNAME = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string) || 'meucashflow_bot'
 
   const dispatch = createEventDispatcher()
   const close = () => dispatch('close')
+
+  let showTutorial = false
 
   let nome = ''
   let currentPassword = ''
@@ -164,7 +169,12 @@
       </section>
 
       <section>
-        <h3>🤖 Telegram</h3>
+        <div class="tg-header">
+          <h3>🤖 Telegram</h3>
+          <button class="btn-help" on:click={() => (showTutorial = true)} title="Como usar o bot">
+            📖 Como usar?
+          </button>
+        </div>
         {#if tgStatus?.linked}
           <p class="ok">✅ Vinculado{tgStatus.username ? ` como @${tgStatus.username}` : ''}</p>
           <button class="btn-danger" on:click={unlink}>Desvincular</button>
@@ -187,6 +197,10 @@
     </div>
   </div>
 </div>
+
+{#if showTutorial}
+  <TutorialModal botUsername={BOT_USERNAME} on:close={() => (showTutorial = false)} />
+{/if}
 
 <style>
   .overlay {
@@ -267,4 +281,30 @@
   :global([data-theme="dark"]) input { background: #1e1e1e; color: #ddd; border-color: #444; }
   :global([data-theme="dark"]) input:disabled { background: #2a2a2a; color: #777; }
   :global([data-theme="dark"]) .code-box { background: #1e1e1e; }
+
+  .tg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .tg-header h3 { margin: 0; }
+  .btn-help {
+    background: #eef0f9;
+    color: #5568d8;
+    border: 1px solid #c5cae9;
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .btn-help:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+  :global([data-theme="dark"]) .btn-help { background: #2a2a3a; color: #b3c0ff; border-color: #3d3d50; }
 </style>
