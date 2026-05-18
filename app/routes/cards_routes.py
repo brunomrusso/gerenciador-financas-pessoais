@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import CreditCard, CardExpense, MonthlyRecord
+from app.models import CreditCard, CardExpense, MonthlyRecord, CardPayment, FinancialAccount
 from uuid import uuid4
 
 bp = Blueprint('cards', __name__, url_prefix='/api/cards')
@@ -76,12 +76,83 @@ def get_faturas(record_id):
                 'card_id': cid,
                 'card_nome': exp.card.nome,
                 'total': 0.0,
-                'expenses': []
+                'expenses': [],
+                'payments': [],
+                'paid': 0.0,
             }
         faturas[cid]['total'] = round(faturas[cid]['total'] + exp.valor, 2)
         faturas[cid]['expenses'].append(exp.to_dict())
 
+    # Pagamentos da fatura para esse mes/ano
+    if faturas:
+        payments = (CardPayment.query
+                    .filter(CardPayment.card_id.in_(list(faturas.keys())),
+                            CardPayment.year == record.year,
+                            CardPayment.month == record.month)
+                    .all())
+        for p in payments:
+            if p.card_id in faturas:
+                faturas[p.card_id]['payments'].append(p.to_dict())
+                faturas[p.card_id]['paid'] = round(faturas[p.card_id]['paid'] + float(p.valor or 0), 2)
+
     return jsonify(list(faturas.values()))
+
+
+# Pagamentos de fatura
+
+@bp.route('/<int:card_id>/payments', methods=['GET'])
+@jwt_required()
+def get_card_payments(card_id):
+    user_id = int(get_jwt_identity())
+    card = CreditCard.query.filter_by(id=card_id, user_id=user_id).first()
+    if not card:
+        return jsonify({'error': 'Cartao nao encontrado'}), 404
+    year = request.args.get('year', type=int)
+    month = request.args.get('month')
+    if not year or not month:
+        return jsonify({'error': 'year e month sao obrigatorios'}), 400
+    payments = CardPayment.query.filter_by(card_id=card_id, year=year, month=month).all()
+    return jsonify([p.to_dict() for p in payments]), 200
+
+
+@bp.route('/<int:card_id>/payments', methods=['PUT'])
+@jwt_required()
+def upsert_card_payments(card_id):
+    user_id = int(get_jwt_identity())
+    card = CreditCard.query.filter_by(id=card_id, user_id=user_id).first()
+    if not card:
+        return jsonify({'error': 'Cartao nao encontrado'}), 404
+    data = request.get_json() or {}
+    year = data.get('year')
+    month = data.get('month')
+    items = data.get('payments') or []
+    if not year or not month:
+        return jsonify({'error': 'year e month sao obrigatorios'}), 400
+
+    # Valida contas
+    account_ids = [int(it.get('account_id')) for it in items if it.get('account_id') and float(it.get('valor') or 0) > 0]
+    if account_ids:
+        existing = {a.id for a in FinancialAccount.query.filter(
+            FinancialAccount.user_id == user_id,
+            FinancialAccount.id.in_(account_ids)).all()}
+        for aid in account_ids:
+            if aid not in existing:
+                return jsonify({'error': f'Conta {aid} invalida'}), 400
+
+    # Apaga existentes e recria
+    CardPayment.query.filter_by(card_id=card_id, year=int(year), month=str(month)).delete(synchronize_session=False)
+    created = []
+    for it in items:
+        valor = float(it.get('valor') or 0)
+        aid = it.get('account_id')
+        if not aid or valor <= 0:
+            continue
+        cp = CardPayment(card_id=card_id, year=int(year), month=str(month),
+                         account_id=int(aid), valor=valor)
+        db.session.add(cp)
+        created.append(cp)
+    db.session.commit()
+    return jsonify([p.to_dict() for p in created]), 200
 
 
 # ── Despesas individuais do cartão ───────────────────────────────────────────

@@ -21,7 +21,10 @@ def create_app(config_name='development'):
     CORS(app, resources={r'/api/*': {'origins': '*'}}, supports_credentials=True)
     
     with app.app_context():
-        from app.models import User, MonthlyRecord, Discount, Expense, CardDetail, Investment, Category
+        from app.models import (
+            User, MonthlyRecord, Discount, Expense, CardDetail, Investment, Category,
+            CardPayment, TelegramLink, TelegramLinkCode
+        )
         db.create_all()
         
         try:
@@ -42,11 +45,21 @@ def create_app(config_name='development'):
         except Exception:
             pass
         
-        from app.routes import auth_routes, records_routes, cards_routes, investments_routes, accounts_routes
+        from app.routes import auth_routes, records_routes, cards_routes, investments_routes, accounts_routes, telegram_routes
         app.register_blueprint(auth_routes.bp)
         app.register_blueprint(records_routes.bp)
         app.register_blueprint(cards_routes.bp)
         app.register_blueprint(investments_routes.bp)
         app.register_blueprint(accounts_routes.bp)
-    
+        app.register_blueprint(telegram_routes.bp)
+
+    # Bot Telegram (thread separada, opcional)
+    if os.getenv('TELEGRAM_BOT_ENABLED', '').lower() == 'true' and os.getenv('TELEGRAM_BOT_TOKEN'):
+        try:
+            from app.telegram_bot import start_bot_thread
+            start_bot_thread(app)
+            print('[Telegram] Bot iniciado em thread separada')
+        except Exception as e:
+            print(f'[Telegram] Falha ao iniciar bot: {e}')
+
     return app

@@ -3,6 +3,7 @@
   import TagInput from './TagInput.svelte'
   import { valuesHidden } from '../stores/privacy'
   import { fmtMasked } from '../utils/format'
+  import { accountsStore, fetchAccounts } from '../stores/accounts'
 
   export let recordId: number
   export let month: string = ''
@@ -202,6 +203,60 @@
   const toggle = (cardId: number) => {
     expandedCard = expandedCard === cardId ? null : cardId
   }
+
+  // ── Pagamento de fatura ────────────────────────────────────────────────
+  let payModalCard: any = null
+  let payRows: Array<{ account_id: number | ''; valor: string }> = []
+  let savingPay = false
+
+  function openPayModal(fatura: any) {
+    payModalCard = fatura
+    const existing = fatura.payments || []
+    if (existing.length > 0) {
+      payRows = existing.map((p: any) => ({ account_id: p.account_id, valor: String(p.valor) }))
+    } else {
+      // sugere conta padrao com total
+      const padrao = $accountsStore.find((a) => a.padrao)
+      payRows = [{ account_id: padrao?.id || '', valor: String(fatura.total) }]
+    }
+  }
+  function closePayModal() { payModalCard = null; payRows = [] }
+  function addPayRow() {
+    payRows = [...payRows, { account_id: '', valor: '' }]
+  }
+  function removePayRow(i: number) { payRows = payRows.filter((_, idx) => idx !== i) }
+  function splitEqual() {
+    if (!payModalCard) return
+    const ativas = $accountsStore.filter((a) => a.ativa)
+    if (ativas.length === 0) return
+    const each = Math.round((payModalCard.total / ativas.length) * 100) / 100
+    payRows = ativas.map((a) => ({ account_id: a.id, valor: String(each) }))
+  }
+  $: paySoma = payRows.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0)
+  $: payRestante = payModalCard ? Math.round((payModalCard.total - paySoma) * 100) / 100 : 0
+  async function savePay() {
+    if (!payModalCard) return
+    savingPay = true
+    try {
+      const items = payRows
+        .filter((r) => r.account_id && parseFloat(r.valor) > 0)
+        .map((r) => ({ account_id: r.account_id, valor: parseFloat(r.valor) }))
+      const r = await fetch(`${API}/${payModalCard.card_id}/payments`, {
+        method: 'PUT',
+        headers: auth(),
+        body: JSON.stringify({ year, month, payments: items }),
+      })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error || 'Erro ao salvar')
+      await loadFaturas()
+      await fetchAccounts()
+      closePayModal()
+    } catch (e: any) {
+      alert(e.message)
+    } finally {
+      savingPay = false
+    }
+  }
 </script>
 
 <div class="card-section">
@@ -323,13 +378,25 @@
     <div class="faturas-list">
       {#each faturas as fatura}
         <div class="fatura-card">
-          <button class="fatura-header" on:click={() => toggle(fatura.card_id)}>
-            <span class="card-icon">💳</span>
-            <span class="card-nome">{fatura.card_nome}</span>
-            <span class="card-count">{fatura.expenses.length} lançamento(s)</span>
-            <span class="card-total negative">{fmt(fatura.total)}</span>
-            <span class="chevron">{expandedCard === fatura.card_id ? '▲' : '▼'}</span>
-          </button>
+          <div class="fatura-header-wrap">
+            <button class="fatura-header" on:click={() => toggle(fatura.card_id)}>
+              <span class="card-icon">💳</span>
+              <span class="card-nome">{fatura.card_nome}</span>
+              <span class="card-count">{fatura.expenses.length} lançamento(s)</span>
+              {#if (fatura.paid || 0) > 0}
+                {#if Math.abs((fatura.paid || 0) - fatura.total) < 0.01}
+                  <span class="pay-badge ok">✅ Pago</span>
+                {:else if (fatura.paid || 0) > 0}
+                  <span class="pay-badge partial">⚠️ {fmt(fatura.total - fatura.paid)} pendente</span>
+                {/if}
+              {:else}
+                <span class="pay-badge pending">⏳ Pagar com conta padrão</span>
+              {/if}
+              <span class="card-total negative">{fmt(fatura.total)}</span>
+              <span class="chevron">{expandedCard === fatura.card_id ? '▲' : '▼'}</span>
+            </button>
+            <button class="btn-pay" on:click={() => openPayModal(fatura)} title="Forma de pagamento">💳</button>
+          </div>
 
           {#if expandedCard === fatura.card_id}
             <div class="fatura-body">
@@ -404,6 +471,53 @@
     </div>
   {/if}
 </div>
+
+{#if payModalCard}
+  <div class="modal-overlay" on:click|self={closePayModal}>
+    <div class="modal-box">
+      <p class="modal-title">💳 Forma de pagamento — {payModalCard.card_nome}</p>
+      <p class="modal-sub">Fatura: <strong>{fmt(payModalCard.total)}</strong></p>
+
+      <div class="pay-rows">
+        {#each payRows as row, i}
+          <div class="pay-row">
+            <select bind:value={row.account_id}>
+              <option value="">— Conta —</option>
+              {#each $accountsStore.filter(a => a.ativa) as acc}
+                <option value={acc.id}>{acc.icone} {acc.nome}</option>
+              {/each}
+            </select>
+            <input type="number" step="0.01" bind:value={row.valor} placeholder="0,00" />
+            <button class="btn-rm-row" on:click={() => removePayRow(i)} title="Remover">✕</button>
+          </div>
+        {/each}
+      </div>
+
+      <div class="pay-actions">
+        <button class="btn-link" on:click={addPayRow}>+ Adicionar conta</button>
+        <button class="btn-link" on:click={splitEqual}>Dividir igualmente</button>
+      </div>
+
+      <div class="pay-summary">
+        <div>Soma: <strong>{fmt(paySoma)}</strong></div>
+        {#if Math.abs(payRestante) < 0.01}
+          <div class="ok">✅ Total exato</div>
+        {:else if payRestante > 0}
+          <div class="warn">⚠️ Falta {fmt(payRestante)} (será debitado da conta padrão)</div>
+        {:else}
+          <div class="err">❌ Excedeu em {fmt(-payRestante)}</div>
+        {/if}
+      </div>
+
+      <div class="modal-btns">
+        <button class="btn-modal-all" on:click={savePay} disabled={savingPay}>
+          {savingPay ? 'Salvando...' : 'Salvar pagamento'}
+        </button>
+        <button class="btn-modal-cancel" on:click={closePayModal}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .card-section {
@@ -558,4 +672,66 @@
     .fatura-body td { padding: 0.3rem 0.3rem; font-size: 0.78rem; }
     .action-cell button { min-width: 30px; min-height: 30px; }
   }
+
+  /* Forma de pagamento */
+  .fatura-header-wrap { display: flex; gap: 0.4rem; align-items: stretch; }
+  .fatura-header-wrap .fatura-header { flex: 1; }
+  .btn-pay {
+    background: #f0f4ff;
+    border: 1px solid #c5cae9;
+    border-radius: 8px;
+    padding: 0 0.7rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #667eea;
+    transition: all 0.15s;
+  }
+  .btn-pay:hover { background: #667eea; color: white; }
+  .pay-badge {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pay-badge.ok { background: #e8f5e9; color: #2e7d32; }
+  .pay-badge.partial { background: #fff8e1; color: #ef6c00; }
+  .pay-badge.pending { background: #f5f5f5; color: #777; }
+
+  .pay-rows { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.75rem 0; }
+  .pay-row { display: flex; gap: 0.4rem; align-items: center; }
+  .pay-row select, .pay-row input {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: white;
+  }
+  .pay-row select { flex: 2; }
+  .pay-row input { flex: 1; text-align: right; min-width: 90px; }
+  .btn-rm-row {
+    background: none; border: none; color: #f44336;
+    font-size: 1rem; cursor: pointer; padding: 0.2rem 0.4rem;
+  }
+  .pay-actions { display: flex; gap: 0.75rem; margin: 0.5rem 0 1rem; }
+  .btn-link {
+    background: none; border: none; color: #667eea;
+    cursor: pointer; font-size: 0.85rem; padding: 0.3rem 0;
+    text-decoration: underline;
+  }
+  .pay-summary {
+    background: #fafbfc; padding: 0.75rem;
+    border-radius: 6px; margin-bottom: 1rem;
+    font-size: 0.875rem;
+    display: flex; justify-content: space-between; gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .pay-summary .ok { color: #2e7d32; }
+  .pay-summary .warn { color: #ef6c00; }
+  .pay-summary .err { color: #c62828; }
+
+  :global([data-theme="dark"]) .btn-pay { background: #1e2a4a; border-color: #2d4275; color: #b3c0ff; }
+  :global([data-theme="dark"]) .pay-row select,
+  :global([data-theme="dark"]) .pay-row input { background: #2a2a2a; color: #ddd; border-color: #444; }
+  :global([data-theme="dark"]) .pay-summary { background: #2a2a2a; color: #ccc; }
 </style>

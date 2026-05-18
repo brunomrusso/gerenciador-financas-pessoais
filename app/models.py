@@ -365,3 +365,60 @@ class Transfer(db.Model):
             'data': self.data,
             'recorrente': bool(self.recorrente)
         }
+
+
+class CardPayment(db.Model):
+    """Pagamento de fatura de cartao: divide o valor da fatura entre N contas."""
+    __tablename__ = 'card_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    card_id = db.Column(db.Integer, db.ForeignKey('credit_cards.id'), nullable=False, index=True)
+    year = db.Column(db.Integer, nullable=False, index=True)
+    month = db.Column(db.String(20), nullable=False, index=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('financial_accounts.id'), nullable=False, index=True)
+    valor = db.Column(db.Float, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('card_id', 'year', 'month', 'account_id', name='uq_card_payment'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'card_id': self.card_id,
+            'year': self.year,
+            'month': self.month,
+            'account_id': self.account_id,
+            'valor': float(self.valor or 0),
+        }
+
+
+class TelegramLink(db.Model):
+    """Vinculacao entre conta do usuario e chat do Telegram."""
+    __tablename__ = 'telegram_links'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    chat_id = db.Column(db.BigInteger, unique=True, nullable=False, index=True)
+    username = db.Column(db.String(100), nullable=True)
+    linked_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'chat_id': self.chat_id,
+            'username': self.username,
+            'linked_at': self.linked_at.isoformat() if self.linked_at else None,
+        }
+
+
+class TelegramLinkCode(db.Model):
+    """Codigo temporario gerado no app para vincular Telegram."""
+    __tablename__ = 'telegram_link_codes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    code = db.Column(db.String(6), unique=True, nullable=False, index=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

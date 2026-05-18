@@ -2,19 +2,32 @@
   import { onMount } from 'svelte'
   import Login from './pages/Login.svelte'
   import Dashboard from './pages/Dashboard.svelte'
+  import ResetPassword from './pages/ResetPassword.svelte'
   import { authStore } from './stores/auth'
 
   let isAuthenticated = false
+  let route = window.location.pathname
+
+  function getResetToken(): string | null {
+    if (!route.startsWith('/reset')) return null
+    const params = new URLSearchParams(window.location.search)
+    return params.get('token')
+  }
 
   onMount(() => {
     authStore.subscribe(value => {
       isAuthenticated = !!value.token
     })
+    window.addEventListener('popstate', () => { route = window.location.pathname })
   })
+
+  $: resetToken = getResetToken()
 </script>
 
 <main>
-  {#if isAuthenticated}
+  {#if resetToken}
+    <ResetPassword token={resetToken} />
+  {:else if isAuthenticated}
     <Dashboard />
   {:else}
     <Login />

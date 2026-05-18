@@ -17,9 +17,15 @@
   import SalariesSection from '../components/SalariesSection.svelte'
   import DiscountsGrouped from '../components/DiscountsGrouped.svelte'
   import TransfersSection from '../components/TransfersSection.svelte'
+  import CollapsibleSection from '../components/CollapsibleSection.svelte'
+  import ProfileModal from '../components/ProfileModal.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
+  import { collapsedSections, collapseAll, expandAll, SECTION_KEYS } from '../stores/ui'
+
+  let profileOpen = false
+  $: anyCollapsed = SECTION_KEYS.some(k => $collapsedSections[k])
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -169,11 +175,17 @@
       </div>
     </div>
     <div class="header-actions">
+      <button on:click={() => anyCollapsed ? expandAll(SECTION_KEYS) : collapseAll(SECTION_KEYS)} class="btn-theme" title={anyCollapsed ? 'Expandir tudo' : 'Recolher tudo'}>
+        {anyCollapsed ? '⏬' : '⏫'}
+      </button>
       <button on:click={toggleValuesHidden} class="btn-theme" title={$valuesHidden ? 'Mostrar valores' : 'Ocultar valores'}>
         {$valuesHidden ? '🙈' : '👁️'}
       </button>
       <button on:click={toggleTheme} class="btn-theme" title="Alternar tema">
         {$theme === 'dark' ? '☀️' : '🌙'}
+      </button>
+      <button on:click={() => profileOpen = true} class="btn-avatar" title="Perfil">
+        {($authStore.user?.nome || $authStore.user?.email || '?')[0].toUpperCase()}
       </button>
       <button on:click={handleLogout} class="btn-logout">Sair</button>
     </div>
@@ -191,12 +203,20 @@
       <SummaryCards record={currentRecord} {cardFaturas} {investmentSummary} />
       {/key}
 
-      <AccountsSection refreshKey={budgetRefreshKey} on:change={() => fetchAccounts()} />
+      <CollapsibleSection sectionKey="accounts" title="🏦 Contas" bare={true}>
+        <AccountsSection refreshKey={budgetRefreshKey} on:change={() => fetchAccounts()} />
+      </CollapsibleSection>
 
-      <QuickStats record={currentRecord} {cardFaturas} />
+      <CollapsibleSection sectionKey="quickstats" title="⚡ Estatísticas rápidas" bare={true}>
+        <QuickStats record={currentRecord} {cardFaturas} />
+      </CollapsibleSection>
 
-      <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
-      <TagBudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
+      <CollapsibleSection sectionKey="budget" title="🎯 Orçamento por categoria" bare={true}>
+        <BudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
+      </CollapsibleSection>
+      <CollapsibleSection sectionKey="tagbudget" title="🏷 Orçamento por tag" bare={true}>
+        <TagBudgetSection recordId={currentRecord.id} refreshKey={budgetRefreshKey} />
+      </CollapsibleSection>
 
       <div class="tabs">
         <button
@@ -272,24 +292,40 @@
             </div>
           </div>
 
-          <SalariesSection
-            recordId={currentRecord.id}
-            salaries={currentRecord.salaries || []}
-            month={selectedMonth}
-            year={selectedYear}
-          />
+          <CollapsibleSection sectionKey="salaries" title="💵 Salários adicionais" bare={true}>
+            <SalariesSection
+              recordId={currentRecord.id}
+              salaries={currentRecord.salaries || []}
+              month={selectedMonth}
+              year={selectedYear}
+            />
+          </CollapsibleSection>
 
-          <DiscountsGrouped record={currentRecord} month={selectedMonth} year={selectedYear} />
-          <TransfersSection
-            recordId={currentRecord.id}
-            transfers={currentRecord.transfers || []}
-            month={selectedMonth}
-            year={selectedYear}
-          />
-          <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />
-          <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} refreshKey={budgetRefreshKey}
-            on:faturasLoaded={(e) => cardFaturas = e.detail} />
-          <InvestmentSection recordId={currentRecord.id} on:summary={(e) => investmentSummary = e.detail} />
+          <CollapsibleSection sectionKey="discounts" title="📉 Descontos e créditos" bare={true}>
+            <DiscountsGrouped record={currentRecord} month={selectedMonth} year={selectedYear} />
+          </CollapsibleSection>
+
+          <CollapsibleSection sectionKey="transfers" title="🔁 Transferências" bare={true}>
+            <TransfersSection
+              recordId={currentRecord.id}
+              transfers={currentRecord.transfers || []}
+              month={selectedMonth}
+              year={selectedYear}
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection sectionKey="expenses" title="💸 Despesas" bare={true}>
+            <ExpenseTable items={currentRecord?.expenses || []} recordId={currentRecord.id} month={selectedMonth} year={selectedYear} {cardFaturas} refreshKey={budgetRefreshKey} />
+          </CollapsibleSection>
+
+          <CollapsibleSection sectionKey="cards" title="💳 Cartões de crédito" bare={true}>
+            <CardSection recordId={currentRecord.id} month={selectedMonth} year={selectedYear} refreshKey={budgetRefreshKey}
+              on:faturasLoaded={(e) => cardFaturas = e.detail} />
+          </CollapsibleSection>
+
+          <CollapsibleSection sectionKey="investments" title="📈 Investimentos" bare={true}>
+            <InvestmentSection recordId={currentRecord.id} on:summary={(e) => investmentSummary = e.detail} />
+          </CollapsibleSection>
         </div>
       {:else}
         <HistoryChart month={selectedMonth} year={selectedYear} />
@@ -299,6 +335,10 @@
       <p style="text-align:center;padding:2rem;color:#666">Nenhum registro encontrado para este mes.</p>
     {/if}
   </div>
+
+  {#if profileOpen}
+    <ProfileModal on:close={() => profileOpen = false} />
+  {/if}
 </div>
 
 <style>
@@ -356,6 +396,23 @@
     transition: background-color 0.3s, transform 0.3s;
   }
   .btn-theme:hover { background-color: rgba(255, 255, 255, 0.3); transform: rotate(20deg); }
+
+  .btn-avatar {
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: white;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-avatar:hover { background: rgba(255,255,255,0.35); transform: scale(1.08); }
 
   .header-left {
     display: flex;

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CashFlow — Arquitetura & Fluxo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --grad-1: #667eea;
+    --grad-2: #764ba2;
+  }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #f9fafc;
+    color: #1f2937;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .gradient-bg { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); }
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 1.5rem;
+    border: 1px solid #eef0f5;
+  }
+  .tech-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tech-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+    border-color: #c7d2fe;
+  }
+  .tech-pill i { font-size: 1.2rem; }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+  .badge-get { background: #dcfce7; color: #15803d; }
+  .badge-post { background: #dbeafe; color: #1d4ed8; }
+  .badge-put { background: #fef3c7; color: #92400e; }
+  .badge-patch { background: #fde68a; color: #854d0e; }
+  .badge-delete { background: #fee2e2; color: #b91c1c; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th { text-align: left; padding: 0.6rem 0.75rem; background: #f5f7fb; font-weight: 600; color: #4b5563; border-bottom: 2px solid #e5e7eb; }
+  td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #f0f2f7; vertical-align: top; }
+  tr:hover td { background: #fafbff; }
+  code {
+    background: #f3f4f6;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.82em;
+    color: #6d28d9;
+    font-family: 'Fira Code', Consolas, monospace;
+  }
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 1.5rem;
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+    border-radius: 2px;
+  }
+  .toc a {
+    display: block;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    color: #4b5563;
+    font-size: 0.875rem;
+    transition: background 0.15s;
+  }
+  .toc a:hover { background: #f3f4f6; color: var(--grad-1); }
+  .flow-step {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    position: relative;
+  }
+  .flow-step .num {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+  .feat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    border-left: 4px solid var(--grad-1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .feat-card h4 { font-weight: 700; margin-bottom: 0.5rem; color: #1f2937; }
+  .feat-card p { font-size: 0.85rem; color: #6b7280; line-height: 1.55; }
+  .layer {
+    border-radius: 12px;
+    padding: 1.25rem;
+    color: white;
+    text-align: center;
+  }
+  .layer h3 { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .layer ul { font-size: 0.82rem; line-height: 1.6; opacity: 0.95; }
+  @media print {
+    body { background: white; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="gradient-bg text-white">
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl">💰</div>
+      <div>
+        <h1 class="text-4xl font-bold">CashFlow</h1>
+        <p class="text-white/90 text-lg">Sistema de Gestão Financeira Pessoal</p>
+      </div>
+    </div>
+    <p class="text-white/85 max-w-3xl">
+      Aplicação full-stack para controle de finanças pessoais com múltiplas contas,
+      cartões de crédito, investimentos, orçamentos por categoria e tag, salários,
+      transferências e painel analítico com KPIs e gráficos.
+    </p>
+    <div class="flex flex-wrap gap-2 mt-5">
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">Flask + SQLAlchemy</span>
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">Svelte + Vite</span>
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">PostgreSQL</span>
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">JWT Auth</span>
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">Chart.js</span>
+      <span class="px-3 py-1 bg-white/20 rounded-full text-sm">TypeScript</span>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8">
+
+  <!-- TOC -->
+  <aside class="toc no-print sticky top-4 self-start hidden lg:block">
+    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wide mb-2 px-3">Índice</h3>
+    <a href="#stack">🛠 Stack</a>
+    <a href="#arquitetura">🏗 Arquitetura</a>
+    <a href="#estrutura">📂 Estrutura</a>
+    <a href="#modelos">🗄 Modelos</a>
+    <a href="#api">🔌 API</a>
+    <a href="#frontend">🎨 Frontend</a>
+    <a href="#funcionalidades">✨ Funcionalidades</a>
+    <a href="#fluxo">🔄 Fluxo Funcional</a>
+    <a href="#auth">🔐 Autenticação</a>
+    <a href="#deploy">🚀 Deploy</a>
+  </aside>
+
+  <main class="space-y-12">
+
+    <!-- ============ STACK ============ -->
+    <section id="stack">
+      <h2 class="section-title">🛠 Stack Tecnológica</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        <div class="layer" style="background: linear-gradient(135deg,#3b82f6,#1e40af);">
+          <div class="text-3xl mb-1">🎨</div>
+          <h3>Frontend</h3>
+          <ul class="mt-2">
+            <li>Svelte 4</li>
+            <li>Vite 5</li>
+            <li>TypeScript 5</li>
+            <li>Chart.js 4</li>
+            <li>Lucide / SweetAlert2</li>
+          </ul>
+        </div>
+        <div class="layer" style="background: linear-gradient(135deg,#10b981,#047857);">
+          <div class="text-3xl mb-1">⚙️</div>
+          <h3>Backend</h3>
+          <ul class="mt-2">
+            <li>Python 3.x + Flask 2.3</li>
+            <li>Flask-SQLAlchemy 3.1</li>
+            <li>Flask-JWT-Extended 4.6</li>
+            <li>Flask-CORS 4.0</li>
+            <li>Gunicorn (prod)</li>
+          </ul>
+        </div>
+        <div class="layer" style="background: linear-gradient(135deg,#f59e0b,#d97706);">
+          <div class="text-3xl mb-1">🗄</div>
+          <h3>Dados & Infra</h3>
+          <ul class="mt-2">
+            <li>PostgreSQL</li>
+            <li>psycopg2-binary</li>
+            <li>openpyxl (export Excel)</li>
+            <li>Vercel (frontend)</li>
+            <li>Render (backend)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold mb-3 text-gray-700">Tecnologias com ícones</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-pill"><i class="devicon-python-plain colored"></i> Python 3</span>
+          <span class="tech-pill"><i class="devicon-flask-original colored"></i> Flask 2.3</span>
+          <span class="tech-pill"><i class="devicon-postgresql-plain colored"></i> PostgreSQL</span>
+          <span class="tech-pill"><i class="devicon-sqlalchemy-plain colored"></i> SQLAlchemy</span>
+          <span class="tech-pill"><i class="devicon-svelte-plain colored"></i> Svelte 4</span>
+          <span class="tech-pill"><i class="devicon-vitejs-plain colored"></i> Vite 5</span>
+          <span class="tech-pill"><i class="devicon-typescript-plain colored"></i> TypeScript 5</span>
+          <span class="tech-pill"><i class="devicon-javascript-plain colored"></i> JavaScript</span>
+          <span class="tech-pill"><i class="devicon-html5-plain colored"></i> HTML5</span>
+          <span class="tech-pill"><i class="devicon-css3-plain colored"></i> CSS3</span>
+          <span class="tech-pill"><i class="devicon-chartjs-plain colored"></i> Chart.js</span>
+          <span class="tech-pill"><i class="devicon-jwt-plain colored"></i> JWT</span>
+          <span class="tech-pill"><i class="devicon-git-plain colored"></i> Git</span>
+          <span class="tech-pill"><i class="devicon-github-original"></i> GitHub</span>
+          <span class="tech-pill"><i class="devicon-vercel-original"></i> Vercel</span>
+          <span class="tech-pill"><i class="devicon-nodejs-plain colored"></i> Node.js</span>
+          <span class="tech-pill"><i class="devicon-npm-original-wordmark colored"></i> npm</span>
+          <span class="tech-pill"><i class="devicon-vscode-plain colored"></i> VS Code</span>
+          <span class="tech-pill"><i class="devicon-powershell-plain colored"></i> PowerShell</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ARQUITETURA ============ -->
+    <section id="arquitetura">
+      <h2 class="section-title">🏗 Arquitetura</h2>
+
+      <div class="card mb-6">
+        <p class="text-sm text-gray-600 mb-4">
+          Arquitetura clássica em 3 camadas (cliente → API REST → banco).
+          O frontend é um SPA Svelte que comunica com a API Flask via fetch + JWT.
+          O backend usa Blueprints para organizar rotas por domínio.
+        </p>
+        <div class="mermaid" id="arch-diag">
+flowchart LR
+  subgraph Cliente["🌐 Cliente (SPA)"]
+    UI[Svelte Components]
+    ST[Stores Reativos]
+    UT[Utils / Format]
+    UI --> ST
+    UI --> UT
+  end
+
+  subgraph API["⚙️ API Flask"]
+    AUTH[/auth_routes/]
+    REC[/records_routes/]
+    ACC[/accounts_routes/]
+    CARD[/cards_routes/]
+    INV[/investments_routes/]
+    JWT{JWT Middleware}
+    AUTH --> JWT
+    REC --> JWT
+    ACC --> JWT
+    CARD --> JWT
+    INV --> JWT
+  end
+
+  subgraph DB["🗄 PostgreSQL"]
+    USR[(users)]
+    MR[(monthly_records)]
+    EXP[(expenses)]
+    DSC[(discounts)]
+    SAL[(salaries)]
+    TRF[(transfers)]
+    FA[(financial_accounts)]
+    CC[(credit_cards/expenses)]
+    IA[(investment_accounts/transactions)]
+    CAT[(categories)]
+    TB[(tag_budgets)]
+  end
+
+  Cliente -- HTTPS + Bearer JWT --> API
+  JWT -- SQLAlchemy ORM --> DB
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="feat-card">
+          <h4>🎯 Camada de Apresentação</h4>
+          <p>16 componentes Svelte isolados, stores reativos para auth/contas/tema/privacidade. Reatividade fina ao alterar mês/registro.</p>
+        </div>
+        <div class="feat-card">
+          <h4>🔄 Camada de Aplicação</h4>
+          <p>5 Blueprints Flask (auth, records, accounts, cards, investments). Validação inline, agregações em SQL, JWT em todas as rotas privadas.</p>
+        </div>
+        <div class="feat-card">
+          <h4>💾 Camada de Persistência</h4>
+          <p>14 tabelas relacionais com FKs e índices em <code>user_id</code>/<code>record_id</code>. Migrações idempotentes via <code>ALTER TABLE IF NOT EXISTS</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ESTRUTURA ============ -->
+    <section id="estrutura">
+      <h2 class="section-title">📂 Estrutura de Pastas</h2>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="card">
+          <h3 class="font-bold mb-3 text-gray-700">Backend (<code>/app</code>)</h3>
+<pre>Financas/
+├── app/
+│   ├── __init__.py        # create_app() + migrações
+│   ├── models.py          # 14 modelos SQLAlchemy
+│   └── routes/
+│       ├── auth_routes.py
+│       ├── records_routes.py    # MAIOR (37 KB)
+│       ├── accounts_routes.py
+│       ├── cards_routes.py
+│       └── investments_routes.py
+├── config.py              # configs por ambiente
+├── run.py                 # entry-point dev
+├── requirements.txt
+├── render.yaml            # deploy backend
+└── migrate.ps1 / setup.ps1</pre>
+        </div>
+        <div class="card">
+          <h3 class="font-bold mb-3 text-gray-700">Frontend (<code>/frontend</code>)</h3>
+<pre>frontend/
+├── src/
+│   ├── App.svelte
+│   ├── main.ts
+│   ├── app.css
+│   ├── pages/
+│   │   ├── Dashboard.svelte
+│   │   └── Login.svelte
+│   ├── components/        # 16 componentes
+│   │   ├── SummaryCards
+│   │   ├── AccountsSection
+│   │   ├── ExpenseTable
+│   │   ├── CardSection
+│   │   ├── InvestmentSection
+│   │   ├── HistoryChart    (Painel)
+│   │   ├── SalariesSection
+│   │   ├── TransfersSection
+│   │   ├── DiscountsGrouped
+│   │   ├── BudgetSection
+│   │   ├── TagBudgetSection
+│   │   ├── AccountHistory
+│   │   ├── QuickStats
+│   │   ├── DataTable
+│   │   ├── MonthSelector
+│   │   └── TagInput
+│   ├── stores/
+│   │   ├── auth.ts
+│   │   ├── accounts.ts
+│   │   ├── records.ts
+│   │   ├── theme.ts
+│   │   └── privacy.ts
+│   └── utils/format.ts
+├── package.json
+├── vite.config.ts
+└── tsconfig.json</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODELOS ============ -->
+    <section id="modelos">
+      <h2 class="section-title">🗄 Modelos de Dados</h2>
+      <div class="card overflow-x-auto">
+        <table>
+          <thead>
+            <tr><th>Modelo</th><th>Tabela</th><th>Descrição</th><th>Relações principais</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><b>User</b></td><td><code>users</code></td><td>Usuário com email + senha hash</td><td>1→N todas as outras</td></tr>
+            <tr><td><b>MonthlyRecord</b></td><td><code>monthly_records</code></td><td>Registro mensal: salário bruto, saldo anterior, mês/ano</td><td>1→N expenses, discounts, salaries, transfers</td></tr>
+            <tr><td><b>FinancialAccount</b></td><td><code>financial_accounts</code></td><td>Conta corrente, poupança, carteira (saldo, ícone, cor)</td><td>1→N expenses, discounts, transfers</td></tr>
+            <tr><td><b>Salary</b></td><td><code>salaries</code></td><td>Salários adicionais por mês com conta vinculada</td><td>FK record + account</td></tr>
+            <tr><td><b>Discount</b></td><td><code>discounts</code></td><td>Descontos/créditos sobre o salário (INSS, plano de saúde, etc.)</td><td>FK record + account</td></tr>
+            <tr><td><b>Expense</b></td><td><code>expenses</code></td><td>Despesa mensal (débito ou crédito), com tags, categoria, recorrência</td><td>FK record + account</td></tr>
+            <tr><td><b>Transfer</b></td><td><code>transfers</code></td><td>Transferência entre contas (não afeta saldo total)</td><td>FK from_account + to_account</td></tr>
+            <tr><td><b>CreditCard</b></td><td><code>credit_cards</code></td><td>Cartão de crédito do usuário</td><td>1→N CardExpense</td></tr>
+            <tr><td><b>CardExpense</b></td><td><code>card_expenses</code></td><td>Compra no cartão com parcelamento + group_id</td><td>FK card</td></tr>
+            <tr><td><b>InvestmentAccount</b></td><td><code>investment_accounts</code></td><td>Conta de investimento (Tesouro, CDB, FIIs…)</td><td>1→N InvestmentTransaction</td></tr>
+            <tr><td><b>InvestmentTransaction</b></td><td><code>investment_transactions</code></td><td>Aporte, saque ou rendimento; vinculado a conta financeira</td><td>FK invest_account + financial_account</td></tr>
+            <tr><td><b>Category</b></td><td><code>categories</code></td><td>Categorias de despesa com orçamento mensal</td><td>FK user</td></tr>
+            <tr><td><b>TagBudget</b></td><td><code>tag_budgets</code></td><td>Orçamento por tag (transversal a categorias)</td><td>FK user</td></tr>
+            <tr><td><b>Investment</b></td><td><code>investments</code></td><td>(legacy) saldo simples por mês</td><td>FK record</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ API ============ -->
+    <section id="api">
+      <h2 class="section-title">🔌 API REST</h2>
+      <p class="text-sm text-gray-600 mb-4">Todas as rotas (exceto <code>/api/auth/*</code>) exigem header <code>Authorization: Bearer &lt;jwt&gt;</code>.</p>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="card">
+          <h3 class="font-bold mb-3">🔐 <code>/api/auth</code></h3>
+          <div class="space-y-1.5 text-sm">
+            <div><span class="badge badge-post">POST</span> <code>/register</code> — cria usuário</div>
+            <div><span class="badge badge-post">POST</span> <code>/login</code> — retorna JWT</div>
+            <div><span class="badge badge-get">GET</span> <code>/me</code> — perfil atual</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="font-bold mb-3">📅 <code>/api/records</code></h3>
+          <div class="space-y-1.5 text-sm">
+            <div><span class="badge badge-get">GET</span> <code>/</code> — lista registros mensais</div>
+            <div><span class="badge badge-post">POST</span> <code>/</code> — cria registro</div>
+            <div><span class="badge badge-put">PUT</span> <code>/:id</code> — atualiza salário/saldo</div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/sync-saldo-anterior</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/copy-recurring</code> — copia recorrentes do mês anterior</div>
+            <div><span class="badge badge-get">GET</span> <code>/:id/export</code> — Excel</div>
+            <div><span class="badge badge-get">GET</span> <code>/history?detailed=1</code> — KPIs do Painel</div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/expenses</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/discounts</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/salaries</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/transfers</code></div>
+            <div><span class="badge badge-get">GET</span> <code>/:id/budget-status</code></div>
+            <div><span class="badge badge-get">GET</span> <code>/:id/tag-budget-status</code></div>
+            <div><span class="badge badge-get">GET</span> <code>/categories</code> + CRUD</div>
+            <div><span class="badge badge-put">PUT</span> <code>/tag-budgets</code> — upsert por tag</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="font-bold mb-3">🏦 <code>/api/accounts</code></h3>
+          <div class="space-y-1.5 text-sm">
+            <div><span class="badge badge-get">GET</span> <code>/</code> — contas com saldos calculados</div>
+            <div><span class="badge badge-post">POST</span> <code>/</code> — cria conta</div>
+            <div><span class="badge badge-put">PUT</span> <code>/:id</code> — edita</div>
+            <div><span class="badge badge-delete">DELETE</span> <code>/:id</code> — desvincula movimentos e remove</div>
+            <div><span class="badge badge-get">GET</span> <code>/:id/history</code> — timeline unificada</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="font-bold mb-3">💳 <code>/api/cards</code></h3>
+          <div class="space-y-1.5 text-sm">
+            <div><span class="badge badge-get">GET</span> <code>/</code> — cartões do usuário</div>
+            <div><span class="badge badge-get">GET</span> <code>/faturas?month=&year=</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/expenses</code> — compra parcelada (gera N parcelas com group_id)</div>
+            <div><span class="badge badge-put">PUT</span> <code>/expenses/:id</code></div>
+            <div><span class="badge badge-delete">DELETE</span> <code>/expenses/:id</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/expenses/:id/move</code></div>
+          </div>
+        </div>
+
+        <div class="card md:col-span-2">
+          <h3 class="font-bold mb-3">📈 <code>/api/investments</code></h3>
+          <div class="space-y-1.5 text-sm grid md:grid-cols-2 gap-x-6">
+            <div><span class="badge badge-get">GET</span> <code>/summary?record_id=</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/</code> — cria conta de investimento</div>
+            <div><span class="badge badge-delete">DELETE</span> <code>/:id</code></div>
+            <div><span class="badge badge-get">GET</span> <code>/:id/transactions</code></div>
+            <div><span class="badge badge-post">POST</span> <code>/:id/transactions</code> — aporte/saque/rendimento + financial_account_id</div>
+            <div><span class="badge badge-delete">DELETE</span> <code>/transactions/:id</code></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FRONTEND ============ -->
+    <section id="frontend">
+      <h2 class="section-title">🎨 Frontend — Componentes & Stores</h2>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="card">
+          <h3 class="font-bold mb-3">📦 Stores Reativos</h3>
+          <table>
+            <tr><td><code>auth.ts</code></td><td>token JWT, login/logout, usuário atual</td></tr>
+            <tr><td><code>accounts.ts</code></td><td>contas financeiras + <code>fetchAccounts()</code></td></tr>
+            <tr><td><code>records.ts</code></td><td>CRUD de registros + sync saldo</td></tr>
+            <tr><td><code>theme.ts</code></td><td>tema claro/escuro persistido</td></tr>
+            <tr><td><code>privacy.ts</code></td><td>oculta valores (modo 🙈)</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 class="font-bold mb-3">🧩 Componentes principais</h3>
+          <table>
+            <tr><td><b>Dashboard</b></td><td>orquestra tudo, abas Detalhes/Painel</td></tr>
+            <tr><td><b>SummaryCards</b></td><td>4 cards: receitas, despesas, líquido, saldo</td></tr>
+            <tr><td><b>AccountsSection</b></td><td>contas com saldos, modal histórico</td></tr>
+            <tr><td><b>ExpenseTable</b></td><td>tabela + pizza de categorias</td></tr>
+            <tr><td><b>CardSection</b></td><td>faturas expansíveis com parcelas</td></tr>
+            <tr><td><b>InvestmentSection</b></td><td>aportes/saques com conta vinculada</td></tr>
+            <tr><td><b>HistoryChart</b> (Painel)</td><td>6 KPIs + gráficos linha/pizza/área</td></tr>
+            <tr><td><b>BudgetSection / TagBudgetSection</b></td><td>orçamentos com progresso</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FUNCIONALIDADES ============ -->
+    <section id="funcionalidades">
+      <h2 class="section-title">✨ Funcionalidades</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="feat-card"><h4>📅 Registros mensais</h4><p>Um registro por mês/ano com salário bruto, saldo anterior e relacionamentos.</p></div>
+        <div class="feat-card"><h4>🏦 Múltiplas contas</h4><p>Corrente, poupança, carteira, etc. Saldo calculado em tempo real considerando todos os fluxos.</p></div>
+        <div class="feat-card"><h4>💵 Despesas</h4><p>Crédito ou débito, recorrentes, com tags e categorias.</p></div>
+        <div class="feat-card"><h4>💳 Cartões parcelados</h4><p>Compras com parcelamento automático (group_id) distribuídas nas faturas futuras.</p></div>
+        <div class="feat-card"><h4>📈 Investimentos</h4><p>Aporte, saque e rendimento — com conta financeira de origem/destino.</p></div>
+        <div class="feat-card"><h4>🔁 Transferências</h4><p>Entre contas, sem afetar o saldo líquido total.</p></div>
+        <div class="feat-card"><h4>💰 Salários múltiplos</h4><p>Salário principal + adicionais (freela, bônus) em contas distintas.</p></div>
+        <div class="feat-card"><h4>📊 Painel analítico</h4><p>6 KPIs: taxa de poupança, comprometimento, burn rate, runway, variação patrimônio, total economizado.</p></div>
+        <div class="feat-card"><h4>🎯 Orçamentos</h4><p>Por categoria e por tag, com progresso e alertas.</p></div>
+        <div class="feat-card"><h4>📜 Histórico unificado</h4><p>Timeline por conta com todos os tipos de evento.</p></div>
+        <div class="feat-card"><h4>🙈 Modo privacidade</h4><p>Oculta valores na tela com um clique (persistido em localStorage).</p></div>
+        <div class="feat-card"><h4>🌓 Tema claro/escuro</h4><p>Toggle no header, persistente.</p></div>
+        <div class="feat-card"><h4>📥 Export Excel</h4><p>Download do mês completo via openpyxl.</p></div>
+        <div class="feat-card"><h4>🔁 Recorrentes</h4><p>Botão "Copiar recorrentes" replica despesas/descontos do mês anterior.</p></div>
+        <div class="feat-card"><h4>📱 Mobile responsivo</h4><p>Tabelas com scroll, colunas <code>hide-sm</code>, botões touch-friendly.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ FLUXO ============ -->
+    <section id="fluxo">
+      <h2 class="section-title">🔄 Fluxo Funcional</h2>
+
+      <div class="card mb-5">
+        <h3 class="font-bold mb-3">Sequência: lançar despesa em conta</h3>
+        <div class="mermaid">
+sequenceDiagram
+  participant U as Usuário
+  participant V as ExpenseTable.svelte
+  participant S as records store
+  participant API as Flask /api/records
+  participant DB as PostgreSQL
+
+  U->>V: Preenche descrição, valor, conta
+  V->>API: POST /:id/expenses (Bearer JWT)
+  API->>DB: INSERT INTO expenses
+  DB-->>API: id + dados
+  API-->>V: { expense }
+  V->>S: refreshCurrentRecord()
+  S->>API: GET /records/:id
+  API->>DB: SELECT joins (saldos)
+  DB-->>API: record + relacionamentos
+  API-->>S: enriched record
+  S-->>V: store atualizado (reativo)
+  V-->>U: UI re-renderiza saldo, totais e gráficos
+        </div>
+      </div>
+
+      <div class="card mb-5">
+        <h3 class="font-bold mb-3">Cálculo de saldo de uma conta financeira</h3>
+        <div class="mermaid">
+flowchart TD
+  Start[saldo_inicial da conta] --> S1[+ Salários atribuídos a esta conta]
+  S1 --> S2[+ Créditos discounts > 0]
+  S2 --> S3[− Descontos discounts < 0]
+  S3 --> S4[− Despesas pagas]
+  S4 --> S5[+ Transferências recebidas]
+  S5 --> S6[− Transferências enviadas]
+  S6 --> S7[− Aportes em investimentos]
+  S7 --> S8[+ Saques de investimentos]
+  S8 --> Final[Saldo final atual]
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold mb-3">Jornada típica do usuário</h3>
+        <div class="grid md:grid-cols-4 gap-4 mt-4">
+          <div class="flow-step"><span class="num">1</span><b>Login</b><br><span class="text-gray-500">JWT salvo em localStorage</span></div>
+          <div class="flow-step"><span class="num">2</span><b>Selecionar mês</b><br><span class="text-gray-500">MonthSelector dispara fetch</span></div>
+          <div class="flow-step"><span class="num">3</span><b>Ver resumo</b><br><span class="text-gray-500">SummaryCards + AccountsSection</span></div>
+          <div class="flow-step"><span class="num">4</span><b>Lançar fluxos</b><br><span class="text-gray-500">salário, descontos, despesas, cartões, transfers</span></div>
+          <div class="flow-step"><span class="num">5</span><b>Investir</b><br><span class="text-gray-500">aporte sai da conta financeira escolhida</span></div>
+          <div class="flow-step"><span class="num">6</span><b>Definir orçamento</b><br><span class="text-gray-500">por categoria e tag</span></div>
+          <div class="flow-step"><span class="num">7</span><b>Analisar Painel</b><br><span class="text-gray-500">KPIs e gráficos do período</span></div>
+          <div class="flow-step"><span class="num">8</span><b>Exportar Excel</b><br><span class="text-gray-500">backup do mês</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AUTH ============ -->
+    <section id="auth">
+      <h2 class="section-title">🔐 Autenticação & Segurança</h2>
+      <div class="card">
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li>🔑 <b>JWT</b> assinado pelo backend (<code>Flask-JWT-Extended</code>)</li>
+          <li>🔒 Senhas armazenadas com <code>werkzeug.security.generate_password_hash</code> (PBKDF2)</li>
+          <li>🛡 Toda rota protegida por <code>@jwt_required()</code> e filtra por <code>user_id</code> do token</li>
+          <li>🌍 <code>Flask-CORS</code> liberado em <code>/api/*</code> para o domínio do frontend</li>
+          <li>💾 Token persistido em <code>localStorage</code> e enviado em <code>Authorization: Bearer &lt;jwt&gt;</code></li>
+          <li>♻️ Logout limpa token e redireciona para <code>/login</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ DEPLOY ============ -->
+    <section id="deploy">
+      <h2 class="section-title">🚀 Deploy & Operação</h2>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="card">
+          <h3 class="font-bold mb-3"><i class="devicon-vercel-original"></i> Frontend → Vercel</h3>
+          <ul class="text-sm space-y-1.5 text-gray-700">
+            <li>• Build: <code>npm run build</code> (Vite)</li>
+            <li>• Output: <code>frontend/dist</code></li>
+            <li>• Auto-deploy ao push em <code>main</code></li>
+            <li>• Variável: <code>VITE_API_URL</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="font-bold mb-3">⚙️ Backend → Render (<code>render.yaml</code>)</h3>
+          <ul class="text-sm space-y-1.5 text-gray-700">
+            <li>• <code>gunicorn run:app</code></li>
+            <li>• PostgreSQL via <code>DATABASE_URL</code></li>
+            <li>• <code>JWT_SECRET_KEY</code>, <code>FLASK_ENV=production</code></li>
+            <li>• Migrações automáticas em <code>create_app()</code></li>
+          </ul>
+        </div>
+        <div class="card md:col-span-2">
+          <h3 class="font-bold mb-3">🛠 Scripts úteis (raiz)</h3>
+          <div class="grid md:grid-cols-2 gap-3 text-sm">
+            <div><code>setup.ps1</code> — instala venv + npm + cria DB</div>
+            <div><code>start.ps1</code> — sobe backend + frontend juntos</div>
+            <div><code>migrate.ps1</code> — aplica migrações manuais</div>
+            <div><code>create_db.ps1</code> — cria banco no Postgres local</div>
+            <div><code>start_backend.ps1</code> — só Flask</div>
+            <div><code>start_frontend.ps1</code> — só Vite</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="text-center text-gray-400 text-sm pt-8 pb-4 border-t border-gray-200">
+      <p>📄 Documentação gerada automaticamente · CashFlow Architecture</p>
+      <p class="mt-1">Stack: <i class="devicon-flask-original"></i> Flask + <i class="devicon-svelte-plain colored"></i> Svelte + <i class="devicon-postgresql-plain colored"></i> PostgreSQL</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#eef2ff',
+      primaryBorderColor: '#667eea',
+      primaryTextColor: '#1f2937',
+      lineColor: '#9ca3af',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis', padding: 12 }
+  });
+</script>
+</body>
+</html>

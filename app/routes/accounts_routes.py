@@ -4,7 +4,8 @@ from sqlalchemy import or_
 from app import db
 from app.models import (
     FinancialAccount, Discount, Expense, MonthlyRecord,
-    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard, Salary, Transfer
+    InvestmentTransaction, InvestmentAccount, CardExpense, CreditCard, Salary, Transfer,
+    CardPayment
 )
 
 bp = Blueprint('accounts', __name__, url_prefix='/api/accounts')
@@ -77,12 +78,37 @@ def _compute_balance(account, all_accounts):
                 matches(Expense.account_id)).scalar()
     saldo += float(rec_total or 0)
 
-    # Faturas de cartão: caem na conta padrão (simplificação)
+    # Faturas de cartão:
+    # 1) Pagamentos explicitos: cada CardPayment desconta da conta indicada
+    paid_from_this = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
+        .join(CreditCard, CardPayment.card_id == CreditCard.id) \
+        .filter(CreditCard.user_id == user_id, CardPayment.account_id == account.id).scalar()
+    saldo -= float(paid_from_this or 0)
+
+    # 2) Fallback: fatura sem pagamentos cai inteira na conta padrao
     if is_default:
-        card_total = db.session.query(db.func.coalesce(db.func.sum(CardExpense.valor), 0)) \
-            .join(CreditCard) \
-            .filter(CreditCard.user_id == user_id).scalar()
-        saldo -= float(card_total or 0)
+        # totais por (card, year, month)
+        fatura_totais = db.session.query(
+            CardExpense.card_id,
+            MonthlyRecord.year,
+            MonthlyRecord.month,
+            db.func.coalesce(db.func.sum(CardExpense.valor), 0).label('total')
+        ).join(CreditCard).join(MonthlyRecord, CardExpense.record_id == MonthlyRecord.id) \
+         .filter(CreditCard.user_id == user_id) \
+         .group_by(CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month).all()
+        for cid, year, month, total in fatura_totais:
+            paid = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
+                .filter(CardPayment.card_id == cid,
+                        CardPayment.year == year,
+                        CardPayment.month == month).scalar()
+            paid = float(paid or 0)
+            total = float(total or 0)
+            if paid <= 0:
+                # nenhum pagamento explicito: cai na padrao
+                saldo -= total
+            elif paid < total:
+                # parcial: o restante cai na padrao
+                saldo -= (total - paid)
 
     # Investimentos: aporte sai, saque entra; rendimentos não afetam conta
     aportes = db.session.query(db.func.coalesce(db.func.sum(InvestmentTransaction.valor), 0)) \
@@ -250,15 +276,38 @@ def account_history(account_id):
                     abs(it.valor or 0), it.id, None,
                     {'investment_account_id': it.account_id})
 
-    # 7) Faturas de cartão (caem na conta padrão)
+    # 7) Pagamentos de fatura desta conta (CardPayment)
+    card_payments = (CardPayment.query.join(CreditCard, CardPayment.card_id == CreditCard.id)
+                     .filter(CreditCard.user_id == user_id,
+                             CardPayment.account_id == account.id).all())
+    for cp in card_payments:
+        card = CreditCard.query.get(cp.card_id)
+        add('', 'card_payment',
+            f'Pagamento fatura {card.nome if card else ""} ({cp.month}/{cp.year})',
+            -abs(cp.valor or 0), cp.id, None,
+            {'card_id': cp.card_id, 'year': cp.year, 'month': cp.month})
+
+    # 8) Faturas de cartão pendentes (sem pagamento explicito) caem na padrao
     if is_default:
-        card_exps = (CardExpense.query.join(CreditCard)
-                     .filter(CreditCard.user_id == user_id).all())
-        for ce in card_exps:
-            add(ce.data or '', 'card_expense',
-                f'{ce.descricao} (Cartão: {ce.card.nome if ce.card else ""})',
-                -abs(ce.valor or 0), ce.id, None,
-                {'categoria': ce.categoria, 'card_id': ce.card_id})
+        # Agrupa por (card_id, year, month)
+        fatura_totais = db.session.query(
+            CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month,
+            db.func.coalesce(db.func.sum(CardExpense.valor), 0).label('total')
+        ).join(CreditCard).join(MonthlyRecord, CardExpense.record_id == MonthlyRecord.id) \
+         .filter(CreditCard.user_id == user_id) \
+         .group_by(CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month).all()
+        for cid, year, month, total in fatura_totais:
+            paid = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
+                .filter(CardPayment.card_id == cid,
+                        CardPayment.year == year,
+                        CardPayment.month == month).scalar()
+            pendente = float(total or 0) - float(paid or 0)
+            if pendente > 0.01:
+                card = CreditCard.query.get(cid)
+                add('', 'card_pending',
+                    f'Fatura pendente {card.nome if card else ""} ({month}/{year})',
+                    -round(pendente, 2), cid, None,
+                    {'card_id': cid, 'year': year, 'month': month})
 
     # Ordena: data desc, depois id desc
     events.sort(key=lambda e: (e['date'] or '0000-00-00', e.get('source_id') or 0), reverse=True)

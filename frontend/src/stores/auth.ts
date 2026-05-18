@@ -48,14 +48,14 @@ export const login = async (email: string, password: string) => {
   }
 }
 
-export const register = async (email: string, password: string) => {
+export const register = async (email: string, password: string, nome: string = '') => {
   authStore.update(state => ({ ...state, loading: true, error: null }))
   
   try {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, nome })
     })
     
     if (!response.ok) {
