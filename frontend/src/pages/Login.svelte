@@ -44,7 +44,7 @@
   <!-- Lado esquerdo: hero/branding -->
   <aside class="hero">
     <div class="hero-inner">
-      <img src="/assets/cashtrack_colorido.png" alt="CashFlow" class="hero-logo" />
+      <img src="/assets/cashtrackbranco.png" alt="CashFlow" class="hero-logo" />
       <h1>CashFlow</h1>
       <p class="tagline">Controle financeiro completo, simples e bonito.</p>
 
