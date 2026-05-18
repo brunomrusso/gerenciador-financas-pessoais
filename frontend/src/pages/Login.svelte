@@ -44,7 +44,7 @@
   <!-- Lado esquerdo: hero/branding -->
   <aside class="hero">
     <div class="hero-inner">
-      <img src="/assets/logo.png" alt="CashFlow" class="hero-logo" />
+      <img src="/assets/cashtrack_colorido.png" alt="CashFlow" class="hero-logo" />
       <h1>CashFlow</h1>
       <p class="tagline">Controle financeiro completo, simples e bonito.</p>
 
@@ -86,7 +86,7 @@
   <!-- Lado direito: formulario -->
   <main class="form-side">
     <div class="form-card">
-      <img src="/assets/logo.png" alt="CashFlow" class="form-logo" />
+      <img src="/assets/cashtrack_colorido.png" alt="CashFlow" class="form-logo" />
       <h2>{isLogin ? 'Bem-vindo de volta' : 'Criar conta'}</h2>
       <p class="sub">{isLogin ? 'Acesse seu painel financeiro.' : 'Comece a controlar suas finanças hoje.'}</p>
 
@@ -175,13 +175,10 @@
   }
   .hero-inner { max-width: 460px; position: relative; z-index: 1; }
   .hero-logo {
-    width: 110px; height: 110px;
+    width: 140px; height: 140px;
     object-fit: contain;
-    background: white;
-    border-radius: 24px;
-    padding: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
     margin-bottom: 1.5rem;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.25));
   }
   .hero h1 {
     font-size: 3rem;
