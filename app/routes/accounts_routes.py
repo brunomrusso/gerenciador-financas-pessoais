@@ -61,12 +61,13 @@ def _compute_balance(account, all_accounts):
         .filter(MonthlyRecord.user_id == user_id, matches(Discount.account_id)).scalar()
     saldo += float(disc_total or 0)
 
-    # Despesas/débitos (subtraem): não é Receita E não é crédito
+    # Despesas/débitos (subtraem): não é Receita E não é crédito E está marcada como paga
     exp_total = db.session.query(db.func.coalesce(db.func.sum(Expense.valor), 0)) \
         .join(MonthlyRecord) \
         .filter(MonthlyRecord.user_id == user_id,
                 Expense.tipo != 'Receita',
                 or_(Expense.eh_credito.is_(None), Expense.eh_credito == False),
+                Expense.pago == True,
                 matches(Expense.account_id)).scalar()
     saldo -= float(exp_total or 0)
 
@@ -244,6 +245,9 @@ def account_history(account_id):
                 add(e.data or _record_date(e.record), 'expense_credit', e.descricao, e.valor, e.id, e.record,
                     {'categoria': e.categoria, 'pago': e.pago})
             else:
+                # Apenas despesas pagas afetam o saldo da conta
+                if not e.pago:
+                    continue
                 add(e.data or _record_date(e.record), 'expense', e.descricao, -abs(e.valor or 0), e.id, e.record,
                     {'categoria': e.categoria, 'pago': e.pago})
 
