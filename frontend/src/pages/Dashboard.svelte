@@ -40,22 +40,27 @@
   let userName = ''
   let investmentSummary = { saldo_total: 0, aportes_mes: 0, saques_mes: 0, rendimentos_mes: 0, liquido_mes: 0 }
 
-  // chave reativa para recarregar BudgetSection quando despesas/faturas mudam
+  // chave reativa GLOBAL: muda sempre que qualquer valor relevante de qualquer lançamento muda
   $: budgetRefreshKey = (currentRecord?.expenses?.length || 0) +
-    (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0), 0) || 0) +
-    cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0), 0)
+    (currentRecord?.expenses?.reduce((s: number, e: any) => s + (e.valor || 0) + (e.pago ? 0.001 : 0), 0) || 0) +
+    (currentRecord?.discounts?.length || 0) +
+    (currentRecord?.discounts?.reduce((s: number, d: any) => s + (d.valor || 0), 0) || 0) +
+    (currentRecord?.salaries?.length || 0) +
+    (currentRecord?.salaries?.reduce((s: number, x: any) => s + (x.valor || 0), 0) || 0) +
+    (currentRecord?.transfers?.length || 0) +
+    (currentRecord?.transfers?.reduce((s: number, t: any) => s + (t.valor || 0), 0) || 0) +
+    (currentRecord?.saldo_anterior || 0) +
+    (currentRecord?.salario_bruto || 0) +
+    cardFaturas.reduce((s, f) => s + (f.expenses?.length || 0) + (f.total || 0) + (f.paid || 0), 0) +
+    (investmentSummary.saldo_total || 0) + (investmentSummary.liquido_mes || 0)
 
   // Sincroniza currentRecord automaticamente com o store (reatividade garantida)
   $: if ($recordsStore.records && $recordsStore.records.length > 0) {
     currentRecord = $recordsStore.records[0]
   }
 
-  // summaryKey muda sempre que qualquer valor relevante mudar
-  $: summaryKey = JSON.stringify(currentRecord?.expenses?.map((e: any) => ({ id: e.id, valor: e.valor, eh_credito: e.eh_credito }))) +
-    JSON.stringify(currentRecord?.discounts?.map((d: any) => ({ id: d.id, valor: d.valor }))) +
-    JSON.stringify(currentRecord?.salaries?.map((s: any) => ({ id: s.id, valor: s.valor }))) +
-    (currentRecord?.saldo_anterior || 0) +
-    (currentRecord?.salario_bruto || 0)
+  // summaryKey reusa a chave global para forçar rerender do SummaryCards
+  $: summaryKey = budgetRefreshKey
 
   onMount(() => {
     loadUser()

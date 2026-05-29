@@ -128,6 +128,7 @@
       addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'; addCategoria = 'Outros'; addTags = []
       adding = false
       await loadFaturas()
+      await fetchAccounts()
     } finally { saving = false }
   }
 
@@ -156,6 +157,7 @@
       await fetch(`${API}/expenses/${exp.id}`, { method: 'PUT', headers: auth(), body: JSON.stringify(payload) })
       editingExpId = null
       await loadFaturas()
+      await fetchAccounts()
     }
   }
 
@@ -166,6 +168,7 @@
       if (!confirm('Excluir esta despesa do cartão?')) return
       await fetch(`${API}/expenses/${exp.id}`, { method: 'DELETE', headers: auth() })
       await loadFaturas()
+      await fetchAccounts()
     }
   }
 
@@ -182,6 +185,7 @@
     }
     modal = null
     await loadFaturas()
+    await fetchAccounts()
   }
 
   const startMove = (exp: any) => {
@@ -198,6 +202,7 @@
     })
     moveModal = null
     await loadFaturas()
+    await fetchAccounts()
   }
 
   const toggle = (cardId: number) => {

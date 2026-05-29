@@ -3,7 +3,7 @@
   import { fetchRecords } from '../stores/records'
   import Chart from 'chart.js/auto'
   import TagInput from './TagInput.svelte'
-  import { accountsStore } from '../stores/accounts'
+  import { accountsStore, fetchAccounts } from '../stores/accounts'
   import { valuesHidden } from '../stores/privacy'
   import { fmtMasked } from '../utils/format'
 
@@ -112,6 +112,7 @@
         body: JSON.stringify({ descricao: newDesc, valor: parseFloat(newValor), categoria: newCategoria, data: newData, pago: newPago, recorrente: newRecorrente, tags: newTags, account_id: newAccountId || null, eh_credito: newEhCredito })
       })
       await fetchRecords(month, year.toString())
+      await fetchAccounts()
       newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newEhCredito = false; newTags = []; newAccountId = ''; adding = false
     } finally { saving = false }
   }
@@ -132,17 +133,20 @@
     })
     editingId = null
     await fetchRecords(month, year.toString())
+    await fetchAccounts()
   }
 
   const togglePago = async (item: any) => {
     await fetch(`/api/records/expenses/${item.id}`, { method: 'PUT', headers: auth(), body: JSON.stringify({ pago: !item.pago }) })
     await fetchRecords(month, year.toString())
+    await fetchAccounts()
   }
 
   const handleDelete = async (item: any) => {
     if (!confirm(`Excluir "${item.descricao}"?`)) return
     await fetch(`/api/records/expenses/${item.id}`, { method: 'DELETE', headers: auth() })
     await fetchRecords(month, year.toString())
+    await fetchAccounts()
   }
 
   const exportExcel = () => {
@@ -160,6 +164,7 @@
     if (r.ok) {
       copyMsg = data.copiadas > 0 ? `${data.copiadas} despesa(s) recorrente(s) copiada(s)!` : 'Nenhuma despesa recorrente no mês anterior.'
       await fetchRecords(month, year.toString())
+      await fetchAccounts()
     } else {
       copyMsg = data.error || 'Erro ao copiar recorrentes.'
     }
