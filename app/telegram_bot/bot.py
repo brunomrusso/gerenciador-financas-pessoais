@@ -14,9 +14,11 @@ Fluxos por menu (inline keyboard):
 """
 import os
 import functools
+import time
 from datetime import datetime, date
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telegram.error import Conflict, NetworkError, TimedOut
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, MessageHandler,
     filters, ContextTypes
@@ -542,6 +544,24 @@ async def _send_resumo(update, user_id: int):
 
 # ──────────────────── Setup ────────────────────
 
+async def _error_handler(update, context):
+    """Trata erros do bot de forma resiliente.
+
+    - Conflict: outra instancia esta fazendo polling (acontece durante redeploy);
+      ignora silenciosamente porque o Telegram resolve sozinho (mata o mais antigo).
+    - NetworkError/TimedOut: rede instavel; loga compacto sem stack trace.
+    - Outros: log compacto.
+    """
+    err = context.error
+    if isinstance(err, Conflict):
+        # Esperado durante redeploys; nao polui o log
+        return
+    if isinstance(err, (NetworkError, TimedOut)):
+        print(f'[Telegram] Rede instavel: {type(err).__name__}')
+        return
+    print(f'[Telegram] Erro nao tratado: {type(err).__name__}: {err}')
+
+
 def run_bot(flask_app):
     token = os.getenv('TELEGRAM_BOT_TOKEN')
     if not token:
@@ -549,6 +569,13 @@ def run_bot(flask_app):
         return
 
     _STATE_APP['app'] = flask_app
+
+    # Aguarda alguns segundos antes de iniciar polling para evitar conflito
+    # com instancia anterior que ainda esta desligando (caso classico em redeploy do Render).
+    startup_delay = int(os.getenv('TELEGRAM_STARTUP_DELAY', '10'))
+    if startup_delay > 0:
+        print(f'[Telegram] Aguardando {startup_delay}s antes de iniciar polling (evita conflito com instancia anterior)...')
+        time.sleep(startup_delay)
 
     # Timeouts generosos para Render free (cold start lento)
     request = HTTPXRequest(
@@ -568,6 +595,13 @@ def run_bot(flask_app):
     app.add_handler(CommandHandler('ajuda', cmd_help))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
+    app.add_error_handler(_error_handler)
 
     print('[Telegram] Bot rodando (polling)...')
-    app.run_polling(close_loop=False, stop_signals=None)
+    # drop_pending_updates=True descarta updates enfileirados durante o restart,
+    # evitando processar mensagens duplicadas e reduzindo chance de Conflict no startup.
+    app.run_polling(
+        close_loop=False,
+        stop_signals=None,
+        drop_pending_updates=True,
+    )
