@@ -538,10 +538,13 @@
     .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.72rem; min-height: 30px; }
     .btn-add { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
     .filter-bar { gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.45rem; font-size: 0.85rem; }
+    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; max-width: 100%; width: 100%; padding: 0.45rem; font-size: 0.85rem; box-sizing: border-box; }
+    .filter-bar select { max-width: 100%; min-width: 0; box-sizing: border-box; }
     .pager-btn { width: 32px; height: 32px; font-size: 0.95rem; }
     .add-form { flex-direction: column; gap: 0.4rem; padding: 0.6rem; }
-    .add-form .inp.half, .add-form .inp.full { width: 100%; flex: 1 1 100%; }
+    .add-form .inp.half, .add-form .inp.full { width: 100%; max-width: 100%; flex: 1 1 100%; min-width: 0; }
+    .add-form select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+    .add-form input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 
     /* Estilo extrato: cada despesa = linha compacta */
     table { min-width: 0; width: 100%; display: block; }

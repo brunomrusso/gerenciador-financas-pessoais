@@ -675,12 +675,14 @@
     .hide-sm { display: none !important; }
     .sub-mobile { display: flex; }
     .add-form { flex-direction: column; gap: 0.4rem; }
-    .add-form .inp, .add-form .flex2 { width: 100%; flex: 1 1 100%; }
+    .add-form .inp, .add-form .flex2 { width: 100%; max-width: 100%; flex: 1 1 100%; min-width: 0; }
+    .add-form select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+    .add-form input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .parcelas-wrap { width: 100%; }
     .btn-save { width: 100%; padding: 0.7rem; }
     .pay-row { flex-wrap: wrap; }
-    .pay-row select { flex: 1 1 100%; }
-    .pay-row input { flex: 1 1 70%; }
+    .pay-row select { flex: 1 1 100%; max-width: 100%; min-width: 0; }
+    .pay-row input { flex: 1 1 70%; max-width: 100%; }
 
     /* Tabela de despesas do cartao - estilo extrato bancario */
     .fatura-body table { width: 100%; display: block; min-width: 0; }
@@ -725,7 +727,9 @@
     .fatura-body td.action-cell::before { display: none; }
     .fatura-body td.action-cell button { width: 26px; height: 26px; font-size: 0.7rem; }
     .fatura-body tr.edit-row td { display: block; padding: 0.35rem 0; }
-    .fatura-body tr.edit-row td .edit-inp { width: 100%; box-sizing: border-box; }
+    .fatura-body tr.edit-row td .edit-inp { width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; }
+    .fatura-body tr.edit-row td select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+    .fatura-body tr.edit-row td input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .fatura-body tr.edit-row td.action-cell { display: flex; gap: 0.5rem; padding-top: 0.5rem; }
   }
 
