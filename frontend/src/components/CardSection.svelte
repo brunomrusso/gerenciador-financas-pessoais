@@ -440,6 +440,7 @@
                             <span class="row-tags">{#each exp.tags as t}<span class="tag-mini">#{t}</span>{/each}</span>
                           {/if}
                           <div class="sub-mobile">
+                            {#if exp.data}<span class="date-sm">{exp.data}</span>{/if}
                             <span class="cat-badge">{exp.categoria || 'Outros'}</span>
                             {#if exp.parcelas_total > 1}<span class="parc-badge">{exp.parcela_atual}/{exp.parcelas_total}</span>{/if}
                           </div>
@@ -663,15 +664,16 @@
 
   .card-section { width: 100%; box-sizing: border-box; max-width: 100%; }
 
-  .sub-mobile { display: none; margin-top: 3px; }
-  .sub-mobile .cat-badge, .sub-mobile .parc-badge { font-size: 0.65rem; margin-right: 4px; }
+  .sub-mobile { display: none; margin-top: 2px; flex-wrap: wrap; gap: 3px; align-items: center; }
+  .sub-mobile .cat-badge, .sub-mobile .parc-badge { font-size: 0.65rem; }
+  .date-sm { font-size: 0.68rem; color: #888; }
 
   @media (max-width: 768px) {
     .card-section { padding: 0.85rem; }
     .fatura-header { padding: 0.6rem; gap: 0.5rem; font-size: 0.85rem; }
     .card-count { display: none; }
     .hide-sm { display: none !important; }
-    .sub-mobile { display: block; }
+    .sub-mobile { display: flex; }
     .add-form { flex-direction: column; gap: 0.4rem; }
     .add-form .inp, .add-form .flex2 { width: 100%; flex: 1 1 100%; }
     .parcelas-wrap { width: 100%; }
@@ -680,40 +682,51 @@
     .pay-row select { flex: 1 1 100%; }
     .pay-row input { flex: 1 1 70%; }
 
-    /* Tabela de despesas do cartao em modo card */
+    /* Tabela de despesas do cartao - estilo extrato bancario */
     .fatura-body table { width: 100%; display: block; min-width: 0; }
     .fatura-body thead { display: none; }
     .fatura-body tbody { display: block; }
-    .fatura-body tr { display: block; background: #fafbfc; border: 1px solid #eef0f5; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.45rem; }
-    .fatura-body tr.edit-row { background: #f0f4ff; border-color: #c5cae9; }
-    .fatura-body td {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 0.6rem; padding: 0.3rem 0; border: none !important;
-      font-size: 0.88rem; min-height: auto;
+    .fatura-body tr {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid #eef0f5;
+      margin: 0;
+      background: transparent;
+      border-radius: 0;
     }
+    .fatura-body tr:last-child { border-bottom: none; }
+    .fatura-body tr.edit-row { display: block; background: #f0f4ff; border-radius: 0; border: none; border-top: 1px solid #c5cae9; padding: 0.5rem 0.55rem; }
+    .fatura-body td { display: block; border: none !important; padding: 0; font-size: 0.8rem; }
+    .fatura-body td::before { display: none; }
     .fatura-body td.hide-sm { display: none !important; }
-    .fatura-body td::before {
-      content: attr(data-label);
-      font-weight: 600; color: #888;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      flex-shrink: 0;
+    .fatura-body td[data-label="Data"] { display: none !important; }
+    .fatura-body td.desc {
+      grid-column: 1; grid-row: 1 / 3;
+      display: flex; flex-direction: column; justify-content: center;
+      overflow: hidden; padding-right: 0.5rem;
+      font-weight: 600; font-size: 0.88rem;
     }
-    .fatura-body td.desc { font-weight: 600; font-size: 0.95rem; flex-direction: column; align-items: flex-start; }
     .fatura-body td.desc::before { display: none; }
+    .fatura-body td.desc .row-tags { display: none; }
+    .fatura-body td[data-label="Valor"] {
+      grid-column: 2; grid-row: 1;
+      font-weight: 700; font-size: 0.9rem;
+      text-align: right; white-space: nowrap;
+      align-self: start; padding-top: 1px;
+    }
     .fatura-body td.action-cell {
-      justify-content: flex-end;
-      gap: 0.5rem;
-      padding-top: 0.5rem;
-      margin-top: 0.4rem;
-      border-top: 1px solid #eef0f5 !important;
+      grid-column: 2; grid-row: 2;
+      display: flex !important; justify-content: flex-end;
+      gap: 0.25rem; align-items: flex-end;
+      border: none !important; padding: 0 !important; margin: 0 !important;
     }
     .fatura-body td.action-cell::before { display: none; }
-    .fatura-body td.action-cell button { width: 40px; height: 40px; font-size: 1rem; }
-    .fatura-body tr.edit-row td { display: block; padding: 0.4rem 0; }
+    .fatura-body td.action-cell button { width: 26px; height: 26px; font-size: 0.7rem; }
+    .fatura-body tr.edit-row td { display: block; padding: 0.35rem 0; }
     .fatura-body tr.edit-row td .edit-inp { width: 100%; box-sizing: border-box; }
-    .fatura-body tr.edit-row td.action-cell { display: flex; gap: 0.6rem; padding-top: 0.6rem; }
+    .fatura-body tr.edit-row td.action-cell { display: flex; gap: 0.5rem; padding-top: 0.5rem; }
   }
 
   /* Forma de pagamento */

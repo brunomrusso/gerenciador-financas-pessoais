@@ -287,6 +287,39 @@ html[data-theme="dark"] .input-desc, html[data-theme="dark"] .input-valor { back
 
 /* Move modal selects — já tratado via input/select rules */
 
+/* ── Extra dark mode fixes ────────────────────────────────────────────── */
+/* CardSection */
+html[data-theme="dark"] .card-manager { background: #2a2a3e !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .card-manager strong { color: #e0e0e8 !important; }
+html[data-theme="dark"] .chip { background: #3a3a52 !important; color: #b0b8ff !important; }
+html[data-theme="dark"] .chip button { color: #b0b8ff !important; }
+html[data-theme="dark"] .btn-pay { background: #2a2a3e !important; border-color: #3a3a52 !important; color: #8a9fff !important; }
+html[data-theme="dark"] .btn-pay:hover { background: #5568d8 !important; color: white !important; }
+html[data-theme="dark"] .btn-modal-one { background: #1e1e2e !important; color: #8a9fff !important; border-color: #5568d8 !important; }
+html[data-theme="dark"] .btn-modal-one:hover { background: #2a2a3e !important; }
+html[data-theme="dark"] .btn-modal-cancel { border-color: #3a3a52 !important; color: #9090a8 !important; }
+html[data-theme="dark"] .pay-summary { background: #252535 !important; }
+html[data-theme="dark"] .parcelas-hint { color: #8a9fff !important; }
+html[data-theme="dark"] .pay-badge.pending { background: #252535 !important; color: #9090a8 !important; }
+html[data-theme="dark"] .pay-badge.partial { background: #3a2e10 !important; color: #ffd180 !important; }
+html[data-theme="dark"] .pay-badge.ok { background: #1a3a1a !important; color: #81c784 !important; }
+html[data-theme="dark"] .date-sm { color: #7878a0 !important; }
+html[data-theme="dark"] .fatura-body tr { border-color: #3a3a52 !important; }
+html[data-theme="dark"] .fatura-body tr.edit-row { background: #2d2d4a !important; border-color: #5568d8 !important; }
+
+/* ProfileModal */
+html[data-theme="dark"] .modal { background: #1e1e2e !important; box-shadow: 0 10px 40px rgba(0,0,0,.6) !important; }
+html[data-theme="dark"] .modal header { background: #1e1e2e !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .modal h2 { color: #e0e0e8 !important; }
+html[data-theme="dark"] .modal .body section { background: #252535 !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .modal .body section h3 { color: #c0c0d0 !important; }
+html[data-theme="dark"] .modal input { background: #2a2a3e !important; color: #e8e8f0 !important; border-color: #3a3a52 !important; }
+html[data-theme="dark"] .modal input:disabled { background: #1e1e2e !important; color: #555 !important; }
+html[data-theme="dark"] .code-box { background: #1e1e2e !important; border-color: #5568d8 !important; }
+html[data-theme="dark"] .hint-sm { color: #9090a8 !important; }
+html[data-theme="dark"] .btn-close { color: #6060a0 !important; }
+html[data-theme="dark"] .btn-close:hover { color: #e0e0e8 !important; }
+
 * {
   margin: 0;
   padding: 0;
