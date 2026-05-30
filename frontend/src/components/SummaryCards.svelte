@@ -83,13 +83,23 @@
       gap: 0.6rem;
       margin: 1rem 0;
     }
-    .card { padding: 0.75rem 0.85rem; border-radius: 8px; }
-    .card-header { margin-bottom: 0.4rem; }
-    .card-header h3 { font-size: 0.7rem; letter-spacing: 0.3px; }
-    .card-value { font-size: 1.05rem; }
+    .card { padding: 0.7rem 0.7rem; border-radius: 8px; min-width: 0; overflow: hidden; }
+    .card-header { margin-bottom: 0.35rem; }
+    .card-header h3 { font-size: 0.68rem; letter-spacing: 0.3px; }
+    .card-value {
+      font-size: clamp(0.78rem, 4.2vw, 1.05rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     /* Saldo final ocupa linha inteira */
     .card.saldo { grid-column: 1 / -1; }
-    .card.saldo .card-value { font-size: 1.4rem; }
+    .card.saldo .card-value { font-size: clamp(1.05rem, 6vw, 1.5rem); }
+  }
+  @media (max-width: 360px) {
+    .summary-cards { gap: 0.45rem; }
+    .card { padding: 0.55rem 0.6rem; }
+    .card-value { font-size: clamp(0.72rem, 4vw, 0.95rem); }
   }
 
   .card:hover {
