@@ -251,7 +251,7 @@
     {#if adding}
       <div class="add-form">
         <input type="text" placeholder="Descricao *" bind:value={newDesc} class="inp full" />
-        <input type="number" placeholder="Valor (ex: -150.00)" bind:value={newValor} step="0.01" class="inp half" />
+        <input type="number" inputmode="decimal" placeholder="Valor (ex: -150.00)" bind:value={newValor} step="0.01" class="inp half" />
         <select bind:value={newCategoria} class="inp half">
           {#each categorias as cat}<option>{cat}</option>{/each}
         </select>
@@ -314,7 +314,7 @@
                     <input type="date" bind:value={editData} class="edit-inp" />
                     <div class="tag-edit-wrap"><TagInput bind:tags={editTags} suggestions={allTags} placeholder="tags..." /></div>
                   </td>
-                  <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
+                  <td><input type="number" inputmode="decimal" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
                   <td>
                     <label class="chk-label-sm"><input type="checkbox" bind:checked={editPago} /> Pago</label>
                     <label class="chk-label-sm"><input type="checkbox" bind:checked={editRecorrente} /> Rec.</label>
@@ -327,7 +327,7 @@
                 </tr>
               {:else}
                 <tr class={item.pago ? 'pago-row' : ''}>
-                  <td class="desc-cell">
+                  <td class="desc-cell" data-label="Descrição">
                     {item.descricao || '-'}
                     {#if item.recorrente}<span class="rec-badge" title="Recorrente">↻</span>{/if}
                     {#if Array.isArray(item.tags) && item.tags.length > 0}
@@ -338,19 +338,19 @@
                       </span>
                     {/if}
                   </td>
-                  <td class="hide-sm">
+                  <td class="hide-sm" data-label="Categoria">
                     <span class="badge">{item.categoria || 'Outros'}</span>
                     {#if item.account_id}
                       {@const acc = $accountsStore.find(a => a.id === item.account_id)}
                       {#if acc}<span class="acc-badge" style="background:{acc.cor}22; color:{acc.cor}">{acc.icone} {acc.nome}</span>{/if}
                     {/if}
                   </td>
-                  <td class="hide-sm">{item.data || '-'}</td>
-                  <td class={item.eh_credito ? 'positive' : (item.tipo === 'Receita' ? 'positive' : 'negative')}>
+                  <td class="hide-sm" data-label="Data">{item.data || '-'}</td>
+                  <td data-label="Valor" class={item.eh_credito ? 'positive' : (item.tipo === 'Receita' ? 'positive' : 'negative')}>
                     {#if item.eh_credito}<span class="credit-badge">✓ Crédito</span>{/if}
                     {fmt(item.valor)}
                   </td>
-                  <td><input type="checkbox" checked={item.pago} on:change={() => togglePago(item)} /></td>
+                  <td data-label="Pago" class="pago-cell"><input type="checkbox" checked={item.pago} on:change={() => togglePago(item)} /></td>
                   <td class="action-cell">
                     <button class="btn-edit" on:click={() => startEdit(item)} title="Editar">✎</button>
                     <button class="btn-del" on:click={() => handleDelete(item)} title="Excluir">✕</button>
@@ -513,20 +513,63 @@
   .pager-btn:disabled { background: #ccc; cursor: default; }
   .pager-info { font-size: 0.8rem; color: #666; }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     .expense-wrap { flex-direction: column; }
     .chart-section { max-width: 100%; width: 100%; }
     .table-section { padding: 0.75rem; flex: 1 1 100%; }
-    .table-wrap { max-height: 500px; }
-    .hide-sm { display: none !important; }
+    .table-wrap { max-height: none; overflow: visible; }
     h3 { font-size: 1rem; }
-    .header-actions { gap: 0.3rem; }
-    .btn-sm { padding: 0.4rem 0.55rem; font-size: 0.72rem; min-height: 32px; }
-    .filter-bar { gap: 0.3rem; }
-    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.5rem; }
-    .pager-btn { width: 36px; height: 36px; font-size: 1.05rem; }
-    table { min-width: 360px; }
-    th { padding: 0.5rem 0.4rem; font-size: 0.75rem; }
-    td { padding: 0.4rem 0.3rem; font-size: 0.8rem; }
+    .header-actions { gap: 0.3rem; flex-wrap: wrap; }
+    .btn-sm { padding: 0.5rem 0.7rem; font-size: 0.78rem; min-height: 36px; }
+    .filter-bar { gap: 0.3rem; flex-wrap: wrap; }
+    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.55rem; }
+    .pager-btn { width: 40px; height: 40px; font-size: 1.05rem; }
+    .add-form { flex-direction: column; }
+    .add-form .inp.half, .add-form .inp.full { width: 100%; flex: 1 1 100%; }
+
+    /* Tabela vira cards no mobile */
+    table { min-width: 0; width: 100%; display: block; }
+    thead, tfoot { display: none; }
+    tbody { display: block; }
+    tr { display: block; background: #fafbfc; border: 1px solid #eef0f5; border-radius: 8px; padding: 0.7rem 0.85rem; margin-bottom: 0.55rem; }
+    tr.edit-row { background: #f0f4ff; border-color: #c5cae9; padding: 0.85rem; }
+    tr.pago-row { opacity: 0.65; }
+    tr.total-row { display: none; } /* Totais ja no SummaryCards no topo */
+    td { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.35rem 0; border: none !important; font-size: 0.92rem; min-height: auto; }
+    td.hide-sm { display: flex !important; }
+    td::before {
+      content: attr(data-label);
+      font-weight: 600; color: #888;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    td.desc-cell { font-weight: 600; font-size: 0.98rem; flex-direction: column; align-items: flex-start; }
+    td.desc-cell::before { display: none; }
+    td.pago-cell { justify-content: flex-end; }
+    td.action-cell {
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding-top: 0.55rem;
+      margin-top: 0.5rem;
+      border-top: 1px solid #eef0f5 !important;
+    }
+    td.action-cell::before { display: none; }
+    .btn-edit, .btn-del, .btn-ok, .btn-cancel-edit { width: 40px; height: 40px; font-size: 1rem; }
+    .row-tags { margin-top: 4px; }
+    .badge, .acc-badge { font-size: 0.78rem; }
+
+    /* Edit-row em mobile: vertical sem prefix */
+    tr.edit-row td { display: block; padding: 0.4rem 0; }
+    tr.edit-row td::before {
+      content: attr(data-label);
+      display: block; margin-bottom: 4px;
+      font-size: 0.7rem; color: #555;
+    }
+    tr.edit-row .edit-inp { width: 100%; box-sizing: border-box; }
+    tr.edit-row .narrow { max-width: 100%; }
+    tr.edit-row .chk-label-sm { display: inline-flex; margin-right: 0.85rem; margin-top: 0.35rem; }
+    tr.edit-row .action-cell { display: flex; gap: 0.6rem; padding-top: 0.6rem; }
   }
 </style>

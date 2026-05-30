@@ -122,7 +122,7 @@
                   {/each}
                 </select>
               </td>
-              <td><input type="number" step="0.01" bind:value={valor} class="inp right" /></td>
+              <td><input type="number" inputmode="decimal" step="0.01" bind:value={valor} class="inp right" /></td>
               <td class="hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
               <td class="actions">
                 <button class="btn-save" on:click={handleSave}>✓</button>
@@ -156,7 +156,7 @@
                 {/each}
               </select>
             </td>
-            <td><input type="number" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" /></td>
+            <td><input type="number" inputmode="decimal" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" /></td>
             <td class="hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
             <td class="actions">
               <button class="btn-save" on:click={handleSave}>✓</button>

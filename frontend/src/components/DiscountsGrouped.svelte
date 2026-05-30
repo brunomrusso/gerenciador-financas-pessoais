@@ -186,7 +186,7 @@
                       <option value="desconto">−</option>
                       <option value="credito">+</option>
                     </select>
-                    <input type="number" step="0.01" bind:value={valor} class="inp right" />
+                    <input type="number" inputmode="decimal" step="0.01" bind:value={valor} class="inp right" />
                   </div>
                 </td>
                 <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>
@@ -222,7 +222,7 @@
                     <option value="desconto">−</option>
                     <option value="credito">+</option>
                   </select>
-                  <input type="number" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" />
+                  <input type="number" inputmode="decimal" step="0.01" placeholder="0,00" bind:value={valor} class="inp right" />
                 </div>
               </td>
               <td class="center hide-sm"><input type="checkbox" bind:checked={recorrente} /></td>

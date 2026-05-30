@@ -113,6 +113,7 @@
                   <div class="edit-wrap">
                     <input
                       type="number"
+                      inputmode="decimal"
                       step="0.01"
                       bind:value={editValor}
                       placeholder="0,00"
@@ -173,6 +174,7 @@
                     <div class="edit-wrap">
                       <input
                         type="number"
+                        inputmode="decimal"
                         step="0.01"
                         bind:value={editValor}
                         placeholder="0,00"

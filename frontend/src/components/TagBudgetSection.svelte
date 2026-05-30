@@ -129,7 +129,7 @@
                 {#if editing === it.tag}
                   <div class="edit-wrap">
                     <input
-                      type="number" step="0.01" bind:value={editValor}
+                      type="number" inputmode="decimal" step="0.01" bind:value={editValor}
                       placeholder="0,00" class="bud-inp"
                       on:keydown={(e) => e.key === 'Enter' && saveEdit(it.tag)}
                     />
@@ -194,7 +194,7 @@
                   <span class="other-name">#{it.tag}</span>
                   <div class="edit-wrap">
                     <input
-                      type="number" step="0.01" bind:value={editValor}
+                      type="number" inputmode="decimal" step="0.01" bind:value={editValor}
                       placeholder="0,00" class="bud-inp"
                       on:keydown={(e) => e.key === 'Enter' && saveEdit(it.tag)}
                     />

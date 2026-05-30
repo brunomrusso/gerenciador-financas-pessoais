@@ -97,6 +97,7 @@
       />
       <input
         type="number"
+        inputmode="decimal"
         placeholder="Valor (ex: -150.00)"
         bind:value={newValor}
         step="0.01"
@@ -133,10 +134,10 @@
         {#each items as item (item.id)}
           {#if editingId === item.id}
             <tr class="edit-row">
-              <td><input type="text" bind:value={editDesc} class="edit-inp" /></td>
-              <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp" /></td>
+              <td data-label="Descrição"><input type="text" bind:value={editDesc} class="edit-inp" /></td>
+              <td data-label="Valor"><input type="number" inputmode="decimal" bind:value={editValor} step="0.01" class="edit-inp" /></td>
               {#if type === 'discounts'}
-                <td style="text-align: center;">
+                <td data-label="Recorrente" style="text-align: center;">
                   <input type="checkbox" bind:checked={editRecorrente} />
                 </td>
               {/if}
@@ -147,10 +148,10 @@
             </tr>
           {:else}
             <tr>
-              <td>{item.descricao || item.card_name || '-'}</td>
-              <td class={item.valor < 0 ? 'negative' : 'positive'}>{fmt(item.valor)}</td>
+              <td data-label="Descrição">{item.descricao || item.card_name || '-'}</td>
+              <td data-label="Valor" class={item.valor < 0 ? 'negative' : 'positive'}>{fmt(item.valor)}</td>
               {#if type === 'discounts'}
-                <td style="text-align: center;">
+                <td data-label="Recorrente" style="text-align: center;">
                   {#if item.recorrente}
                     <span class="badge-recorrente">🔄</span>
                   {/if}
@@ -164,8 +165,8 @@
           {/if}
         {/each}
         <tr class="total-row">
-          <td><strong>Total</strong></td>
-          <td class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{fmt(getTotal())}</strong></td>
+          <td data-label=""><strong>Total</strong></td>
+          <td data-label="" class={getTotal() < 0 ? 'negative' : 'positive'}><strong>{fmt(getTotal())}</strong></td>
           {#if type === 'discounts'}<td></td>{/if}
           <td></td>
         </tr>
@@ -303,8 +304,53 @@
   .checkbox-label { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; font-size: 0.875rem; }
   .checkbox-label input { cursor: pointer; }
 
-  @media (max-width: 640px) {
-    .data-table { padding: 1rem; }
+  @media (max-width: 768px) {
+    .data-table { padding: 0.85rem; margin-bottom: 1rem; }
     .input-desc, .input-valor { min-width: 100%; }
+    .add-form { flex-direction: column; gap: 0.5rem; }
+    .btn-save { width: 100%; padding: 0.7rem; font-size: 0.95rem; }
+
+    /* Tabela vira cards no mobile */
+    table, thead, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tr {
+      background: #fafbfc;
+      border: 1px solid #eef0f5;
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    tr.edit-row { background: #f0f4ff; border-color: #c5cae9; }
+    tr.total-row { background: #f0f4ff; border-color: #667eea; }
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 0;
+      border: none !important;
+      font-size: 0.92rem;
+    }
+    td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #888;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    td.action-td {
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      margin-top: 0.4rem;
+      border-top: 1px solid #eef0f5 !important;
+    }
+    td.action-td::before { display: none; }
+    .btn-edit, .btn-del, .btn-ok, .btn-cancel {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+    .edit-inp { max-width: 60%; }
   }
 </style>

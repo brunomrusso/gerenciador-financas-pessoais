@@ -77,6 +77,21 @@
     transition: transform 0.3s, box-shadow 0.3s;
   }
 
+  @media (max-width: 768px) {
+    .summary-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin: 1rem 0;
+    }
+    .card { padding: 0.75rem 0.85rem; border-radius: 8px; }
+    .card-header { margin-bottom: 0.4rem; }
+    .card-header h3 { font-size: 0.7rem; letter-spacing: 0.3px; }
+    .card-value { font-size: 1.05rem; }
+    /* Saldo final ocupa linha inteira */
+    .card.saldo { grid-column: 1 / -1; }
+    .card.saldo .card-value { font-size: 1.4rem; }
+  }
+
   .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);

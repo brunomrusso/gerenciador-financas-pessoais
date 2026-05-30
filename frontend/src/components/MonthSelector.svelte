@@ -141,8 +141,16 @@
     border-color: transparent;
   }
 
-  @media (max-width: 500px) {
-    .months-grid { grid-template-columns: repeat(4, 1fr); }
-    .month-btn { font-size: 0.78rem; padding: 0.45rem 0.1rem; }
+  @media (max-width: 768px) {
+    .month-selector { padding: 0.6rem 0.7rem; margin-bottom: 0.8rem; }
+    .top-row { flex-wrap: wrap; gap: 0.4rem; }
+    .btn-copy { font-size: 0.78rem; padding: 0.4rem 0.65rem; flex: 1; min-width: 0; }
+    .btn-today { font-size: 0.8rem; }
+    .year-select { font-size: 0.85rem; }
+    .months-grid { grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+    .month-btn { font-size: 0.78rem; padding: 0.55rem 0.1rem; min-height: 38px; }
+  }
+  @media (max-width: 360px) {
+    .months-grid { grid-template-columns: repeat(3, 1fr); }
   }
 </style>

@@ -311,12 +311,12 @@
       <select bind:value={addCategoria} class="inp">
         {#each categorias as cat}<option>{cat}</option>{/each}
       </select>
-      <input type="number" placeholder="Valor total *" bind:value={addValor} step="0.01" class="inp" />
+      <input type="number" inputmode="decimal" placeholder="Valor total *" bind:value={addValor} step="0.01" class="inp" />
       <input type="date" bind:value={addData} class="inp" />
       <TagInput bind:tags={addTags} placeholder="tags..." />
       <div class="parcelas-wrap">
         <label class="inp-label">Parcelas</label>
-        <input type="number" min="1" max="60" bind:value={addParcelas} class="inp inp-narrow" />
+        <input type="number" inputmode="numeric" min="1" max="60" bind:value={addParcelas} class="inp inp-narrow" />
       </div>
       <button class="btn-save" on:click={handleAdd} disabled={saving}>
         {saving ? 'Salvando...' : 'Salvar'}
@@ -426,7 +426,7 @@
                         <td class="parcela-cell hide-sm">
                           <span class="parc-cur">{exp.parcela_atual}/</span><input type="number" bind:value={editParcelas} min="1" max="60" class="edit-inp" style="width:44px" />
                         </td>
-                        <td><input type="number" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
+                        <td data-label="Valor"><input type="number" inputmode="decimal" bind:value={editValor} step="0.01" class="edit-inp narrow" /></td>
                         <td class="action-cell">
                           <button class="btn-ok" on:click={() => saveEdit(exp)}>✓</button>
                           <button class="btn-cancel" on:click={() => editingExpId = null}>✕</button>
@@ -434,7 +434,7 @@
                       </tr>
                     {:else}
                       <tr>
-                        <td class="desc">
+                        <td class="desc" data-label="Descrição">
                           {exp.descricao}
                           {#if Array.isArray(exp.tags) && exp.tags.length > 0}
                             <span class="row-tags">{#each exp.tags as t}<span class="tag-mini">#{t}</span>{/each}</span>
@@ -444,16 +444,16 @@
                             {#if exp.parcelas_total > 1}<span class="parc-badge">{exp.parcela_atual}/{exp.parcelas_total}</span>{/if}
                           </div>
                         </td>
-                        <td class="hide-sm"><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
-                        <td>{exp.data || '—'}</td>
-                        <td class="parcela-cell hide-sm">
+                        <td class="hide-sm" data-label="Categoria"><span class="cat-badge">{exp.categoria || 'Outros'}</span></td>
+                        <td data-label="Data">{exp.data || '—'}</td>
+                        <td class="parcela-cell hide-sm" data-label="Parcela">
                           {#if exp.parcelas_total > 1}
                             <span class="parc-badge">{exp.parcela_atual}/{exp.parcelas_total}</span>
                           {:else}
                             <span class="parc-badge single">1×</span>
                           {/if}
                         </td>
-                        <td class="negative">{fmt(exp.valor)}</td>
+                        <td data-label="Valor" class="negative">{fmt(exp.valor)}</td>
                         <td class="action-cell">
                           <button class="btn-edit" on:click={() => startEdit(exp)}>✎</button>
                           <button class="btn-move" on:click={() => startMove(exp)} title="Mover para outro mês">➜</button>
@@ -492,7 +492,7 @@
                 <option value={acc.id}>{acc.icone} {acc.nome}</option>
               {/each}
             </select>
-            <input type="number" step="0.01" bind:value={row.valor} placeholder="0,00" />
+            <input type="number" inputmode="decimal" step="0.01" bind:value={row.valor} placeholder="0,00" />
             <button class="btn-rm-row" on:click={() => removePayRow(i)} title="Remover">✕</button>
           </div>
         {/each}
@@ -666,16 +666,54 @@
   .sub-mobile { display: none; margin-top: 3px; }
   .sub-mobile .cat-badge, .sub-mobile .parc-badge { font-size: 0.65rem; margin-right: 4px; }
 
-  @media (max-width: 640px) {
-    .card-section { padding: 1rem; }
+  @media (max-width: 768px) {
+    .card-section { padding: 0.85rem; }
     .fatura-header { padding: 0.6rem; gap: 0.5rem; font-size: 0.85rem; }
     .card-count { display: none; }
     .hide-sm { display: none !important; }
     .sub-mobile { display: block; }
-    .fatura-body table { min-width: 0; }
-    .fatura-body th { padding: 0.35rem 0.3rem; font-size: 0.72rem; }
-    .fatura-body td { padding: 0.3rem 0.3rem; font-size: 0.78rem; }
-    .action-cell button { min-width: 30px; min-height: 30px; }
+    .add-form { flex-direction: column; gap: 0.4rem; }
+    .add-form .inp, .add-form .flex2 { width: 100%; flex: 1 1 100%; }
+    .parcelas-wrap { width: 100%; }
+    .btn-save { width: 100%; padding: 0.7rem; }
+    .pay-row { flex-wrap: wrap; }
+    .pay-row select { flex: 1 1 100%; }
+    .pay-row input { flex: 1 1 70%; }
+
+    /* Tabela de despesas do cartao em modo card */
+    .fatura-body table { width: 100%; display: block; min-width: 0; }
+    .fatura-body thead { display: none; }
+    .fatura-body tbody { display: block; }
+    .fatura-body tr { display: block; background: #fafbfc; border: 1px solid #eef0f5; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.45rem; }
+    .fatura-body tr.edit-row { background: #f0f4ff; border-color: #c5cae9; }
+    .fatura-body td {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 0.6rem; padding: 0.3rem 0; border: none !important;
+      font-size: 0.88rem; min-height: auto;
+    }
+    .fatura-body td.hide-sm { display: none !important; }
+    .fatura-body td::before {
+      content: attr(data-label);
+      font-weight: 600; color: #888;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    .fatura-body td.desc { font-weight: 600; font-size: 0.95rem; flex-direction: column; align-items: flex-start; }
+    .fatura-body td.desc::before { display: none; }
+    .fatura-body td.action-cell {
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      margin-top: 0.4rem;
+      border-top: 1px solid #eef0f5 !important;
+    }
+    .fatura-body td.action-cell::before { display: none; }
+    .fatura-body td.action-cell button { width: 40px; height: 40px; font-size: 1rem; }
+    .fatura-body tr.edit-row td { display: block; padding: 0.4rem 0; }
+    .fatura-body tr.edit-row td .edit-inp { width: 100%; box-sizing: border-box; }
+    .fatura-body tr.edit-row td.action-cell { display: flex; gap: 0.6rem; padding-top: 0.6rem; }
   }
 
   /* Forma de pagamento */

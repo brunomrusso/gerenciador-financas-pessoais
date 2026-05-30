@@ -252,6 +252,7 @@
               <input
                 id="saldo-anterior-input"
                 type="number"
+                inputmode="decimal"
                 value={currentRecord.saldo_anterior}
                 on:change={(e) => handleBalanceChange(parseFloat(e.currentTarget.value))}
                 step="0.01"
@@ -282,6 +283,7 @@
               <input
                 id="salario-input"
                 type="number"
+                inputmode="decimal"
                 value={currentRecord.salario_bruto}
                 on:change={(e) => handleSalaryChange(parseFloat(e.currentTarget.value))}
                 step="0.01"
@@ -488,6 +490,10 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 0.75rem 0.6rem 1.5rem; }
   }
 
   .tabs {
