@@ -544,7 +544,10 @@
     .add-form { flex-direction: column; gap: 0.4rem; padding: 0.6rem; align-items: stretch; flex-wrap: nowrap; }
     .add-form .inp.half, .add-form .inp.full { width: 100%; max-width: 100%; flex: 1 1 100%; min-width: 0; }
     .add-form select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
-    .add-form input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+    .add-form input:not([type="checkbox"]):not([type="radio"]) { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+    .add-form input[type="date"] { -webkit-appearance: none; appearance: none; display: block; }
+    .add-form input[type="checkbox"] { width: auto; flex: 0 0 auto; }
+    .add-form .chk-label { align-self: flex-start; width: auto; }
 
     /* Estilo extrato: cada despesa = linha compacta */
     table { min-width: 0; width: 100%; display: block; }
