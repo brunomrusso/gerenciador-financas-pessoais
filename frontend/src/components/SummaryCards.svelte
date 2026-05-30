@@ -96,11 +96,11 @@
     .card-header { margin-bottom: 0.3rem; }
     .card-header h3 { font-size: 0.68rem; letter-spacing: 0.3px; }
 
-    /* Cards pequenos (Receitas/Descontos/Despesas/Invest): troca para compacto */
+    /* Cards pequenos (Receitas/Descontos/Despesas/Invest): troca para sem cifrão */
     .card:not(.saldo) .card-value.full { display: none; }
     .card:not(.saldo) .card-value.compact {
       display: block;
-      font-size: 1.15rem;
+      font-size: clamp(0.85rem, 4.2vw, 1.05rem);
       font-weight: 700;
       white-space: nowrap;
     }
