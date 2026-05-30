@@ -513,63 +513,143 @@
   .pager-btn:disabled { background: #ccc; cursor: default; }
   .pager-info { font-size: 0.8rem; color: #666; }
 
+  /* Compactacao da cat-table no mobile e desktop */
+  .cat-table-wrap {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
   @media (max-width: 768px) {
-    .expense-wrap { flex-direction: column; }
-    .chart-section { max-width: 100%; width: 100%; }
-    .table-section { padding: 0.75rem; flex: 1 1 100%; }
-    .table-wrap { max-height: none; overflow: visible; }
-    h3 { font-size: 1rem; }
+    .expense-wrap { flex-direction: column; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .chart-section { max-width: 100%; width: 100%; padding: 0.75rem; }
+
+    /* Cat-table compacta no mobile */
+    .cat-table-wrap { max-height: 200px; }
+    .cat-table th { padding: 0.25rem 0.3rem; font-size: 0.68rem; }
+    .cat-table td { padding: 0.28rem 0.3rem; font-size: 0.75rem; }
+    .cat-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+    .cat-val { font-size: 0.75rem; }
+    .cat-pct { font-size: 0.72rem; }
+
+    .table-section { padding: 0.6rem; flex: 1 1 100%; }
+    .table-wrap { max-height: 65vh; overflow-y: auto; }
+    h3 { font-size: 0.95rem; }
     .header-actions { gap: 0.3rem; flex-wrap: wrap; }
-    .btn-sm { padding: 0.5rem 0.7rem; font-size: 0.78rem; min-height: 36px; }
-    .filter-bar { gap: 0.3rem; flex-wrap: wrap; }
-    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.55rem; }
-    .pager-btn { width: 40px; height: 40px; font-size: 1.05rem; }
-    .add-form { flex-direction: column; }
+    .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.72rem; min-height: 30px; }
+    .btn-add { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+    .filter-bar { gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; padding: 0.45rem; font-size: 0.85rem; }
+    .pager-btn { width: 32px; height: 32px; font-size: 0.95rem; }
+    .add-form { flex-direction: column; gap: 0.4rem; padding: 0.6rem; }
     .add-form .inp.half, .add-form .inp.full { width: 100%; flex: 1 1 100%; }
 
-    /* Tabela vira cards no mobile */
+    /* Estilo extrato: cada despesa = linha compacta */
     table { min-width: 0; width: 100%; display: block; }
     thead, tfoot { display: none; }
     tbody { display: block; }
-    tr { display: block; background: #fafbfc; border: 1px solid #eef0f5; border-radius: 8px; padding: 0.7rem 0.85rem; margin-bottom: 0.55rem; }
-    tr.edit-row { background: #f0f4ff; border-color: #c5cae9; padding: 0.85rem; }
-    tr.pago-row { opacity: 0.65; }
-    tr.total-row { display: none; } /* Totais ja no SummaryCards no topo */
-    td { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.35rem 0; border: none !important; font-size: 0.92rem; min-height: auto; }
-    td.hide-sm { display: flex !important; }
-    td::before {
-      content: attr(data-label);
-      font-weight: 600; color: #888;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      flex-shrink: 0;
-    }
-    td.desc-cell { font-weight: 600; font-size: 0.98rem; flex-direction: column; align-items: flex-start; }
-    td.desc-cell::before { display: none; }
-    td.pago-cell { justify-content: flex-end; }
-    td.action-cell {
-      justify-content: flex-end;
-      gap: 0.5rem;
-      padding-top: 0.55rem;
-      margin-top: 0.5rem;
-      border-top: 1px solid #eef0f5 !important;
-    }
-    td.action-cell::before { display: none; }
-    .btn-edit, .btn-del, .btn-ok, .btn-cancel-edit { width: 40px; height: 40px; font-size: 1rem; }
-    .row-tags { margin-top: 4px; }
-    .badge, .acc-badge { font-size: 0.78rem; }
 
-    /* Edit-row em mobile: vertical sem prefix */
-    tr.edit-row td { display: block; padding: 0.4rem 0; }
+    tr {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      column-gap: 0.5rem;
+      row-gap: 2px;
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid #eef0f5;
+      margin: 0;
+      align-items: center;
+    }
+    tr:last-child { border-bottom: none; }
+    tr.pago-row { opacity: 0.55; }
+
+    td { border: none !important; padding: 0; font-size: 0.8rem; min-height: 0; }
+    td::before { display: none; }
+
+    /* Linha 1: descrição (col 1) + valor (col 2-3) */
+    td.desc-cell {
+      grid-column: 1; grid-row: 1;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 0.4rem;
+    }
+    td.desc-cell .row-tags { display: none; }
+    td.desc-cell .rec-badge { font-size: 0.7rem; margin-left: 3px; opacity: 0.7; }
+
+    td[data-label="Valor"] {
+      grid-column: 2 / 4; grid-row: 1;
+      font-weight: 700;
+      font-size: 0.92rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* Linha 2: cat/conta (col 1) | pago (col 2) | acoes (col 3) */
+    td.hide-sm[data-label="Categoria"] {
+      grid-column: 1; grid-row: 2;
+      display: flex !important;
+      gap: 4px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      font-size: 0.66rem;
+      color: #888;
+      align-items: center;
+    }
+    td.hide-sm[data-label="Data"] { display: none !important; }
+
+    td.pago-cell {
+      grid-column: 2; grid-row: 2;
+      display: inline-flex !important;
+      align-items: center;
+      padding: 0 0.3rem 0 0;
+    }
+    td.pago-cell input { transform: scale(0.9); margin: 0; }
+
+    td.action-cell {
+      grid-column: 3; grid-row: 2;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.25rem;
+      align-items: center;
+    }
+    .btn-edit, .btn-del { width: 26px; height: 26px; font-size: 0.7rem; border-radius: 4px; }
+    .badge { font-size: 0.62rem; padding: 1px 5px; }
+    .acc-badge { font-size: 0.62rem; padding: 1px 5px; }
+    .credit-badge { display: none; }
+
+    /* Edit-row mobile: bem compacto e vertical */
+    tr.edit-row {
+      display: block;
+      background: #f0f4ff;
+      padding: 0.6rem 0.7rem;
+      margin: 0.35rem 0;
+      border: 1px solid #c5cae9;
+      border-radius: 8px;
+    }
+    tr.edit-row td { display: block; padding: 0.3rem 0; }
     tr.edit-row td::before {
       content: attr(data-label);
-      display: block; margin-bottom: 4px;
-      font-size: 0.7rem; color: #555;
+      display: block; margin-bottom: 3px;
+      font-size: 0.68rem; color: #667; font-weight: 600;
+      text-transform: uppercase;
     }
-    tr.edit-row .edit-inp { width: 100%; box-sizing: border-box; }
+    tr.edit-row .edit-inp, tr.edit-row select.edit-inp {
+      width: 100%; box-sizing: border-box;
+      padding: 0.45rem 0.55rem; font-size: 0.88rem;
+    }
     tr.edit-row .narrow { max-width: 100%; }
-    tr.edit-row .chk-label-sm { display: inline-flex; margin-right: 0.85rem; margin-top: 0.35rem; }
-    tr.edit-row .action-cell { display: flex; gap: 0.6rem; padding-top: 0.6rem; }
+    tr.edit-row .chk-label-sm { display: inline-flex; margin-right: 0.7rem; margin-top: 0.3rem; font-size: 0.78rem; }
+    tr.edit-row td.action-cell {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      justify-content: flex-end;
+      grid-column: auto; grid-row: auto;
+      border-top: none !important;
+    }
+    tr.edit-row td.action-cell .btn-ok,
+    tr.edit-row td.action-cell .btn-cancel-edit { width: 36px; height: 36px; }
   }
 </style>
