@@ -53,6 +53,11 @@ def create_app(config_name='development'):
         app.register_blueprint(accounts_routes.bp)
         app.register_blueprint(telegram_routes.bp)
 
+    # Healthcheck publico (sem auth) - usado por keepalive externo (Render free nao dormir)
+    @app.route('/health')
+    def health():
+        return {'status': 'ok'}, 200
+
     # Bot Telegram (thread separada, opcional)
     if os.getenv('TELEGRAM_BOT_ENABLED', '').lower() == 'true' and os.getenv('TELEGRAM_BOT_TOKEN'):
         try:

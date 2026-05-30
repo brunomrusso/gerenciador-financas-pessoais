@@ -1,0 +1,64 @@
+name: Keep Render Alive
+
+# Pinga o backend a cada 13 minutos para evitar que o Render free durma (sleep apos 15 min ocioso).
+# A URL do backend deve estar configurada no secret RENDER_URL do repositorio.
+
+on:
+  schedule:
+    # */13 nao seria valido em todos os campos; usamos lista para garantir disparo a cada ~13 min.
+    # GitHub Actions cron e em UTC e pode atrasar alguns minutos.
+    - cron: '0,13,26,39,52 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Ping backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validar secret
+        run: |
+          if [ -z "${{ secrets.RENDER_URL }}" ]; then
+            echo "::error::Secret RENDER_URL nao configurado. Va em Settings > Secrets and variables > Actions > New repository secret."
+            exit 1
+          fi
+
+      - name: Ping /health
+        env:
+          BASE: ${{ secrets.RENDER_URL }}
+        run: |
+          # Remove barra final se houver
+          BASE="${BASE%/}"
+          URL="$BASE/health"
+          echo "Pingando $URL"
+
+          # Tenta ate 3x com timeout de 60s cada (cold start pode levar 30-50s)
+          for attempt in 1 2 3; do
+            HTTP_CODE=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
+              --max-time 60 \
+              --retry 0 \
+              -H "User-Agent: GitHub-Actions-Keepalive" \
+              "$URL" || echo "000")
+
+            echo "Tentativa $attempt: HTTP $HTTP_CODE"
+            cat /tmp/resp.txt || true
+            echo ""
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✓ Servidor acordado"
+              exit 0
+            fi
+
+            if [ $attempt -lt 3 ]; then
+              echo "Aguardando 15s antes da proxima tentativa..."
+              sleep 15
+            fi
+          done
+
+          echo "::warning::Servidor nao respondeu 200 apos 3 tentativas (ultimo codigo: $HTTP_CODE). Pode estar em cold start ou indisponivel."
+          # Nao falha o job para nao gerar muito email/alerta de erro - apenas avisa
+          exit 0
