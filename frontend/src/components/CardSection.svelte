@@ -33,10 +33,11 @@
 
   // add expense form
   let adding = false
+  const todayISO = () => new Date().toISOString().split('T')[0]
   let addCardId: number | null = null
   let addDesc = ''
   let addValor = ''
-  let addData = ''
+  let addData = todayISO()
   let addParcelas = '1'
   let addCategoria = 'Outros'
   let addTags: string[] = []
@@ -125,7 +126,7 @@
           tags: addTags
         })
       })
-      addDesc = ''; addValor = ''; addData = ''; addParcelas = '1'; addCategoria = 'Outros'; addTags = []
+      addDesc = ''; addValor = ''; addData = todayISO(); addParcelas = '1'; addCategoria = 'Outros'; addTags = []
       adding = false
       await loadFaturas()
       await fetchAccounts()
@@ -272,7 +273,7 @@
         ⚙ Gerenciar Cartões
       </button>
       {#if cards.length > 0}
-        <button class="btn-sm btn-purple" on:click={() => { adding = !adding; editingExpId = null }}>
+        <button class="btn-sm btn-purple" on:click={() => { adding = !adding; editingExpId = null; if (adding && !addData) addData = todayISO() }}>
           {adding ? 'Cancelar' : '+ Lançar despesa'}
         </button>
       {/if}

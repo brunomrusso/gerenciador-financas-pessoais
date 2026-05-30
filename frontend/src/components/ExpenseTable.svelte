@@ -20,7 +20,8 @@
   let newCatName = ''
   let showCatManager = false
 
-  let newDesc = '', newValor = '', newCategoria = 'Outros', newData = '', newPago = false, newRecorrente = false, newEhCredito = false
+  const todayISO = () => new Date().toISOString().split('T')[0]
+  let newDesc = '', newValor = '', newCategoria = 'Outros', newData = todayISO(), newPago = false, newRecorrente = false, newEhCredito = false
   let newTags: string[] = []
   let newAccountId: number | '' = ''
   let adding = false, saving = false
@@ -113,7 +114,7 @@
       })
       await fetchRecords(month, year.toString())
       await fetchAccounts()
-      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = ''; newPago = false; newRecorrente = false; newEhCredito = false; newTags = []; newAccountId = ''; adding = false
+      newDesc = ''; newValor = ''; newCategoria = 'Outros'; newData = todayISO(); newPago = false; newRecorrente = false; newEhCredito = false; newTags = []; newAccountId = ''; adding = false
     } finally { saving = false }
   }
 
@@ -223,7 +224,7 @@
         <button class="btn-sm btn-green" on:click={copyRecurring} title="Copiar recorrentes do mês anterior">↻ Recorrentes</button>
         <button class="btn-sm btn-export" on:click={exportExcel} title="Exportar para Excel">⬇ Excel</button>
         <button class="btn-sm btn-cat" on:click={() => showCatManager = !showCatManager}>⚙ Categorias</button>
-        <button class="btn-add" on:click={() => { adding = !adding; editingId = null }}>
+        <button class="btn-add" on:click={() => { adding = !adding; editingId = null; if (adding && !newData) newData = todayISO() }}>
           {adding ? 'Cancelar' : '+ Adicionar'}
         </button>
       </div>
