@@ -1,6 +1,6 @@
 <script lang="ts">
   import { valuesHidden } from '../stores/privacy'
-  import { fmtMasked } from '../utils/format'
+  import { fmtMasked, fmtCompact } from '../utils/format'
 
   export let record: any
   export let cardFaturas: any[] = []
@@ -22,6 +22,7 @@
   $: saldoFinal = (record.saldo_anterior || 0) + totalReceitas + totalCreditos - totalDescontos - totalDebitos - liquidoInvestMes
 
   $: formatCurrency = (value: number) => fmtMasked(value, $valuesHidden)
+  $: formatCompact = (value: number) => fmtCompact(value, $valuesHidden)
 </script>
 
 <div class="summary-cards">
@@ -29,35 +30,40 @@
     <div class="card-header">
       <h3>Receitas</h3>
     </div>
-    <div class="card-value">{formatCurrency(totalReceitas)}</div>
+    <div class="card-value full">{formatCurrency(totalReceitas)}</div>
+    <div class="card-value compact">{formatCompact(totalReceitas)}</div>
   </div>
 
   <div class="card descontos">
     <div class="card-header">
       <h3>Descontos</h3>
     </div>
-    <div class="card-value">{formatCurrency(totalDescontos)}</div>
+    <div class="card-value full">{formatCurrency(totalDescontos)}</div>
+    <div class="card-value compact">{formatCompact(totalDescontos)}</div>
   </div>
 
   <div class="card despesas">
     <div class="card-header">
       <h3>Despesas</h3>
     </div>
-    <div class="card-value">{formatCurrency(totalDespesas)}</div>
+    <div class="card-value full">{formatCurrency(totalDespesas)}</div>
+    <div class="card-value compact">{formatCompact(totalDespesas)}</div>
   </div>
 
   <div class="card investimentos">
     <div class="card-header">
       <h3>Investimentos</h3>
     </div>
-    <div class="card-value">{formatCurrency(totalInvestimentos)}</div>
+    <div class="card-value full">{formatCurrency(totalInvestimentos)}</div>
+    <div class="card-value compact">{formatCompact(totalInvestimentos)}</div>
   </div>
 
   <div class={`card saldo ${saldoFinal >= 0 ? 'positivo' : 'negativo'}`}>
     <div class="card-header">
       <h3>Saldo Final</h3>
     </div>
-    <div class="card-value">{formatCurrency(saldoFinal)}</div>
+    <div class="card-value full">{formatCurrency(saldoFinal)}</div>
+    <div class="card-value compact">{formatCompact(saldoFinal)}</div>
   </div>
 </div>
 
@@ -77,6 +83,9 @@
     transition: transform 0.3s, box-shadow 0.3s;
   }
 
+  /* Padrao: mostra valor completo (R$ X), oculta compacto */
+  .card-value.compact { display: none; }
+
   @media (max-width: 768px) {
     .summary-cards {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -84,22 +93,31 @@
       margin: 1rem 0;
     }
     .card { padding: 0.7rem 0.7rem; border-radius: 8px; min-width: 0; overflow: hidden; }
-    .card-header { margin-bottom: 0.35rem; }
+    .card-header { margin-bottom: 0.3rem; }
     .card-header h3 { font-size: 0.68rem; letter-spacing: 0.3px; }
-    .card-value {
-      font-size: clamp(0.78rem, 4.2vw, 1.05rem);
+
+    /* Cards pequenos (Receitas/Descontos/Despesas/Invest): troca para compacto */
+    .card:not(.saldo) .card-value.full { display: none; }
+    .card:not(.saldo) .card-value.compact {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* Saldo final ocupa linha inteira: mantem valor completo, mas com clamp */
+    .card.saldo { grid-column: 1 / -1; }
+    .card.saldo .card-value.full {
+      font-size: clamp(1.1rem, 5.5vw, 1.5rem);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    /* Saldo final ocupa linha inteira */
-    .card.saldo { grid-column: 1 / -1; }
-    .card.saldo .card-value { font-size: clamp(1.05rem, 6vw, 1.5rem); }
   }
   @media (max-width: 360px) {
     .summary-cards { gap: 0.45rem; }
-    .card { padding: 0.55rem 0.6rem; }
-    .card-value { font-size: clamp(0.72rem, 4vw, 0.95rem); }
+    .card { padding: 0.55rem 0.55rem; }
+    .card:not(.saldo) .card-value.compact { font-size: 1rem; }
   }
 
   .card:hover {
