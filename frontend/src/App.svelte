@@ -3,6 +3,7 @@
   import Login from './pages/Login.svelte'
   import Dashboard from './pages/Dashboard.svelte'
   import ResetPassword from './pages/ResetPassword.svelte'
+  import PWAPrompt from './components/PWAPrompt.svelte'
   import { authStore } from './stores/auth'
 
   let isAuthenticated = false
@@ -33,6 +34,8 @@
     <Login />
   {/if}
 </main>
+
+<PWAPrompt />
 
 <style>
   :global(body) {
