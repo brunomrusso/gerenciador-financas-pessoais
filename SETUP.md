@@ -70,17 +70,6 @@ O frontend estará em: `http://localhost:5173`
 3. Use email: `teste@example.com` e senha: `teste123`
 4. Após login, você verá o dashboard
 
-## Passo 4: Migrar Dados (Opcional)
-
-Se você tem dados no arquivo `controle_financeiro.xlsx`:
-
-```powershell
-# Certifique-se de que o backend está rodando
-python migrate_data.py
-```
-
-Isso importará todos os dados do Excel para o PostgreSQL.
-
 ## ⚠️ Troubleshooting
 
 ### Erro: "psycopg2" não encontrado

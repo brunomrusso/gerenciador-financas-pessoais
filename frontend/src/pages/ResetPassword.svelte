@@ -39,7 +39,7 @@
 
 <div class="rp-wrap">
   <div class="rp-card">
-    <img src="/assets/logo.png" alt="CashFlow" class="logo" />
+    <img src="/assets/cashtrackbranco.png" alt="CashFlow" class="logo" />
     <h1>Nova senha</h1>
     <p class="sub">Defina uma nova senha para sua conta CashFlow.</p>
 
