@@ -7,7 +7,7 @@ export default defineConfig({
     svelte({ preprocess: vitePreprocess() }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['assets/cashtrack_colorido.png', 'assets/cashtrackbranco.png'],
+      includeAssets: ['assets/cashflow.png', 'assets/cashtrack_colorido.png', 'assets/cashtrackbranco.png'],
       manifest: {
         name: 'CashFlow — Controle Financeiro',
         short_name: 'CashFlow',
@@ -21,19 +21,19 @@ export default defineConfig({
         lang: 'pt-BR',
         icons: [
           {
-            src: '/assets/cashtrack_colorido.png',
+            src: '/assets/cashflow.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/assets/cashtrack_colorido.png',
+            src: '/assets/cashflow.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/assets/cashtrack_colorido.png',
+            src: '/assets/cashflow.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
