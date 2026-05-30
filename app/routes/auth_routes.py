@@ -117,6 +117,38 @@ def forgot_password():
     return jsonify({'message': 'Se o email estiver cadastrado, voce recebera instrucoes'}), 200
 
 
+@bp.route('/export', methods=['GET'])
+@jwt_required()
+def export_user_data():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'Usuario nao encontrado'}), 404
+
+    data = {
+        'user': user.to_dict(),
+        'exported_at': datetime.utcnow().isoformat(),
+        'records': [r.to_dict() for r in user.monthly_records]
+    }
+    return jsonify(data), 200
+
+
+@bp.route('/me', methods=['DELETE'])
+@jwt_required()
+def delete_me():
+    data = request.get_json() or {}
+    password = data.get('password') or ''
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'Usuario nao encontrado'}), 404
+    if not user.check_password(password):
+        return jsonify({'error': 'Senha incorreta. Confirme sua senha para deletar a conta.'}), 400
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'Conta deletada com sucesso'}), 200
+
+
 @bp.route('/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json() or {}

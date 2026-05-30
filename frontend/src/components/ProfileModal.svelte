@@ -22,6 +22,12 @@
   let errProfile = ''
   let errPassword = ''
 
+  let exportingData = false
+  let deletePassword = ''
+  let deletingAccount = false
+  let errDelete = ''
+  let showDeleteConfirm = false
+
   let tgCode: string | null = null
   let tgStatus: { linked: boolean; username: string | null } | null = null
   let tgLoading = false
@@ -120,6 +126,46 @@
       tgCode = null
     } catch {}
   }
+
+  async function exportData() {
+    exportingData = true
+    try {
+      const r = await fetch('/api/auth/export', { headers: auth() })
+      const data = await r.json()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `cashflow-dados-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e: any) {
+      alert('Erro ao exportar: ' + e.message)
+    } finally {
+      exportingData = false
+    }
+  }
+
+  async function deleteAccount() {
+    if (!deletePassword) { errDelete = 'Informe sua senha para confirmar.'; return }
+    deletingAccount = true
+    errDelete = ''
+    try {
+      const r = await fetch('/api/auth/me', {
+        method: 'DELETE',
+        headers: auth(),
+        body: JSON.stringify({ password: deletePassword })
+      })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error || 'Erro ao deletar conta')
+      localStorage.removeItem('token')
+      window.location.href = '/'
+    } catch (e: any) {
+      errDelete = e.message
+    } finally {
+      deletingAccount = false
+    }
+  }
 </script>
 
 <div class="overlay" on:click|self={close}>
@@ -166,6 +212,37 @@
         <button class="btn-primary" on:click={changePassword} disabled={savingPassword || !currentPassword || !newPassword}>
           {savingPassword ? 'Trocando...' : 'Trocar senha'}
         </button>
+      </section>
+
+      <section class="danger-zone">
+        <h3>⚙️ Dados da conta</h3>
+        <p class="hint">Baixe uma cópia de todos os seus dados financeiros em formato JSON.</p>
+        <button class="btn-export" on:click={exportData} disabled={exportingData}>
+          {exportingData ? 'Exportando...' : '📤 Exportar todos os dados'}
+        </button>
+
+        <div class="delete-section">
+          {#if !showDeleteConfirm}
+            <button class="btn-delete-toggle" on:click={() => showDeleteConfirm = true}>
+              🗑️ Deletar minha conta
+            </button>
+          {:else}
+            <div class="delete-confirm">
+              <p class="warn">⚠️ Ação irreversível. Todos os seus dados serão permanentemente apagados.</p>
+              <label class="del-label">
+                Confirme sua senha
+                <input type="password" bind:value={deletePassword} placeholder="Senha atual" />
+              </label>
+              {#if errDelete}<div class="err">{errDelete}</div>{/if}
+              <div class="del-actions">
+                <button class="btn-cancel-del" on:click={() => { showDeleteConfirm = false; deletePassword = ''; errDelete = '' }}>Cancelar</button>
+                <button class="btn-danger" on:click={deleteAccount} disabled={deletingAccount || !deletePassword}>
+                  {deletingAccount ? 'Deletando...' : '🗑️ Confirmar exclusão'}
+                </button>
+              </div>
+            </div>
+          {/if}
+        </div>
       </section>
 
       <section>
@@ -255,6 +332,38 @@
     background: #f44336; color: white;
     border: none; padding: 0.5rem 1rem;
     border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-export {
+    background: #e8f5e9; color: #2e7d32;
+    border: 1px solid #a5d6a7; padding: 0.5rem 1rem;
+    border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .btn-export:hover { background: #c8e6c9; }
+  .btn-export:disabled { opacity: 0.6; cursor: not-allowed; }
+  .delete-section { margin-top: 0.25rem; }
+  .btn-delete-toggle {
+    background: none; border: 1px solid #ffcdd2;
+    color: #c62828; padding: 0.45rem 1rem;
+    border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn-delete-toggle:hover { background: #fff5f5; }
+  .delete-confirm {
+    background: #fff5f5; border: 1px solid #ffcdd2;
+    border-radius: 8px; padding: 0.85rem;
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .warn { color: #c62828; font-size: 0.83rem; font-weight: 600; margin: 0; }
+  .del-label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: #555; }
+  .del-actions { display: flex; gap: 0.5rem; }
+  .btn-cancel-del {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #ddd; background: none;
+    color: #777; border-radius: 6px; cursor: pointer;
     font-size: 0.85rem;
   }
   .ok { color: #2e7d32; font-size: 0.85rem; margin: 0.25rem 0; }

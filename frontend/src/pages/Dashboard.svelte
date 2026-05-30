@@ -21,6 +21,7 @@
   import ProfileModal from '../components/ProfileModal.svelte'
   import QuickAddFAB from '../components/QuickAddFAB.svelte'
   import OnboardingModal from '../components/OnboardingModal.svelte'
+  import ExportModal from '../components/ExportModal.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
@@ -28,6 +29,7 @@
 
   let profileOpen = false
   let showOnboarding = false
+  let showExport = false
   $: anyCollapsed = SECTION_KEYS.some(k => $collapsedSections[k])
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -253,6 +255,9 @@
         >
           📊 Painel
         </button>
+        <button class="tab-btn tab-export" on:click={() => showExport = true} title="Exportar relatório do mês">
+          📥 Exportar
+        </button>
       </div>
 
       {#if !showHistory}
@@ -366,6 +371,16 @@
 
   {#if showOnboarding}
     <OnboardingModal {userName} on:done={finishOnboarding} />
+  {/if}
+
+  {#if showExport && currentRecord}
+    <ExportModal
+      record={currentRecord}
+      {cardFaturas}
+      {selectedMonth}
+      {selectedYear}
+      on:close={() => showExport = false}
+    />
   {/if}
 
   {#if currentRecord}
@@ -543,6 +558,8 @@
     color: #667eea;
     border-bottom-color: #667eea;
   }
+  .tab-export { margin-left: auto; font-size: 0.85rem; color: #667eea; border-bottom-color: transparent; }
+  .tab-export:hover { color: #764ba2; }
 
   .details-section {
     background: white;
