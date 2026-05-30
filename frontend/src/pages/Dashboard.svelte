@@ -19,12 +19,15 @@
   import TransfersSection from '../components/TransfersSection.svelte'
   import CollapsibleSection from '../components/CollapsibleSection.svelte'
   import ProfileModal from '../components/ProfileModal.svelte'
+  import QuickAddFAB from '../components/QuickAddFAB.svelte'
+  import OnboardingModal from '../components/OnboardingModal.svelte'
   import { theme, toggleTheme } from '../stores/theme'
   import { fetchAccounts, accountsStore } from '../stores/accounts'
   import { valuesHidden, toggleValuesHidden } from '../stores/privacy'
   import { collapsedSections, collapseAll, expandAll, SECTION_KEYS } from '../stores/ui'
 
   let profileOpen = false
+  let showOnboarding = false
   $: anyCollapsed = SECTION_KEYS.some(k => $collapsedSections[k])
 
   const months = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -69,9 +72,20 @@
     authStore.subscribe(state => {
       if (state.user) {
         userName = state.user.nome && state.user.nome.trim() ? state.user.nome : (state.user.email?.split('@')[0] || 'Usuário')
+        const key = `cashflow_onboarding_done_${state.user.id ?? state.user.email}`
+        if (!localStorage.getItem(key)) showOnboarding = true
       }
     })
   })
+
+  function finishOnboarding() {
+    const user = $authStore.user
+    if (user) {
+      const key = `cashflow_onboarding_done_${user.id ?? user.email}`
+      localStorage.setItem(key, '1')
+    }
+    showOnboarding = false
+  }
 
 
   const loadCurrentMonth = async () => {
@@ -348,6 +362,17 @@
 
   {#if profileOpen}
     <ProfileModal on:close={() => profileOpen = false} />
+  {/if}
+
+  {#if showOnboarding}
+    <OnboardingModal {userName} on:done={finishOnboarding} />
+  {/if}
+
+  {#if currentRecord}
+    <QuickAddFAB
+      recordId={currentRecord.id}
+      on:saved={loadCurrentMonth}
+    />
   {/if}
 </div>
 
