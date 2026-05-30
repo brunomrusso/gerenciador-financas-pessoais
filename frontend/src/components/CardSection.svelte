@@ -674,7 +674,7 @@
     .card-count { display: none; }
     .hide-sm { display: none !important; }
     .sub-mobile { display: flex; }
-    .add-form { flex-direction: column; gap: 0.4rem; }
+    .add-form { flex-direction: column; gap: 0.4rem; align-items: stretch; flex-wrap: nowrap; }
     .add-form .inp, .add-form .flex2 { width: 100%; max-width: 100%; flex: 1 1 100%; min-width: 0; }
     .add-form select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .add-form input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }

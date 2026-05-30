@@ -541,7 +541,7 @@
     .inp-filter, .inp-filter-sm { flex: 1 1 100%; min-width: 0; max-width: 100%; width: 100%; padding: 0.45rem; font-size: 0.85rem; box-sizing: border-box; }
     .filter-bar select { max-width: 100%; min-width: 0; box-sizing: border-box; }
     .pager-btn { width: 32px; height: 32px; font-size: 0.95rem; }
-    .add-form { flex-direction: column; gap: 0.4rem; padding: 0.6rem; }
+    .add-form { flex-direction: column; gap: 0.4rem; padding: 0.6rem; align-items: stretch; flex-wrap: nowrap; }
     .add-form .inp.half, .add-form .inp.full { width: 100%; max-width: 100%; flex: 1 1 100%; min-width: 0; }
     .add-form select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .add-form input  { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
