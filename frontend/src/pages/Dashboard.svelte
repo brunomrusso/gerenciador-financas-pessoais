@@ -64,6 +64,20 @@
     currentRecord = $recordsStore.records[0]
   }
 
+  // Carrega faturas do cartao no Dashboard, independente de CardSection estar
+  // expandido (necessario para Saldo Final refletir gastos do cartao mesmo
+  // quando a secao esta colapsada).
+  const loadCardFaturas = async (recordId: number) => {
+    if (!recordId) return
+    try {
+      const r = await fetch(`/api/cards/faturas/${recordId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      })
+      if (r.ok) cardFaturas = await r.json()
+    } catch {}
+  }
+  $: if (currentRecord?.id) loadCardFaturas(currentRecord.id)
+
   // summaryKey reusa a chave global para forçar rerender do SummaryCards
   $: summaryKey = budgetRefreshKey
 
