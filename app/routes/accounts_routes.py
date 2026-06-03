@@ -79,37 +79,12 @@ def _compute_balance(account, all_accounts):
                 matches(Expense.account_id)).scalar()
     saldo += float(rec_total or 0)
 
-    # Faturas de cartão:
-    # 1) Pagamentos explicitos: cada CardPayment desconta da conta indicada
+    # Faturas de cartao: SO afetam saldo quando explicitamente pagas via CardPayment.
+    # Faturas pendentes nao deduzem de nenhuma conta (o usuario decide quando pagar).
     paid_from_this = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
         .join(CreditCard, CardPayment.card_id == CreditCard.id) \
         .filter(CreditCard.user_id == user_id, CardPayment.account_id == account.id).scalar()
     saldo -= float(paid_from_this or 0)
-
-    # 2) Fallback: fatura sem pagamentos cai inteira na conta padrao
-    if is_default:
-        # totais por (card, year, month)
-        fatura_totais = db.session.query(
-            CardExpense.card_id,
-            MonthlyRecord.year,
-            MonthlyRecord.month,
-            db.func.coalesce(db.func.sum(CardExpense.valor), 0).label('total')
-        ).join(CreditCard).join(MonthlyRecord, CardExpense.record_id == MonthlyRecord.id) \
-         .filter(CreditCard.user_id == user_id) \
-         .group_by(CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month).all()
-        for cid, year, month, total in fatura_totais:
-            paid = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
-                .filter(CardPayment.card_id == cid,
-                        CardPayment.year == year,
-                        CardPayment.month == month).scalar()
-            paid = float(paid or 0)
-            total = float(total or 0)
-            if paid <= 0:
-                # nenhum pagamento explicito: cai na padrao
-                saldo -= total
-            elif paid < total:
-                # parcial: o restante cai na padrao
-                saldo -= (total - paid)
 
     # Investimentos: aporte sai, saque entra; rendimentos não afetam conta
     aportes = db.session.query(db.func.coalesce(db.func.sum(InvestmentTransaction.valor), 0)) \
@@ -291,27 +266,8 @@ def account_history(account_id):
             -abs(cp.valor or 0), cp.id, None,
             {'card_id': cp.card_id, 'year': cp.year, 'month': cp.month})
 
-    # 8) Faturas de cartão pendentes (sem pagamento explicito) caem na padrao
-    if is_default:
-        # Agrupa por (card_id, year, month)
-        fatura_totais = db.session.query(
-            CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month,
-            db.func.coalesce(db.func.sum(CardExpense.valor), 0).label('total')
-        ).join(CreditCard).join(MonthlyRecord, CardExpense.record_id == MonthlyRecord.id) \
-         .filter(CreditCard.user_id == user_id) \
-         .group_by(CardExpense.card_id, MonthlyRecord.year, MonthlyRecord.month).all()
-        for cid, year, month, total in fatura_totais:
-            paid = db.session.query(db.func.coalesce(db.func.sum(CardPayment.valor), 0)) \
-                .filter(CardPayment.card_id == cid,
-                        CardPayment.year == year,
-                        CardPayment.month == month).scalar()
-            pendente = float(total or 0) - float(paid or 0)
-            if pendente > 0.01:
-                card = CreditCard.query.get(cid)
-                add('', 'card_pending',
-                    f'Fatura pendente {card.nome if card else ""} ({month}/{year})',
-                    -round(pendente, 2), cid, None,
-                    {'card_id': cid, 'year': year, 'month': month})
+    # Faturas pendentes nao geram eventos no historico - so faturas pagas via
+    # CardPayment (ja registradas no item 7 acima) afetam o saldo da conta.
 
     # Ordena: data desc, depois id desc
     events.sort(key=lambda e: (e['date'] or '0000-00-00', e.get('source_id') or 0), reverse=True)

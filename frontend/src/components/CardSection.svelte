@@ -396,7 +396,7 @@
                   <span class="pay-badge partial">⚠️ {fmt(fatura.total - fatura.paid)} pendente</span>
                 {/if}
               {:else}
-                <span class="pay-badge pending">⏳ Pagar com conta padrão</span>
+                <span class="pay-badge pending">⏳ A pagar</span>
               {/if}
               <span class="card-total negative">{fmt(fatura.total)}</span>
               <span class="chevron">{expandedCard === fatura.card_id ? '▲' : '▼'}</span>
