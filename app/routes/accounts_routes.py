@@ -131,6 +131,36 @@ def list_accounts():
     return jsonify(result), 200
 
 
+@bp.route('/debug', methods=['GET'])
+@jwt_required()
+def debug_balance():
+    """Endpoint temporario para diagnosticar calculo de saldo. Retorna breakdown por conta."""
+    user_id = int(get_jwt_identity())
+    accounts = FinancialAccount.query.filter_by(user_id=user_id).all()
+    result = []
+    for acc in accounts:
+        # Lista todos os CardPayments desta conta
+        cps = (db.session.query(CardPayment, CreditCard.nome)
+               .join(CreditCard, CardPayment.card_id == CreditCard.id)
+               .filter(CreditCard.user_id == user_id, CardPayment.account_id == acc.id).all())
+        paid_total = sum(float(cp.valor or 0) for cp, _ in cps)
+        result.append({
+            'account_id': acc.id,
+            'nome': acc.nome,
+            'padrao': acc.padrao,
+            'saldo_inicial': float(acc.saldo_inicial or 0),
+            'saldo_computado': _compute_balance(acc, accounts),
+            'card_payments_count': len(cps),
+            'card_payments_total': round(paid_total, 2),
+            'card_payments': [
+                {'id': cp.id, 'card_nome': nome, 'card_id': cp.card_id,
+                 'year': cp.year, 'month': cp.month, 'valor': float(cp.valor or 0)}
+                for cp, nome in cps
+            ],
+        })
+    return jsonify(result), 200
+
+
 MONTHS_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
              'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
