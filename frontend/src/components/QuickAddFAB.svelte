@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   import { accountsStore } from '../stores/accounts'
+  import TagInput from './TagInput.svelte'
 
   export let recordId: number
   export let categorias: string[] = ['Moradia','Alimentacao','Transporte','Saude','Educacao','Lazer','Cartao','Outros']
@@ -19,6 +20,8 @@
   let eValor = ''
   let eData = new Date().toISOString().split('T')[0]
   let eCategoria = 'Outros'
+  let ePago = false
+  let eTags: string[] = []
   let eSaving = false
 
   // card form
@@ -29,6 +32,7 @@
   let cData = new Date().toISOString().split('T')[0]
   let cCategoria = 'Outros'
   let cParcelas = '1'
+  let cTags: string[] = []
   let cSaving = false
 
   function toggleOpen() { open = !open }
@@ -52,10 +56,10 @@
     try {
       const r = await fetch(`${API_BASE}/records/${recordId}/expenses`, {
         method: 'POST', headers: auth(),
-        body: JSON.stringify({ descricao: eDesc, valor: parseFloat(eValor), data: eData, categoria: eCategoria })
+        body: JSON.stringify({ descricao: eDesc, valor: parseFloat(eValor), data: eData, categoria: eCategoria, pago: ePago, tags: eTags })
       })
       if (r.ok) {
-        eDesc = ''; eValor = ''; eCategoria = 'Outros'; eData = new Date().toISOString().split('T')[0]
+        eDesc = ''; eValor = ''; eCategoria = 'Outros'; eData = new Date().toISOString().split('T')[0]; ePago = false; eTags = []
         modal = null
         dispatch('saved')
       }
@@ -72,11 +76,12 @@
           card_id: cCardId, record_id: recordId,
           descricao: cDesc, valor: parseFloat(cValor),
           data: cData, categoria: cCategoria,
-          parcelas: parseInt(cParcelas) || 1
+          parcelas: parseInt(cParcelas) || 1,
+          tags: cTags
         })
       })
       if (r.ok) {
-        cDesc = ''; cValor = ''; cCategoria = 'Outros'; cParcelas = '1'; cData = new Date().toISOString().split('T')[0]
+        cDesc = ''; cValor = ''; cCategoria = 'Outros'; cParcelas = '1'; cData = new Date().toISOString().split('T')[0]; cTags = []
         modal = null
         dispatch('saved')
       }
@@ -126,6 +131,11 @@
         <select bind:value={eCategoria} class="qa-inp">
           {#each categorias as cat}<option>{cat}</option>{/each}
         </select>
+        <TagInput bind:tags={eTags} placeholder="tags (Enter pra adicionar)..." />
+        <label class="qa-chk">
+          <input type="checkbox" bind:checked={ePago} />
+          <span>Marcar como pago</span>
+        </label>
       </div>
       <div class="qa-footer">
         <button class="qa-btn-cancel" on:click={closeModal}>Cancelar</button>
@@ -171,6 +181,7 @@
               <input id="parc-fab-inp" type="number" inputmode="numeric" min="1" max="60" bind:value={cParcelas} class="qa-inp" style="width:70px" />
             </div>
           </div>
+          <TagInput bind:tags={cTags} placeholder="tags (Enter pra adicionar)..." />
         </div>
         <div class="qa-footer">
           <button class="qa-btn-cancel" on:click={closeModal}>Cancelar</button>
@@ -299,6 +310,10 @@
   .qa-parc-lbl { font-size: 0.7rem; color: #888; }
 
   .qa-empty { text-align: center; color: #888; font-style: italic; padding: 0.5rem 0; font-size: 0.9rem; }
+
+  .qa-chk { display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; color: #555; cursor: pointer; user-select: none; padding: 0.2rem 0; }
+  .qa-chk input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; flex: 0 0 auto; }
+  :global([data-theme="dark"]) .qa-chk { color: #b0b0c8; }
 
   .qa-footer {
     display: flex; gap: 0.5rem;
