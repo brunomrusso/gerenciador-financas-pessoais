@@ -107,6 +107,32 @@
   // Recarrega sempre que refreshKey mudar (lançamentos novos)
   $: if (refreshKey >= 0) reload()
 
+  // Ajuste de saldo (modal)
+  let adjustAcc: Account | null = null
+  let adjustValor = ''
+  let savingAdjust = false
+  function openAdjust(acc: Account) {
+    adjustAcc = acc
+    adjustValor = (acc.saldo || 0).toFixed(2).replace('.', ',')
+  }
+  function closeAdjust() { adjustAcc = null; adjustValor = '' }
+  $: adjustNovo = parseFloat(String(adjustValor).replace(/\./g, '').replace(',', '.')) || 0
+  $: adjustDelta = adjustAcc ? adjustNovo - (adjustAcc.saldo || 0) : 0
+  async function saveAdjust() {
+    if (!adjustAcc) return
+    savingAdjust = true
+    try {
+      const novoInicial = (adjustAcc.saldo_inicial || 0) + adjustDelta
+      const r = await fetch(`/api/accounts/${adjustAcc.id}`, {
+        method: 'PATCH', headers: auth(),
+        body: JSON.stringify({ saldo_inicial: novoInicial })
+      })
+      if (!r.ok) { alert('Erro ao ajustar saldo'); return }
+      closeAdjust()
+      await reload()
+    } finally { savingAdjust = false }
+  }
+
   onMount(() => reload())
 </script>
 
@@ -141,6 +167,7 @@
             <div class="acc-saldo" class:negativo={acc.saldo < 0}>{fmt(acc.saldo)}</div>
             <div class="acc-actions">
               <button class="btn-mini" title="Histórico" on:click={() => historyAccount = { id: acc.id, nome: acc.nome }}>📜</button>
+              <button class="btn-mini" title="Ajustar saldo" on:click={() => openAdjust(acc)}>🎯</button>
               {#if !acc.padrao}
                 <button class="btn-mini" title="Tornar padrão" on:click={() => setDefault(acc)}>★</button>
               {/if}
@@ -197,6 +224,29 @@
     accountName={historyAccount.nome}
     onClose={() => historyAccount = null}
   />
+{/if}
+
+{#if adjustAcc}
+  <div class="modal-overlay" on:click|self={closeAdjust}>
+    <div class="modal-box">
+      <p class="modal-title">🎯 Ajustar saldo — {adjustAcc.nome}</p>
+      <p class="modal-sub">Saldo atual: <strong>{fmt(adjustAcc.saldo || 0)}</strong></p>
+      <label class="adjust-label">Novo saldo (R$)</label>
+      <input class="adjust-input" type="text" inputmode="decimal" bind:value={adjustValor} placeholder="0,00" />
+      {#if Math.abs(adjustDelta) > 0.001}
+        <p class="adjust-delta" class:positive={adjustDelta > 0} class:negative={adjustDelta < 0}>
+          {adjustDelta > 0 ? '+' : ''}{fmt(adjustDelta)} será aplicado ao saldo inicial
+        </p>
+      {/if}
+      <p class="adjust-help">A diferença será somada/subtraída do <em>saldo inicial</em> da conta sem afetar transações existentes.</p>
+      <div class="adjust-btns">
+        <button class="btn-primary" on:click={saveAdjust} disabled={savingAdjust || Math.abs(adjustDelta) < 0.001}>
+          {savingAdjust ? 'Salvando...' : 'Aplicar ajuste'}
+        </button>
+        <button class="btn-cancel" on:click={closeAdjust}>Cancelar</button>
+      </div>
+    </div>
+  </div>
 {/if}
 
 <style>
@@ -263,4 +313,24 @@
   @media (max-width: 640px) {
     .acc-grid { grid-template-columns: 1fr; }
   }
+
+  /* Modal de ajuste */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+  .modal-box { background: white; border-radius: 12px; padding: 1.25rem; width: 100%; max-width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+  .modal-title { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 700; color: #333; }
+  .modal-sub { margin: 0 0 0.85rem; font-size: 0.85rem; color: #666; }
+  .adjust-label { display: block; font-size: 0.8rem; color: #555; font-weight: 600; margin-bottom: 0.3rem; }
+  .adjust-input { width: 100%; box-sizing: border-box; padding: 0.6rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-weight: 600; color: #333; background: #fff; }
+  .adjust-delta { margin: 0.5rem 0 0; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 0.6rem; border-radius: 5px; }
+  .adjust-delta.positive { color: #2e7d32; background: #e8f5e9; }
+  .adjust-delta.negative { color: #c62828; background: #ffebee; }
+  .adjust-help { margin: 0.6rem 0 0; font-size: 0.75rem; color: #888; line-height: 1.4; }
+  .adjust-btns { display: flex; gap: 0.5rem; margin-top: 0.85rem; }
+  .adjust-btns .btn-primary { flex: 1; }
+  .adjust-btns .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  :global([data-theme="dark"]) .modal-box { background: #1e1e1e; }
+  :global([data-theme="dark"]) .modal-title { color: #eee; }
+  :global([data-theme="dark"]) .modal-sub, :global([data-theme="dark"]) .adjust-label, :global([data-theme="dark"]) .adjust-help { color: #aaa; }
+  :global([data-theme="dark"]) .adjust-input { background: #2a2a2a; color: #ddd; border-color: #444; }
 </style>
